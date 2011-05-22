@@ -8,6 +8,7 @@
 *.a
 *.so
 *.depend
+a.out
 
 # Directory #
 #############
@@ -45,5 +46,10 @@
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# Other files #
+###############
+*.swp
+
 
 

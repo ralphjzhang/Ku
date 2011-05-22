@@ -1,6 +1,4 @@
-#ifndef KU_SU_NONCOPYABLE_HPP
-#define KU_SU_NONCOPYABLE_HPP
-
+#pragma once
 
 namespace ku { namespace su {
 
@@ -17,7 +15,6 @@ struct noncopyable
 
 using namespace unspecified;
 
-}}
+} } // namespace ku::su
 
 
-#endif // KU_SU_NONCOPYABLE_HPP
