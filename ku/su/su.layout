@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="main.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="318" topLine="0" />
+	</File>
+	<File name="memory.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="409" topLine="0" />
+	</File>
+	<File name="singleton.hpp" open="0" top="0" tabpos="1">
+		<Cursor position="664" topLine="4" />
+	</File>
+	<File name="tuple.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="571" topLine="2" />
+	</File>
+</CodeBlocks_layout_file>
