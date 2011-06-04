@@ -1,5 +1,6 @@
 # Compiled source #
 ###################
+*.d
 *.com
 *.class
 *.dll
@@ -9,6 +10,7 @@
 *.so
 *.depend
 a.out
+dan
 
 # Directory #
 #############
@@ -20,7 +22,10 @@ a.out
 */bin/*
 */obj
 */obj/*
+build
+*/build
 */build/*
+gtest
 
 # Packages #
 ############

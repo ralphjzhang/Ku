@@ -21,6 +21,13 @@ TEST(chuan, chuan)
   EXPECT_STREQ(buf, "1234");
   *chuan(buf, 12345678901234567890u) = '\0';
   EXPECT_STREQ(buf, "12345678901234567890");
+
+  std::string ss("life");
+  *chuan(buf, ss) = '\0';
+  EXPECT_STREQ(buf, ss.c_str());
+
+  *chuan(buf, 3.14) = '\0';
+  EXPECT_STREQ(buf, "3.140000");
 }
 
 TEST(chuan, digits)

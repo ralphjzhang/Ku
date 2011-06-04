@@ -81,22 +81,37 @@ Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>>::type* = nul
   return dest + size;
 }
 
+template <typename T, typename Iter = char*>
+Iter chuan( Iter dest, T n, typename enable_if<std::is_floating_point<T>>::type* = nullptr )
+{
+  // TODO temp solution
+  return dest + sprintf(dest, "%f", n);
+}
+
 /// specialized version for string literals, save the call to strlen
 //
 template <typename T, size_t n, typename Iter = char*>
 inline Iter chuan( Iter dest, const T(&str)[n] )
 {
-  std::copy(str + 0, str + n, dest);
-  return dest + n;
+  return std::copy(str + 0, str + n - 1, dest);
 }
 
+/// specialized version for plain c strings
+//
 template <typename T, typename Iter = char*>
 inline Iter chuan( Iter dest, const T* str )
 {
-  size_t size = strlen(str);
-  std::copy(str, str + size, dest);
-  return dest + size;
+  return std::copy(str, str + strlen(str), dest);
 }
+
+/// specialized version for c++ standard strings
+//
+template <typename Iter = char*>
+inline Iter chuan( Iter dest, std::string const& str)
+{
+  return std::copy(str.begin(), str.end(), dest);
+}
+
 
 } } // namespace ku::chuan
 
