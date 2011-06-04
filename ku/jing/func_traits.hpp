@@ -27,6 +27,7 @@ private:
   {
     return '>' == name[name.find('(') - 1];
   }
+
 public:
   func_traits(function_type f) : fp(f)
   {}
@@ -44,9 +45,10 @@ public:
   std::string name()
   {
     std::string name(_fullname());
-    name.erase(name.find('('));
     // Remove result_type from template function name
-    size_t begin = _is_template(name) ? result().size() : 0;
+    size_t begin = _is_template(name) ? result().size() + 1 : 0;
+    // Remove parameter list
+    name.erase(name.find('('));
     return std::string(name, begin);
   }
 
@@ -66,7 +68,7 @@ public:
   }
 
   template <size_t N>
-  auto arg() -> aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>
+  inline auto arg() -> aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>
   {
     return aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>();
   }
@@ -75,7 +77,8 @@ public:
 } // namespace aux
 
 template <typename R, typename... Args>
-auto func_traits( R(&fp)(Args...) = *reinterpret_cast<R(*)(Args...)>(0) ) -> aux::func_traits<R, Args...>
+auto inline func_traits( R(&fp)(Args...) = *reinterpret_cast<R(*)(Args...)>(0) ) 
+    -> aux::func_traits<R, Args...>
 {
   return aux::func_traits<R, Args...>(fp);
 }

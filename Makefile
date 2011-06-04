@@ -57,16 +57,16 @@
 ##==========================================================================
 
 # The pre-processor and compiler options.
-MY_CFLAGS = --std=c++0x -I/home/zhjun/Dropbox/Code/Ku
+MY_CFLAGS = 
 
 # The linker options.
-MY_LIBS   = -lpthread -ldl -lm /home/zhjun/Dropbox/Code/Ku/gtest/gtest_main.a
+MY_LIBS   =
 
 # The pre-processor options used by the cpp (man cpp for more).
-CPPFLAGS  = -Wall
+CPPFLAGS  = -Wall --std=c++0x -fPIC -rdynamic -I/home/zhjun/Dropbox/Code/Ku
 
 # The options used in linking as well as in any direct use of ld.
-LDFLAGS   =
+LDFLAGS   = -lpthread -ldl -lm /home/zhjun/Dropbox/Code/Ku/gtest/gtest_main.a
 
 # The directories in which source files reside.
 # If not specified, only the current directory will be serached.

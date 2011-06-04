@@ -8,12 +8,11 @@ TEST(chuan, format)
   using namespace ku::chuan;
   using namespace std::placeholders;
 
-  char buf[256];
+  char str[256];
+  auto fmt = make_lit("Life, ") |_1| " and " |_2;
+  *format(str, fmt, "universe", "everything") = '\0';
+  EXPECT_STREQ(str, "Life, universe and everything");
+
   //format(buf, "chuan::format arg 1:"|_1|", arg2:"|_2|", better?", 42, "life");
-
-  auto s = format("Life, ") |_1| " and " |_2;
-  print(buf, s, "universe", "everything");
-
-  std::cout << buf << std::endl;
 }
 
