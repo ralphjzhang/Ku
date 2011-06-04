@@ -9,42 +9,43 @@ namespace ku { namespace chuan {
 using ku::yuan::enable_if_c;
 using ku::yuan::enable_if;
 
+
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 32-bit or shorter
 template <typename T>
 typename enable_if_c<(sizeof(T) <= 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>>::type* = 0 )
+digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
 {
   return
-    (t >= 1e4)
-    ? (t >= 1e7) 
-      ? (t >= 1e9) ? 10 : (t >= 1e8) ? 9 : 8
-      : (t >= 1e6) ? 7  : (t >= 1e5) ? 6 : 5
-    : (t >= 1e2)
-      ? (t >= 1e3) ? 4 : 3
-      : (t >= 10)  ? 2 : 1;
+    (t >= 10000u)
+    ? (t >= 10000000u) 
+      ? (t >= 1000000000u) ? 10 : (t >= 100000000u) ? 9 : 8
+      : (t >= 1000000u) ? 7  : (t >= 100000u) ? 6 : 5
+    : (t >= 100u)
+      ? (t >= 1000u) ? 4 : 3
+      : (t >= 10u)  ? 2 : 1;
 }
 
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 64-bit
 template <typename T>
 typename enable_if_c<(sizeof(T) > 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>>::type* = 0 )
+digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
 {
   return (t <= 0xFFFFFFFF) ? digits(uint32_t(t)) :
-    (t >= 1e14)
-    ? (t >= 1e17)
-      ? (t >= 1e19) ? 20 : (t >= 1e18) ? 19 : 18
-      : (t >= 1e16) ? 17 : (t >= 1e15) ? 16 : 15
-    : (t >= 1e12)
-      ? (t >= 1e13) ? 14 : 13
-      : (t >= 1e11) ? 12 : (t >= 1e10) ? 11 : 10;
+    (t >= 100000000000000u)
+    ? (t >= 100000000000000000u)
+      ? (t >= 10000000000000000000u) ? 20 : (t >= 1000000000000000000u) ? 19 : 18
+      : (t >= 10000000000000000u) ? 17 : (t >= 1000000000000000u) ? 16 : 15
+    : (t >= 1000000000000u)
+      ? (t >= 10000000000000u) ? 14 : 13
+      : (t >= 100000000000u) ? 12 : (t >= 10000000000u) ? 11 : 10;
 }
 
 /// convert integral n to string, write to dest
 //  return the Iter pointing after the last position of writing
 template <typename T, typename Iter = char*>
-Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>>::type* = 0 )
+Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>>::type* = nullptr )
 {
   static const char digit_pairs[201] = {
       "00010203040506070809"

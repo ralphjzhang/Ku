@@ -13,9 +13,16 @@ double func2( double d, const char* s )
   return sin(d);
 }
 
+template <typename Sig>
+constexpr Sig& getfunc(Sig& Func)
+{
+  return Func;
+}
+
 int cfunc2( lua_State *L )
 {
-  ku::yue::wrap_func<decltype(func2), func2>::call(L);
+  getfunc(func2);
+  ku::yue::wrap_func<decltype(func2), (getfunc(func2))>::call(L);
   return 1;
 }
 
