@@ -33,6 +33,7 @@ bool check_specifier(const char*& p)
   return false;
 }
 } // namespace aux
+
 template <typename T, typename... Args>
 void printf(const char*s, const T& value, const Arg&... args)
 {

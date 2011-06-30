@@ -23,16 +23,16 @@ private:
     return std::string();
   }
   
-  inline bool _is_template(std::string const& name)
+  inline bool _is_template( std::string const& name )
   {
     return '>' == name[name.find('(') - 1];
   }
 
 public:
-  func_traits(function_type f) : fp(f)
-  {}
+  func_traits( function_type f ) : fp(f)
+  { }
 
-  std::string fullname()
+  std::string fullname( )
   {
     std::string name(_fullname());
     // For non-template function, need to prepend result_type name
@@ -42,7 +42,7 @@ public:
       return name;
   }
 
-  std::string name()
+  std::string name( )
   {
     std::string name(_fullname());
     // Remove result_type from template function name
@@ -52,23 +52,23 @@ public:
     return std::string(name, begin);
   }
 
-  inline size_t arity()
+  inline size_t arity( )
   { 
     return sizeof...(Args);
   }
 
-  inline std::string result()
+  inline std::string result( )
   {
     return type_traits<R>().name();
   }
 
-  inline bool is_template()
+  inline bool is_template( )
   {
     return _is_template(_fullname());
   }
 
   template <size_t N>
-  inline auto arg() -> aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>
+  inline auto arg( ) -> aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>
   {
     return aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>();
   }

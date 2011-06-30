@@ -1,13 +1,13 @@
 #pragma once
+#include <type_traits>
 #include <tuple>
 #include <utility>
 #include <functional>
-#include <ku/yuan/enable_if.hpp>
 #include "chuan.hpp"
 
 namespace ku { namespace chuan {
 
-using ku::yuan::enable_if_c;
+using std::enable_if;
 
 template <typename T>
 struct placeholder
@@ -71,7 +71,7 @@ inline auto to_lit( T(&t)[N] ) -> string<decltype(t)>
 
 template <typename T>
 inline auto to_lit( T t )
-    -> typename enable_if_c<(std::is_placeholder<T>::value > 0), placeholder<T>>::type
+    -> typename enable_if<(std::is_placeholder<T>::value > 0), placeholder<T>>::type
 {
   return placeholder<T>(t);
 }
@@ -83,7 +83,7 @@ auto make_lit( T(&t)[N] ) -> lit<decltype(to_lit(t)), void>
 }
 
 template <typename T>
-auto make_lit( T const& t, typename enable_if_c<(std::is_placeholder<T>::value > 0)>::type* = nullptr )
+auto make_lit( T const& t, typename enable_if<(std::is_placeholder<T>::value > 0)>::type* = nullptr )
     -> lit<decltype(to_lit(t)), void>
 {
   return lit<decltype(to_lit(t)), void>(to_lit(t));

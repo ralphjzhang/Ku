@@ -1,68 +1,59 @@
-#ifndef KU_SU_SINGLETON_HPP
-#define KU_SU_SINGLETON_HPP
-
+#pragma once
 #include <mutex>
-#include "noncopyable.hpp"
+#include <ku/su/noncopyable.hpp>
 
 namespace ku { namespace su {
-
 
 using std::call_once;
 using std::once_flag;
 
 template<typename DerivedT, typename StorageT = DerivedT>
-class lazy_singleton
-        : private noncopyable
+class lazy_singleton : private noncopyable
 {
 public:
-    typedef DerivedT derived_type;
-    typedef StorageT storage_type;
+  typedef DerivedT derived_type;
+  typedef StorageT storage_type;
 
 public:
-    static auto get() -> storage_type&
-    {
-        static once_flag flag;
-        call_once(flag, &DerivedT::init_instance);
+  static storage_type& get()
+  {
+    static once_flag flag;
+    call_once(flag, &DerivedT::init_instance);
+    return get_instance();
+  }
 
-        return get_instance();
-    }
-
-    static auto init_instance() -> void
-    {
-        get_instance();
-    }
+  static void init_instance()
+  {
+    get_instance();
+  }
 
 protected:
-    static auto get_instance() -> storage_type&
-    {
-        static storage_type instance;
-        return instance;
-    }
+  static storage_type& get_instance()
+  {
+    static storage_type instance;
+    return instance;
+  }
 };
 
 
 template<typename DerivedT, typename StorageT = DerivedT>
-class singleton
-        : public lazy_singleton<DerivedT, StorageT>
+class singleton : public lazy_singleton<DerivedT, StorageT>
 {
 public:
-    typedef StorageT storage_type;
-    static storage_type& instance;
+  typedef StorageT storage_type;
+  static storage_type& instance;
 };
 
 template<typename DerivedT, typename StorageT>
-StorageT& singleton<DerivedT, StorageT>::instance =
-        lazy_singleton<DerivedT, StorageT>::get();
+StorageT& singleton<DerivedT, StorageT>::instance = lazy_singleton<DerivedT, StorageT>::get();
 
 
 template<typename SingletonT>
 SingletonT& get_singleton()
 {
-    return singleton<SingletonT>::get();
+  return singleton<SingletonT>::get();
 }
 
-}}
+} } // namespace ku::su
 
-
-#endif // KU_SU_SINGLETON_HPP
 

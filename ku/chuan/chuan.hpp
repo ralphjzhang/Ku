@@ -2,19 +2,16 @@
 #include <type_traits>
 #include <algorithm>
 #include <cstring>
-#include <ku/yuan/enable_if.hpp>
 
 namespace ku { namespace chuan {
 
-using ku::yuan::enable_if_c;
-using ku::yuan::enable_if;
-
+using std::enable_if;
 
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 32-bit or shorter
 template <typename T>
-typename enable_if_c<(sizeof(T) <= 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
+typename enable_if<(sizeof(T) <= 4), int>::type
+digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
 {
   return
     (t >= 10000u)
@@ -29,8 +26,8 @@ digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 64-bit
 template <typename T>
-typename enable_if_c<(sizeof(T) > 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
+typename enable_if<(sizeof(T) > 4), int>::type
+digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
 {
   return (t <= 0xFFFFFFFF) ? digits(uint32_t(t)) :
     (t >= 100000000000000u)
@@ -45,7 +42,7 @@ digits( T t, typename enable_if<std::is_unsigned<T>>::type* = nullptr )
 /// convert integral n to string, write to dest
 //  return the Iter pointing after the last position of writing
 template <typename T, typename Iter = char*>
-Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>>::type* = nullptr )
+Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>::value>::type* = nullptr )
 {
   static const char digit_pairs[201] = {
       "00010203040506070809"
@@ -82,7 +79,7 @@ Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>>::type* = nul
 }
 
 template <typename T, typename Iter = char*>
-Iter chuan( Iter dest, T n, typename enable_if<std::is_floating_point<T>>::type* = nullptr )
+Iter chuan( Iter dest, T n, typename enable_if<std::is_floating_point<T>::value>::type* = nullptr )
 {
   // TODO temp solution
   return dest + sprintf(dest, "%f", n);

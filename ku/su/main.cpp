@@ -1,20 +1,19 @@
-#include "memory.hpp"
-#include "singleton.hpp"
 #include <string>
+#include <iostream>
 #include <type_traits>
 
-using ku::su::singleton;
-
-class bachelor : public singleton<bachelor>
-{
-};
+#include "memory.hpp"
+#include "sequence_number.hpp"
 
 int main()
 {
-    using namespace ku::su;
+  using namespace ku::su;
 
-    auto sp = construct<std::string>(1, 'e');
-    auto sptr = make_unique<std::string>(1, 'e');
+  auto sp = construct<std::string>(1, 'e');
+  auto sptr = make_unique<std::string>(1, 'e');
 
-    bachelor::get();
+  //bachelor::get();
+
+  for (int i = 0; i < 10; ++i)
+    std::cout << next_seq() << std::endl;
 }

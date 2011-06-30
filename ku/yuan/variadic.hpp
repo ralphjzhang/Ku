@@ -3,8 +3,8 @@
 
 namespace ku { namespace yuan {
 
-template <typename Head, typename... Tail>
-struct for_each
+template <typename F, typename Head, typename... Tail>
+struct apply_each
 {
   void operator () ( Head, Tail... )
   {

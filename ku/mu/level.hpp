@@ -1,89 +1,84 @@
-#ifndef KU_MU_LEVEL_HPP
-#define KU_MU_LEVEL_HPP
-
+#pragma once
 #include <string>
 
 namespace ku { namespace mu {
 
-namespace level
-{
+  namespace level
+  {
 
-
-typedef enum : unsigned short
-{
-    none = 0x00,
-    trace = 0x01,
-    debug = 0x02,
-    info = 0x04,
-    warning = 0x08,
-    error = 0x10,
-    fatal = 0x20,
-
-    all = 0xff
-} type;
-
-
-inline auto to_str(type l) -> std::string
-{
-    switch (l)
+    enum class type: unsigned short
     {
-    case level::none:
+      none = 0x00,
+      trace = 0x01,
+      debug = 0x02,
+      info = 0x04,
+      warning = 0x08,
+      error = 0x10,
+      fatal = 0x20,
+
+      all = 0xff
+    };
+
+
+    inline auto to_str(type l) -> std::string
+    {
+      switch (l)
+      {
+      case level::none:
         return "none";
         break;
-    case level::trace:
+      case level::trace:
         return "trace";
         break;
-    case level::debug:
+      case level::debug:
         return "debug";
         break;
-    case level::info:
+      case level::info:
         return "info";
         break;
-    case level::warning:
+      case level::warning:
         return "warning";
         break;
-    case level::error:
+      case level::error:
         return "error";
         break;
-    case level::fatal:
+      case level::fatal:
         return "fatal";
         break;
-    case level::all:
+      case level::all:
         return "all";
         break;
-    default:
+      default:
         return "unknown";
         break;
+      }
     }
-}
 
 
-inline auto from_str(std::string const& s) -> level::type
-{
-    if (s == "none")
+    inline auto from_str(std::string const& s) -> level::type
+    {
+      if (s == "none")
         return level::none;
-    if (s == "trace")
+      if (s == "trace")
         return level::trace;
-    if (s == "debug")
+      if (s == "debug")
         return level::debug;
-    if (s == "info")
+      if (s == "info")
         return level::info;
-    if (s == "warning")
+      if (s == "warning")
         return level::warning;
-    if (s == "error")
+      if (s == "error")
         return level::error;
-    if (s == "fatal")
+      if (s == "fatal")
         return level::fatal;
-    if (s == "all")
+      if (s == "all")
         return level::all;
 
-    return level::none;
-}
+      return level::none;
+    }
 
-}
-
-
-}}
+  }
 
 
-#endif // KU_MU_LEVEL_HPP
+} } // namespace ku::mu
+
