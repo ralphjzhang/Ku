@@ -1,6 +1,8 @@
 #pragma once
 #include <execinfo.h>
+#include <vector>
 #include <string>
+#include <algorithm>
 #include <ku/jing/type_traits.hpp>
 
 namespace ku { namespace jing {
@@ -51,6 +53,18 @@ std::vector<std::string> backtrace( bool demangle_symbols = true )
 
   ::free(symbols);
   return ret;
+}
+
+// Handler, register it with std::signal
+void backtrace_handler(int sig)
+{
+  std::vector<std::string> bt(backtrace(true));
+  // The uppermost 2 stacks are the handler, and backtrace itself
+  if (bt.size() > 2)
+    std::for_each(bt.begin() + 2, bt.end(), [](std::string const& s) {
+        std::cerr << s << std::endl;
+      });
+  exit(1);
 }
 
 } } // namespace ku::jing
