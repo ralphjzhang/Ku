@@ -1,5 +1,6 @@
 #pragma once
 #include <system_error>
+#include <strings.h>
 #include <ku/util/noncopyable.hpp>
 
 namespace ku { namespace net {
@@ -16,8 +17,9 @@ public:
     : raw_handle_(handle.raw_handle())
   { }
 
-  channel(int raw_handle, int events_type)
-    : raw_handle_(raw_handle), events_type_(events_type)
+  template <typename Handle>
+  channel(Handle const& handle, int events_type)
+    : raw_handle_(handle.raw_handle()), events_type_(events_type)
   { }
 
   channel(channel&& chan)
@@ -26,12 +28,14 @@ public:
 
   int raw_handle() const { return raw_handle_; }
 
-  void clear() { raw_handle_ = 0; }
+  void clear() { bzero(this, sizeof(channel)); }
 
   int events_type() const { return events_type_; }
   void set_events_type(int et) { events_type_ = et; }
   int events() const { return events_; }
   void set_events(int events) { events_ = events; }
+
+  void handle_event();
 
 private:
   int raw_handle_;

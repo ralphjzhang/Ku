@@ -45,7 +45,8 @@ handle create(addrinfo const& addr);
 
 handle& bind_listen(handle& h, address const& addr);
 
-//channel::handle accept(handle& h, address& addr);
+handle accept(handle const& h, address& addr);
+
 ssize_t read(handle const& h, void* buf, size_t count);
 ssize_t write(handle const& h, void* buf, size_t count);
 

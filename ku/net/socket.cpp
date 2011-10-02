@@ -7,21 +7,11 @@
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <cerrno>
-#include <ku/util/cast.hpp>
+#include "util.hpp"
 #include "address.hpp"
 #include "socket.hpp"
 
 namespace {
-
-sockaddr const* sockaddr_cast(sockaddr_in const* addr)
-{
-  return static_cast<sockaddr const*>(implicit_cast<void const*>(addr));
-}
-
-sockaddr* sockaddr_cast(sockaddr_in* addr)
-{
-  return static_cast<sockaddr*>(implicit_cast<void*>(addr));
-}
 
 int set_non_block(int socket_fd)
 {
@@ -34,34 +24,6 @@ int set_non_block(int socket_fd)
     return errno;
   return 0;
 }
-
-/*
-sockaddr_in get_local_addr(int socket_fd)
-{
-  sockaddr_in addr;
-  bzero(&addr, sizeof(addr));
-  socklen_t addr_len = sizeof(addr);
-  getsockname(socket_fd, sockaddr_cast(&addr), &addr_len);
-  return addr;
-}
-
-sockaddr_in get_peer_addr(int socket_fd)
-{
-  sockaddr_in addr;
-  bzero(&addr, sizeof(addr));
-  socklen_t addr_len = sizeof(addr);
-  getpeername(socket_fd, sockaddr_cast(&addr), &addr_len);
-  return addr;
-}
-
-bool self_connect(int socket_fd)
-{
-  sockaddr_in local_addr = get_local_addr(socket_fd),
-              peer_addr = get_peer_addr(socket_fd);
-  return local_addr.sin_port == peer_addr.sin_port
-      && local_addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr;
-handle create(socket::handle& socket);
-}*/
 
 } // unamed namespace
 
@@ -78,7 +40,7 @@ handle create(addrinfo const& addr)
 
 handle& bind_listen(handle& h, address const& addr)
 {
-  if (::bind(h.raw_handle(), sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1) {
+  if (::bind(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1) {
     h.set_error(errno);
     return h;
   }
@@ -89,16 +51,15 @@ handle& bind_listen(handle& h, address const& addr)
   return h;
 }
 
-/*
-channel::handle accept(handle& h, address& addr)
+handle accept(handle const& h, address& addr)
 {
   socklen_t addr_len = sizeof(sockaddr_in);
-  int conn_fd = ::accept4(h.raw_handle(), sockaddr_cast(&addr.sockaddr()), &addr_len,
+  int socket_fd = ::accept4(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), &addr_len,
       SOCK_NONBLOCK | SOCK_CLOEXEC);
-  if (conn_fd == -1)
-    return channel::handle(conn_fd, errno);
-  return channel::handle(conn_fd);
-}*/
+  if (socket_fd == -1)
+    return handle(socket_fd, errno);
+  return handle(socket_fd);
+}
 
 ssize_t read(handle const& h, void* buf, size_t count)
 {
