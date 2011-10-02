@@ -1,11 +1,11 @@
 #pragma once
 
-namespace ku { namespace yuan {
+namespace ku { namespace meta {
 
 template <typename... T>
 struct tuple
 {
 };
 
-} } // namespace ku::yuan
+} } // namespace ku::meta
 

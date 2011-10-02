@@ -1,7 +1,7 @@
 #pragma once
 #include "variadic.hpp"
 
-namespace ku { namespace yuan {
+namespace ku { namespace meta {
 
 template <typename R, typename... Args>
 struct func_traits;
@@ -13,9 +13,9 @@ struct func_traits<R(Args...)>
   typedef R result_type;
   template <size_t N> struct arg
   {
-    typedef typename ku::yuan::at<N - 1, Args...>::type type;
+    typedef typename ku::meta::at<N - 1, Args...>::type type;
   };
 };
 
-} } // namespace ku::yuan
+} } // namespace ku::meta
 

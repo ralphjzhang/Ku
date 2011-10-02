@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ku { namespace su {
+namespace ku { namespace util {
 
 struct noncopyable
 {
@@ -11,6 +11,6 @@ struct noncopyable
   noncopyable& operator=(noncopyable const&) = delete;
 };
 
-} } // namespace ku::su
+} } // namespace ku::util
 
 

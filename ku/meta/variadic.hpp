@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
 
-namespace ku { namespace yuan {
+namespace ku { namespace meta {
 
 template <typename F, typename Head, typename... Tail>
 struct apply_each
@@ -98,5 +98,5 @@ struct remove<typelist<Th, Ti...>, Tp>
 };
 */
 
-} } // namespace ku::yuan
+} } // namespace ku::meta
 

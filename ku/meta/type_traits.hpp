@@ -1,7 +1,7 @@
 #pragma once
 #include "variadic.hpp"
 
-namespace ku { namespace yuan {
+namespace ku { namespace meta {
 
 template <typename F>
 struct is_template
@@ -15,5 +15,5 @@ struct is_template<T<Tl...>>
   enum { value = true };
 };
 
-} } // namespace ku::yuan
+} } // namespace ku::meta
 

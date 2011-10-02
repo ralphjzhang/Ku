@@ -45,6 +45,7 @@ gtest
 *.log
 *.sql
 *.sqlite
+*.dblite
 
 # OS generated files #
 ######################

@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <ku/jing/type_traits.hpp>
+#include <ku/reflex/type_traits.hpp>
 
-namespace ku { namespace jing {
+namespace ku { namespace reflex {
 
 namespace aux {
 
@@ -67,5 +67,5 @@ void backtrace_handler(int sig)
   exit(1);
 }
 
-} } // namespace ku::jing
+} } // namespace ku::reflex
 

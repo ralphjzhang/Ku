@@ -5,7 +5,7 @@
 #include "backtrace.hpp"
 
 using namespace std;
-using namespace ku::jing;
+using namespace ku::reflex;
 using namespace ku::dan;
 
 struct s0 {};
@@ -19,18 +19,18 @@ int f10(double) { return 0; }
 
 template <typename T> void tf0() {}
 
-TEST(jing, demangle)
+TEST(reflex, demangle)
 {
   EXPECT_EQ(demangle(typeid(s0).name()), "s0");
 }
 
-TEST(jing, type_traits)
+TEST(reflex, type_traits)
 {
   EXPECT_EQ(type_traits(42).name(),  "int");
   EXPECT_EQ(type_traits(s0()).name(), "s0");
 }
 
-TEST(jing, func_traits)
+TEST(reflex, func_traits)
 {
   EXPECT_EQ(func_traits(f0).arity(), 0u);
   EXPECT_EQ(func_traits(f0).name(), "f0");
@@ -45,12 +45,18 @@ TEST(jing, func_traits)
   //EXPECT_EQ(func_traits<int(double)>(f10).name());
 }
 
-std::vector<std::string> btfunc1() { return backtrace(); }
-std::vector<std::string> btfunc2() { return btfunc1(); }
+std::vector<std::string> btfunc1() { return ku::reflex::backtrace(); }
 
-TEST(jing, backtrace)
+std::vector<std::string> btfunc2()
+{ 
+  auto f = &btfunc1;
+  return f();
+}
+
+TEST(reflex, backtrace)
 {
-  std::vector<std::string> vs(btfunc2());
+  auto f = &btfunc2;
+  std::vector<std::string> vs(f());
   EXPECT_TRUE(vs[0].find("btfunc1()") != std::string::npos);
   EXPECT_TRUE(vs[1].find("btfunc2()") != std::string::npos);
 }

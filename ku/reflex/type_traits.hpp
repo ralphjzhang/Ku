@@ -3,7 +3,7 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 
-namespace ku { namespace jing {
+namespace ku { namespace reflex {
 
 std::string demangle( char const* name )
 {
@@ -38,5 +38,5 @@ auto type_traits( ) -> aux::type_traits<void>
   return aux::type_traits<void>();
 }
 
-} } // namespace ku::jing
+} } // namespace ku::reflex
 

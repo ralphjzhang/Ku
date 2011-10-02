@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
 #include <utility>
-#include <ku/yuan/func_traits.hpp>
-#include <ku/jing/type_traits.hpp>
+#include <ku/meta/func_traits.hpp>
+#include <ku/reflex/type_traits.hpp>
 
-namespace ku { namespace jing {
+namespace ku { namespace reflex {
 
 namespace aux {
 
@@ -19,7 +19,7 @@ private:
   {
     Dl_info info;
     if (dladdr(reinterpret_cast<const void*>(fp), &info))
-      return std::string(ku::jing::demangle(info.dli_sname));
+      return std::string(ku::reflex::demangle(info.dli_sname));
     return std::string();
   }
   
@@ -68,9 +68,9 @@ public:
   }
 
   template <size_t N>
-  inline auto arg( ) -> aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>
+  inline auto arg( ) -> aux::type_traits<typename ku::meta::at<N - 1, Args...>::type>
   {
-    return aux::type_traits<typename ku::yuan::at<N - 1, Args...>::type>();
+    return aux::type_traits<typename ku::meta::at<N - 1, Args...>::type>();
   }
 };
 
@@ -83,5 +83,5 @@ auto inline func_traits( R(&fp)(Args...) = *reinterpret_cast<R(*)(Args...)>(0) )
   return aux::func_traits<R, Args...>(fp);
 }
 
-} } // namespace ku::jing
+} } // namespace ku::reflex
 
