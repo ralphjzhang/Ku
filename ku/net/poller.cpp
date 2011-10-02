@@ -29,36 +29,36 @@ channels& dispatch(events const& evts, channels& chs)
 {
   for (int i = 0; i < evts.count(); ++i) {
     auto const& ev = evts.raw_event(i);
-    auto ch = static_cast<channel::handle*>(ev.data.ptr);
+    auto ch = static_cast<channel*>(ev.data.ptr);
     ch->set_events(ev.events);
     chs.add(ch);
   }
   return chs;
 }
 
-handle& update(handle& h, int op, channel::handle const& ch)
+handle& update(handle& h, int op, channel const& ch)
 {
   epoll_event event;
   bzero(&event, sizeof(event));
   event.data.fd = ch.raw_handle();
-  event.data.ptr = const_cast<channel::handle*>(&ch);
+  event.data.ptr = const_cast<channel*>(&ch);
   event.events = ch.events_type();
   if (::epoll_ctl(h.raw_handle(), op, ch.raw_handle(), &event) == -1)
     h.set_error(errno);
   return h;
 }
 
-handle& add_channel(handle& h, channel::handle const& ch)
+handle& add_channel(handle& h, channel const& ch)
 {
   return update(h, EPOLL_CTL_ADD, ch);
 }
 
-handle& remove_channel(handle& h, channel::handle const& ch)
+handle& remove_channel(handle& h, channel const& ch)
 {
   return update(h, EPOLL_CTL_DEL, ch);
 }
 
-handle& modify_channel(handle& h, channel::handle const& ch)
+handle& modify_channel(handle& h, channel const& ch)
 {
   return update(h, EPOLL_CTL_MOD, ch);
 }

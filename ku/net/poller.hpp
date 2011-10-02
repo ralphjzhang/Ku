@@ -7,11 +7,16 @@
 
 namespace ku { namespace net {
 
-namespace channel {
-class handle;
-} // namespace ku::net::channel
+class channel;
   
 namespace poller {
+
+enum class events_type
+{
+  None = 0, Read = EPOLLIN, Write = EPOLLOUT
+};
+
+inline int to_int(events_type et) { return static_cast<int>(et); }
 
 class events
 {
@@ -37,13 +42,13 @@ private:
 class channels
 {
 public:
-  void add(channel::handle* ch) { handles_.push_back(ch); }
+  void add(channel* ch) { channels_.push_back(ch); }
 
 private:
-  std::vector<channel::handle*> handles_; 
+  std::vector<channel*> channels_; 
 };
 
-class handle : private util::noncopyable
+class handle : private ku::util::noncopyable
 {
 public:
   explicit handle(int raw_handle)
@@ -78,10 +83,10 @@ handle create(int flags = EPOLL_CLOEXEC);
 events& poll(handle& h, events& evts,
     std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
 channels& dispatch(events const& evts, channels& chs);
-handle& update(handle& h, int op, channel::handle const& ch);
-handle& add_channel(handle& h, channel::handle const& ch);
-handle& remove_channel(handle& h, channel::handle const& ch);
-handle& modify_channel(handle& h, channel::handle const& ch);
+handle& update(handle& h, int op, channel const& ch);
+handle& add_channel(handle& h, channel const& ch);
+handle& remove_channel(handle& h, channel const& ch);
+handle& modify_channel(handle& h, channel const& ch);
 
 handle& close(handle& h);
 

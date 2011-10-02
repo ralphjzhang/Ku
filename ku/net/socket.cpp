@@ -10,7 +10,6 @@
 #include <ku/util/cast.hpp>
 #include "address.hpp"
 #include "socket.hpp"
-#include "channel.hpp"
 
 namespace {
 
@@ -79,27 +78,27 @@ handle create(addrinfo const& addr)
 
 handle& bind_listen(handle& h, address const& addr)
 {
-  if (::bind(h.raw_handle(), sockaddr_cast(&addr.sockaddr()), sizeof(addr)) == -1) {
+  if (::bind(h.raw_handle(), sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1) {
     h.set_error(errno);
     return h;
   }
-  if (::listen(h.raw_handle(), SOMAXCONN) == -1)
-  {
+  if (::listen(h.raw_handle(), SOMAXCONN) == -1) {
     h.set_error(errno);
     return h;
   }
   return h;
 }
 
-channel::handle accept(handle& h, address const& addr)
+/*
+channel::handle accept(handle& h, address& addr)
 {
-  socklen_t addr_len = sizeof(addr);
-  int conn_fd = ::accept4(h.raw_handle(), sockaddr_cast(const_cast<sockaddr_in*>(&addr.sockaddr())),
-      &addr_len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+  socklen_t addr_len = sizeof(sockaddr_in);
+  int conn_fd = ::accept4(h.raw_handle(), sockaddr_cast(&addr.sockaddr()), &addr_len,
+      SOCK_NONBLOCK | SOCK_CLOEXEC);
   if (conn_fd == -1)
     return channel::handle(conn_fd, errno);
   return channel::handle(conn_fd);
-}
+}*/
 
 ssize_t read(handle const& h, void* buf, size_t count)
 {

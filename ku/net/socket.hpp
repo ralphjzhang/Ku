@@ -8,14 +8,10 @@ struct sockaddr_in;
 namespace ku { namespace net {
   
 class address;
-
-namespace channel {
-class handle;
-} // namespace ku::net::channel
-  
+ 
 namespace socket {
 
-class handle : private util::noncopyable
+class handle : private ku::util::noncopyable
 {
 public:
   explicit handle(int raw_handle)
@@ -49,7 +45,7 @@ handle create(addrinfo const& addr);
 
 handle& bind_listen(handle& h, address const& addr);
 
-channel::handle accept(handle& h, address const& addr);
+//channel::handle accept(handle& h, address& addr);
 ssize_t read(handle const& h, void* buf, size_t count);
 ssize_t write(handle const& h, void* buf, size_t count);
 
