@@ -1,4 +1,3 @@
-#include <sys/types.h>
 #include <netdb.h>
 #include <ku/dan/dan.hpp>
 #include "address.hpp"
@@ -6,34 +5,35 @@
 #include "channel.hpp"
 #include "poller.hpp"
 
+using namespace ku;
 using namespace ku::net;
 
-TEST(socket, handle)
+TEST(Socket, handle)
 {
   addrinfo addr;
-  socket::handle socket = socket::create(addr);
-  socket::close(socket);
+  Socket sock = Socket::create(addr);
+  close(sock);
 }
 
-TEST(channel, handle)
+TEST(Channel, handle)
 {
   addrinfo addr;
-  socket::handle socket = socket::create(addr);
-  address adr;
-  channel chan(socket);
-  socket::close(socket);
+  Socket sock = Socket::create(addr);
+  close(sock);
+  Channel chan(sock);
+  close(sock);
 }
 
 TEST(poller, handle)
 {
   addrinfo addr;
-  socket::handle socket = socket::create(addr);
-  address adr;
-  channel chan(socket);
+  Socket sock = Socket::create(addr);
+  close(sock);
+  Channel chan(sock);
   poller::handle poller = poller::create(); 
   poller::add_channel(poller, chan);
   poller::close(poller);
-  socket::close(socket);
+  close(sock);
 }
 
 int main()
@@ -43,12 +43,11 @@ int main()
   addr.ai_socktype = SOCK_STREAM;
   addr.ai_protocol = IPPROTO_TCP;
   addr.ai_flags = AI_PASSIVE;
-  socket::handle socket = socket::create(addr);
-  address adr("127.0.0.1", 8888);
-  socket::bind_listen(socket, adr);
-  if (socket.error())
-    std::cout << socket.error().message() << std::endl;
-  channel chan(socket, to_int(poller::events_type::Read));
+  Socket sock = Socket::create(addr);
+  Address adr("127.0.0.1", 8888);
+  if (sock.bind_listen(adr).error())
+    std::cout << sock.error().message() << std::endl;
+  Channel chan(sock, to_int(poller::EventsType::Read));
 
   poller::handle poller = poller::create(); 
   poller::add_channel(poller, chan);
@@ -56,21 +55,21 @@ int main()
 
   while (1) {
     poller::poll(poller, evts, std::chrono::milliseconds(100000));
-    poller::channels chans;
+    poller::ChannelList chans;
     poller::dispatch(evts, chans);
-    auto in_socket = socket::accept(socket, adr);
-    if (in_socket.error())
-      std::cout << in_socket.error().message() << std::endl;
+    auto in_sock = sock.accept(adr);
+    if (in_sock.error())
+      std::cout << in_sock.error().message() << std::endl;
     else
       std::cout << "Accepted incoming connection." << std::endl;
-    poller::add_channel(poller, channel(in_socket, to_int(poller::events_type::Read)));
+    poller::add_channel(poller, Channel(in_sock, to_int(poller::EventsType::Read)));
     if (poller.error())
       std::cout << poller.error().message() << std::endl;
     break;
   }
 
   poller::close(poller);
-  socket::close(socket);
+  close(sock);
 }
 
 

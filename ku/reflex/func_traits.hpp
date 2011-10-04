@@ -15,7 +15,7 @@ private:
   typedef R(function_type)(Args...);
   function_type* fp;
 
-  std::string _fullname( )
+  std::string _fullname()
   {
     Dl_info info;
     if (dladdr(reinterpret_cast<const void*>(fp), &info))
@@ -23,16 +23,13 @@ private:
     return std::string();
   }
   
-  inline bool _is_template( std::string const& name )
-  {
-    return '>' == name[name.find('(') - 1];
-  }
+  inline bool _is_template(std::string const& name) { return '>' == name[name.find('(') - 1]; }
 
 public:
-  func_traits( function_type f ) : fp(f)
+  func_traits(function_type f) : fp(f)
   { }
 
-  std::string fullname( )
+  std::string fullname()
   {
     std::string name(_fullname());
     // For non-template function, need to prepend result_type name
@@ -42,7 +39,7 @@ public:
       return name;
   }
 
-  std::string name( )
+  std::string name()
   {
     std::string name(_fullname());
     // Remove result_type from template function name
@@ -52,23 +49,14 @@ public:
     return std::string(name, begin);
   }
 
-  inline size_t arity( )
-  { 
-    return sizeof...(Args);
-  }
+  inline size_t arity() { return sizeof...(Args); }
 
-  inline std::string result( )
-  {
-    return type_traits<R>().name();
-  }
+  inline std::string result() { return type_traits<R>().name(); }
 
-  inline bool is_template( )
-  {
-    return _is_template(_fullname());
-  }
+  inline bool is_template() { return _is_template(_fullname()); }
 
   template <size_t N>
-  inline auto arg( ) -> aux::type_traits<typename ku::meta::at<N - 1, Args...>::type>
+  inline auto arg() -> aux::type_traits<typename ku::meta::at<N - 1, Args...>::type>
   {
     return aux::type_traits<typename ku::meta::at<N - 1, Args...>::type>();
   }
@@ -77,7 +65,7 @@ public:
 } // namespace aux
 
 template <typename R, typename... Args>
-auto inline func_traits( R(&fp)(Args...) = *reinterpret_cast<R(*)(Args...)>(0) ) 
+auto inline func_traits(R(&fp)(Args...) = *std::declval<R(*)(Args...)>()) 
     -> aux::func_traits<R, Args...>
 {
   return aux::func_traits<R, Args...>(fp);

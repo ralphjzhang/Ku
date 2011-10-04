@@ -9,7 +9,7 @@
 
 namespace ku { namespace net {
 
-void channel::handle_event()
+void Channel::handle_event()
 {
   if ((events_ & EPOLLHUP) && !(events_ & EPOLLIN))
     ; // handle closed

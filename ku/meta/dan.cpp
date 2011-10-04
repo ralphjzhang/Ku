@@ -41,3 +41,4 @@ TEST(meta, type_traits)
   //static_assert(0 == is_template<decltype(f0)>::value, "is_template<>::value");
 }
 
+

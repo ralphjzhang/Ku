@@ -7,27 +7,31 @@ struct sockaddr_in;
 
 namespace ku { namespace net {
   
-class address;
+class Address;
  
-namespace socket {
-
-class handle : private ku::util::noncopyable
+class Socket : private ku::util::noncopyable
 {
-public:
-  explicit handle(int raw_handle)
+private:
+  explicit Socket(int raw_handle)
     : raw_handle_(raw_handle)
   { }
 
   template <typename Err>
-  handle(int raw_handle, Err err)
+  Socket(int raw_handle, Err err)
     : raw_handle_(raw_handle)
   { set_error(err); }
 
-  handle(handle&& h)
+public:
+  static Socket create(addrinfo const& addr);
+
+  Socket(Socket&& h)
     : raw_handle_(h.raw_handle_), error_(h.error_)
   { h.clear(); }
 
   int raw_handle() const { return raw_handle_; }
+
+  Socket& bind_listen(Address const& addr);
+  Socket accept(Address& addr) const;
 
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
@@ -41,16 +45,11 @@ private:
   std::error_code error_;
 };
 
-handle create(addrinfo const& addr);
 
-handle& bind_listen(handle& h, address const& addr);
+ssize_t read(Socket const& h, void* buf, size_t count);
+ssize_t write(Socket const& h, void* buf, size_t count);
 
-handle accept(handle const& h, address& addr);
+Socket& close(Socket& h);
 
-ssize_t read(handle const& h, void* buf, size_t count);
-ssize_t write(handle const& h, void* buf, size_t count);
-
-handle& close(handle& h);
-
-} } } // namespace ku::net::socket
+} } // namespace ku::net
 

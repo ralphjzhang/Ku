@@ -6,11 +6,11 @@
 
 namespace ku { namespace net {
 
-class address
+class Address
 {
 public:
-  address() = default;
-  address(std::string const& ip, uint16_t port) { util::make_sockaddr(ip.c_str(), port, sockaddr_); }
+  Address() = default;
+  Address(std::string const& ip, uint16_t port) { util::make_sockaddr(ip.c_str(), port, sockaddr_); }
 
   sockaddr_in const& sockaddr() const { return sockaddr_; }
   sockaddr_in& sockaddr() { return sockaddr_; }
