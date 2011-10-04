@@ -1,0 +1,10 @@
+import os
+
+env = Environment()
+env.Append(HOME = os.environ['HOME'])
+KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
+
+Program('dan', Glob('*.cpp') + [KUDIR + 'gtest/gtest_main.a'], 
+    LIBS = ['pthread', 'dl', 'm'],
+    CCFLAGS = '-Wall --std=c++0x -fPIC -rdynamic -I' + KUDIR
+    )
