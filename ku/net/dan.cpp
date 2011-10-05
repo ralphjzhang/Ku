@@ -30,7 +30,7 @@ TEST(epoll, handle)
   Socket sock = Socket::create(addr);
   close(sock);
   Channel chan(sock);
-  epoll::Poller poller = epoll::Poller::create(); 
+  auto poller = epoll::Poller::create(); 
   poller.add_channel(chan);
   epoll::close(poller);
   close(sock);
@@ -43,13 +43,13 @@ int main()
   addr.ai_socktype = SOCK_STREAM;
   addr.ai_protocol = IPPROTO_TCP;
   addr.ai_flags = AI_PASSIVE;
-  Socket sock = Socket::create(addr);
+  auto sock = Socket::create(addr);
   Address adr("127.0.0.1", 8888);
   if (sock.bind_listen(adr).error())
     std::cout << sock.error().message() << std::endl;
   Channel chan(sock, to_int(epoll::EventsType::Read));
 
-  epoll::Poller poller = epoll::Poller::create(); 
+  auto poller = epoll::Poller::create(); 
   poller.add_channel(chan);
   epoll::Events evts(16);
 

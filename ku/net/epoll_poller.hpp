@@ -18,14 +18,35 @@ enum class EventsType
 
 inline int to_int(EventsType et) { return static_cast<int>(et); }
 
+class Event
+{
+  friend class Events;
+  Event(epoll_event const* event) : event_(event) { }
+
+  epoll_event const* event_;
+
+public:
+  bool connect() const;
+  bool read() const;
+  bool write() const;
+};
+
+
 class Events
 {
 public:
+  typedef Event* iterator;
+  typedef Event const* const_iterator;
+
   Events() : count_(0) { }
   Events(size_t capacity) : count_(0), events_(capacity) { }
   Events(Events&& e) { events_ = std::move(e.events_); }
 
+  const_iterator begin() const { return iterator(raw_begin()); }
+  const_iterator end() const { return iterator(nullptr); }
+
   epoll_event* raw_begin() { return &*events_.begin(); }
+  epoll_event const* raw_begin() const { return &*events_.cbegin(); }
   epoll_event const& raw_event(int n) const { return events_[n]; }
  
   int size() const { return static_cast<int>(events_.size()); }
