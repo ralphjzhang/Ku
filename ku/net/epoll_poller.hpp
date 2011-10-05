@@ -1,15 +1,15 @@
 #pragma once
 #include <sys/epoll.h>
 #include <system_error>
-#include <vector>
 #include <chrono>
 #include <ku/util/noncopyable.hpp>
 
 namespace ku { namespace net {
 
 class Channel;
+class ChannelList;
   
-namespace poller {
+namespace epoll {
 
 enum class EventsType
 {
@@ -18,12 +18,12 @@ enum class EventsType
 
 inline int to_int(EventsType et) { return static_cast<int>(et); }
 
-class events
+class Events
 {
 public:
-  events() : count_(0) { }
-  events(size_t capacity) : count_(0), events_(capacity) { }
-  events(events&& e) { events_ = std::move(e.events_); }
+  Events() : count_(0) { }
+  Events(size_t capacity) : count_(0), events_(capacity) { }
+  Events(Events&& e) { events_ = std::move(e.events_); }
 
   epoll_event* raw_begin() { return &*events_.begin(); }
   epoll_event const& raw_event(int n) const { return events_[n]; }
@@ -39,32 +39,33 @@ private:
   std::vector<epoll_event> events_;
 };
 
-class ChannelList
+class Poller : private ku::util::noncopyable
 {
-public:
-  void add(Channel* ch) { channels_.push_back(ch); }
-
 private:
-  std::vector<Channel*> channels_; 
-};
-
-class handle : private ku::util::noncopyable
-{
-public:
-  explicit handle(int raw_handle)
+  explicit Poller(int raw_handle)
     : raw_handle_(raw_handle)
   { }
 
   template <typename Err>
-  handle(int raw_handle, Err err)
+  Poller(int raw_handle, Err err)
     : raw_handle_(raw_handle)
   { set_error(err); }
 
-  handle(handle&& h)
+public:
+  Poller(Poller&& h)
     : raw_handle_(h.raw_handle_), error_(h.error_)
   { h.clear(); }
 
+  static Poller create(int flags = EPOLL_CLOEXEC);
   int raw_handle() const { return raw_handle_; }
+
+  Events& poll(Events& evts,
+      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
+
+  Poller& update(int op, Channel const& ch);
+  Poller& add_channel(Channel const& ch);
+  Poller& remove_channel(Channel const& ch);
+  Poller& modify_channel(Channel const& ch);
 
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
@@ -78,17 +79,9 @@ private:
   std::error_code error_;
 };
 
-handle create(int flags = EPOLL_CLOEXEC);
+ChannelList& dispatch(Events const& evts, ChannelList& chs);
 
-events& poll(handle& h, events& evts,
-    std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
-ChannelList& dispatch(events const& evts, ChannelList& chs);
-handle& update(handle& h, int op, Channel const& ch);
-handle& add_channel(handle& h, Channel const& ch);
-handle& remove_channel(handle& h, Channel const& ch);
-handle& modify_channel(handle& h, Channel const& ch);
+Poller& close(Poller& h);
 
-handle& close(handle& h);
-
-} } } // namespace ku::net::poller
+} } } // namespace ku::net::epoll
 

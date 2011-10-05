@@ -1,6 +1,7 @@
 #pragma once
-#include <system_error>
 #include <strings.h>
+#include <system_error>
+#include <vector>
 #include <ku/util/noncopyable.hpp>
 
 namespace ku { namespace net {
@@ -40,6 +41,17 @@ private:
   int events_type_;
   int events_;
 };
+
+
+class ChannelList
+{
+public:
+  void add(Channel* ch) { channels_.push_back(ch); }
+
+private:
+  std::vector<Channel*> channels_; 
+};
+
 
 } } // namespace ku::net
 
