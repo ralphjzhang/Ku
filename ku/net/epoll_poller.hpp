@@ -38,8 +38,8 @@ public:
   typedef Event* iterator;
   typedef Event const* const_iterator;
 
-  Events() : count_(0) { }
-  Events(size_t capacity) : count_(0), events_(capacity) { }
+  Events() : count_(0) { clear(); }
+  Events(size_t capacity) : count_(0), events_(capacity) { clear(); }
   Events(Events&& e) { events_ = std::move(e.events_); }
 
   const_iterator begin() const { return iterator(raw_begin()); }
@@ -56,6 +56,8 @@ public:
   void set_count(int count) { count_ = count; }
 
 private:
+  void clear() { ::bzero(raw_begin(), sizeof(epoll_event) * size()); }
+
   int count_;
   std::vector<epoll_event> events_;
 };
