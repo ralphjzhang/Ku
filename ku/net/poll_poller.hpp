@@ -51,19 +51,14 @@ private:
 class Poller : private ku::util::noncopyable
 {
 private:
-  explicit Poller(int raw_handle)
-    : raw_handle_(raw_handle)
-  { }
-
-  template <typename Err>
-  Poller(int raw_handle, Err err)
-    : raw_handle_(raw_handle)
-  { set_error(err); }
+  explicit Poller() = default;
 
 public:
   Poller(Poller&& h)
-    : raw_handle_(h.raw_handle_), error_(h.error_)
+    : error_(h.error_)
   { h.clear(); }
+
+  static Poller create() { return Poller(); }
 
   Events& poll(Events& evts,
       std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
@@ -73,14 +68,13 @@ public:
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
   void set_error(std::error_code const& ec) { error_ = ec; }
 
-  void clear() { raw_handle_ = 0; error_.clear(); }
+  void clear() { error_.clear(); }
 
 private: 
-  int raw_handle_;
   std::error_code error_;
 };
 
-ChannelList& dispatch(Events const& evts, ChannelList& chs);
+ChannelList& dispatch(Events& evts, ChannelList& chs);
 
 } // namespace ku::net::poll
 
