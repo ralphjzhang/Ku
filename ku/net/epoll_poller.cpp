@@ -6,6 +6,17 @@
 
 namespace ku { namespace net { namespace epoll {
 
+// Helper function
+int translate_events_type(Channel::EventsType et)
+{
+  int events_type = 0;
+  if (et | Channel::In)
+    events_type |= (EPOLLIN | EPOLLPRI);
+  if (et | Channel::Out)
+    events_type |= EPOLLOUT;
+  return events_type;
+}
+
 //////////////
 /// Poller ///
 //////////////
@@ -71,7 +82,7 @@ bool Events::add_channel(Channel&& ch)
     Channel *ch_ptr = &(res.first->second);
     epoll_event ev;
     ev.data.ptr = ch_ptr;
-    ev.events = ch.events_type();
+    ev.events = translate_events_type(ch.events_type());
     if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch.raw_handle(), &ev) != -1)
       return true;
     else

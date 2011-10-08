@@ -6,6 +6,17 @@
 
 namespace ku { namespace net { namespace poll {
 
+// Helper function
+int translate_events_type(Channel::EventsType et)
+{
+  int events_type = 0;
+  if (et | Channel::In)
+    events_type |= (POLLIN | POLLPRI);
+  if (et | Channel::Out)
+    events_type |= POLLOUT;
+  return events_type;
+}
+
 //////////////
 /// Poller ///
 //////////////
@@ -50,7 +61,7 @@ bool Events::add_channel(Channel&& ch)
       resize(evt_count + evt_count / 2);
     pollfd& ev = events_[evt_count];
     ev.fd = ch.raw_handle();
-    ev.events = ch.events_type();
+    ev.events = translate_events_type(ch.events_type());
     return true;
   }
   return false;

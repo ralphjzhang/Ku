@@ -11,13 +11,6 @@ namespace ku { namespace net {
 
 namespace epoll {
 
-enum class EventsType
-{
-  None = 0, Read = EPOLLIN | EPOLLPRI, Write = EPOLLOUT
-};
-
-inline int to_int(EventsType et) { return static_cast<int>(et); }
-
 class Events;
 
 /**

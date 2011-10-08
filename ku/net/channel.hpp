@@ -21,6 +21,7 @@ class Channel : private ku::util::noncopyable
   friend std::string to_str(Events evts);
 
 public:
+  enum EventsType { In = 1, Out };
   enum Event { Close, Read, Write, Error };
 
   Channel() { clear(); }
@@ -29,7 +30,7 @@ public:
   explicit Channel(Handle const& h) : raw_handle_(h.raw_handle()) { }
 
   template <typename Handle>
-  Channel(Handle const& h, int events_type)
+  Channel(Handle const& h, EventsType events_type)
     : raw_handle_(h.raw_handle()), events_type_(events_type)
   { }
 
@@ -38,8 +39,8 @@ public:
 
   int raw_handle() const { return raw_handle_; }
 
-  int events_type() const { return events_type_; }
-  void set_events_type(int et) { events_type_ = et; }
+  EventsType events_type() const { return events_type_; }
+  void set_events_type(EventsType et) { events_type_ = et; }
 
   Events const& events() const { return events_; }
 
@@ -56,7 +57,7 @@ private:
   void clear() { ::bzero(this, sizeof(Channel)); events_.reset(); }
 
   int raw_handle_;
-  int events_type_;
+  EventsType events_type_;
   Events events_;
 };
 

@@ -69,7 +69,7 @@ void accept_connections(Socket& sock, epoll::Events& evts)
         exit(-1);
       }
     }
-    evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
+    evts.add_channel(Channel(in_sock, Channel::In));
     in_sock.release_handle();
   }
 }
@@ -80,7 +80,7 @@ void epoll_test()
   Address adr("127.0.0.1", 8888);
   if (sock.bind_listen(adr).error())
     std::cout << sock.error().message() << std::endl;
-  Channel chan(sock, to_int(epoll::EventsType::Read));
+  Channel chan(sock, Channel::In);
 
   auto poller = epoll::Poller::create(); 
   epoll::Events evts(poller, 16);
@@ -113,7 +113,7 @@ void poll_test()
 
   auto poller = poll::Poller::create(); 
   poll::Events evts(16);
-  evts.add_channel(Channel(sock, to_int(poll::EventsType::Read)));
+  evts.add_channel(Channel(sock, Channel::In));
 
   auto handler = [&](Channel& ch) {
     if (ch.raw_handle() == sock.raw_handle()) {
@@ -128,7 +128,7 @@ void poll_test()
             exit(-1);
           }
         }
-        evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
+        evts.add_channel(Channel(in_sock, Channel::In));
         in_sock.release_handle();
       }
     }
