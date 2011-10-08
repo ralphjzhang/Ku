@@ -21,16 +21,18 @@ Channel& Channel::operator = (Channel&& ch)
   return *this;
 }
 
-void Channel::handle_event()
+std::string to_str(Channel::Events evts)
 {
-  if ((events_ & EPOLLHUP) && !(events_ & EPOLLIN))
-    ; // handle closed
-  if (events_ & EPOLLERR)
-    ; // handle error
-  if (events_ & (EPOLLIN | EPOLLRDHUP))
-    ; // handle read
-  if (events_ & EPOLLOUT)
-    ; // handle write
+  std::string s;
+  if (evts.test(Channel::Close))
+    s.append("Close");
+  if (evts.test(Channel::Read))
+    s.empty() ? s.append("Read") : s.append("|Read");
+  if (evts.test(Channel::Write))
+    s.empty() ? s.append("Write") : s.append("|Write");
+  if (evts.test(Channel::Error))
+    s.empty() ? s.append("Error") : s.append("|Error");
+  return s;
 }
 
 } } // namespace ku::net

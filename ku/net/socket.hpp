@@ -12,22 +12,16 @@ class Address;
 class Socket : private ku::util::noncopyable
 {
 private:
-  explicit Socket(int raw_handle)
-    : raw_handle_(raw_handle)
-  { }
+  explicit Socket(int raw_handle) : raw_handle_(raw_handle) { }
 
   template <typename Err>
-  Socket(int raw_handle, Err err)
-    : raw_handle_(raw_handle)
-  { set_error(err); }
+  Socket(int raw_handle, Err err) : raw_handle_(raw_handle) { set_error(err); }
 
 public:
+  Socket(Socket&& s) : raw_handle_(s.raw_handle_), error_(s.error_) { s.clear(); }
+  ~Socket() { close(); }
+
   static Socket create(addrinfo const& addr);
-
-  Socket(Socket&& h)
-    : raw_handle_(h.raw_handle_), error_(h.error_)
-  { h.clear(); }
-
   int raw_handle() const { return raw_handle_; }
 
   Socket& bind_listen(Address const& addr);
@@ -45,7 +39,6 @@ private:
   int raw_handle_;
   std::error_code error_;
 };
-
 
 ssize_t read(Socket const& h, void* buf, size_t count);
 ssize_t write(Socket const& h, void* buf, size_t count);

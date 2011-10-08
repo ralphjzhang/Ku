@@ -15,31 +15,29 @@ namespace epoll {
 
 enum class EventsType
 {
-  None = 0, Read = EPOLLIN, Write = EPOLLOUT
+  None = 0, Read = EPOLLIN | EPOLLPRI, Write = EPOLLOUT
 };
 
 inline int to_int(EventsType et) { return static_cast<int>(et); }
 
 class Events;
 
+/**
+ * epoll::Poller manages epoll file descriptor and associated operation, namely, 
+ * epoll_create, epoll_wait
+ * It is supposed to be used with epoll::Events
+ **/
 class Poller : private ku::util::noncopyable
 {
 private:
-  explicit Poller(int raw_handle)
-    : raw_handle_(raw_handle)
-  { }
+  explicit Poller(int raw_handle) : raw_handle_(raw_handle) { }
 
   template <typename Err>
-  Poller(int raw_handle, Err err)
-    : raw_handle_(raw_handle)
-  { set_error(err); }
+  Poller(int raw_handle, Err err) : raw_handle_(raw_handle) { set_error(err); }
 
 public:
-  Poller(Poller&& h)
-    : raw_handle_(h.raw_handle_), error_(h.error_)
-  { h.clear(); }
-
-  ~Poller() { ::close(raw_handle_); }
+  Poller(Poller&& h) : raw_handle_(h.raw_handle_), error_(h.error_) { h.clear(); }
+  ~Poller() { close(); }
 
   static Poller create(int flags = EPOLL_CLOEXEC);
   int raw_handle() const { return raw_handle_; }
@@ -60,7 +58,6 @@ private:
   int raw_handle_;
   std::error_code error_;
 };
-
 
 
 class Events
@@ -85,9 +82,10 @@ public:
   unsigned active_count() const { return active_count_; }
 
   bool add_channel(Channel&& ch);
+  Channel* find_channel(int fd);
+  Channel* find_channel(epoll_event const& ev);
   bool remove_channel(int fd);
   bool modify_channel(int fd, int events_type);
-  ChannelList& dispatch(ChannelList& chs);
 
 private:
   epoll_event* raw_begin() { return &*events_.begin(); }
@@ -102,6 +100,20 @@ private:
   ChannelMap channels_;
 };
 
+void translate_events(epoll_event const& ev, Channel& ch);
+
+template <typename EventHandler>
+ChannelList& dispatch(Events& evts, ChannelList& chs, EventHandler eh)
+{
+  for (unsigned i = 0; i < evts.active_count(); ++i) {
+    epoll_event const& ev = evts.raw_event(i);
+    Channel* ch = evts.find_channel(ev);
+    translate_events(ev, *ch);
+    chs.add(ch);
+    eh(*ch);
+  }
+  return chs;
+}
 
 } } } // namespace ku::net::epoll
 

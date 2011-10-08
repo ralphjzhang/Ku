@@ -7,6 +7,21 @@
 namespace ku { namespace net { namespace poll {
 
 //////////////
+/// Poller ///
+//////////////
+
+Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
+{
+  int event_num = ::poll(evts.raw_begin(), evts.channels_.size(), timeout.count());
+  if (event_num == -1) {
+    set_error(errno);
+    evts.set_active_count(0);
+  }
+  evts.set_active_count(implicit_cast<unsigned>(event_num));
+  return evts;
+}
+
+//////////////
 /// Events ///
 //////////////
 
@@ -41,15 +56,21 @@ bool Events::add_channel(Channel&& ch)
   return false;
 }
 
-bool Events::remove_channel(int socket_fd)
+Channel* Events::find_channel(int fd)
 {
-  auto find = channels_.find(socket_fd);
+  auto find = channels_.find(fd);
+  return channels_.end() == find ? nullptr : &find->second.first;
+}
+
+bool Events::remove_channel(int fd)
+{
+  auto find = channels_.find(fd);
   if (channels_.end() != find) {
-    assert(find->second.first.raw_handle() == socket_fd);
+    assert(find->second.first.raw_handle() == fd);
     size_t idx = find->second.second;
     assert(0 <= idx && idx < events_.size());
     pollfd& ev = events_[idx];
-    assert(ev.fd == socket_fd);
+    assert(ev.fd == fd);
     ev.fd = 0;
     channels_.erase(find);
     compress(idx);
@@ -58,15 +79,15 @@ bool Events::remove_channel(int socket_fd)
   return false;
 }
 
-bool Events::update_channel(Channel const& ch)
+bool Events::modify_channel(int fd, int events_type)
 {
-  auto find = channels_.find(ch.raw_handle());
+  auto find = channels_.find(fd);
   if (channels_.end() != find) {
     size_t idx = find->second.second;
     assert(0 <= idx && idx < events_.size());
     pollfd& ev = events_[idx];
-    assert(ev.fd == ch.raw_handle());
-    ev.events = ch.events_type();
+    assert(ev.fd == fd);
+    ev.events = events_type;
     return true;
   }
   return false;
@@ -87,34 +108,16 @@ void Events::compress(size_t idx)
     events_.resize(evt_count + evt_count / 2);
 }
 
-ChannelList& Events::dispatch(ChannelList& chs)
+void translate_events(pollfd const& ev, Channel& ch)
 {
-  int current_count = channels_.size();
-  for (int i = 0; i < current_count; ++i) {
-    auto const& ev = raw_event(i);
-    if (ev.revents == 0)
-      continue;
-    // TODO error handling
-    Channel* ch = &channels_[ev.fd].first;
-    ch->set_events(ev.events);
-    chs.add(ch);
-  }
-  return chs;
-}
-
-//////////////
-/// Poller ///
-//////////////
-
-Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
-{
-  int event_num = ::poll(evts.raw_begin(), evts.channels_.size(), timeout.count());
-  if (event_num == -1) {
-    set_error(errno);
-    evts.set_active_count(0);
-  }
-  evts.set_active_count(implicit_cast<unsigned>(event_num));
-  return evts;
+  if ((ev.events & POLLHUP) && !(ev.events & POLLIN))
+    ch.set_event<Channel::Close>();
+  if (ev.events & (POLLIN | POLLPRI | POLLRDHUP))
+    ch.set_event<Channel::Read>();
+  if (ev.events & POLLOUT)
+    ch.set_event<Channel::Write>();
+  if (ev.events & (POLLERR | POLLNVAL))
+    ch.set_event<Channel::Error>();
 }
 
 } } } // namespace ku::net::poll

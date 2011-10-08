@@ -42,6 +42,12 @@ TEST(epoll, handle)
   sock.close();
 }
 
+struct no_op
+{
+  void operator () (Channel&) { }
+};
+
+
 void epoll_test()
 {
   auto sock = Socket::create(addr());
@@ -57,7 +63,7 @@ void epoll_test()
   while (1) {
     poller.poll(evts, std::chrono::milliseconds(100000));
     ChannelList chans;
-    evts.dispatch(chans);
+    epoll::dispatch(evts, chans, no_op());
     auto in_sock = sock.accept(adr);
     if (in_sock.error())
       std::cout << in_sock.error().message() << std::endl;
@@ -68,9 +74,6 @@ void epoll_test()
       std::cout << poller.error().message() << std::endl;
     break;
   }
-
-  poller.close();
-  sock.close();
 }
 
 void poll_test()
@@ -88,7 +91,7 @@ void poll_test()
   while (1) {
     poller.poll(evts, std::chrono::milliseconds(100000));
     ChannelList chans;
-    evts.dispatch(chans);
+    poll::dispatch(evts, chans, no_op());
     auto in_sock = sock.accept(adr);
     if (in_sock.error())
       std::cout << in_sock.error().message() << std::endl;
@@ -99,8 +102,6 @@ void poll_test()
       std::cout << poller.error().message() << std::endl;
     break;
   }
-  poller.close();
-  sock.close();
 }
 
 int main()

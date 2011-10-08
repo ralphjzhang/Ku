@@ -2,6 +2,8 @@
 #include <strings.h>
 #include <system_error>
 #include <vector>
+#include <string>
+#include <bitset>
 #include <ku/util/noncopyable.hpp>
 
 namespace ku { namespace net {
@@ -15,48 +17,62 @@ class Socket;
  **/
 class Channel : private ku::util::noncopyable
 {
+  typedef std::bitset<4> Events;
+  friend std::string to_str(Events evts);
+
 public:
-  Channel() : raw_handle_(0), events_type_(0), events_(0) { }
+  enum Event { Close, Read, Write, Error };
+
+  Channel() { clear(); }
 
   template <typename Handle>
-  explicit Channel(Handle const& handle)
-    : raw_handle_(handle.raw_handle())
-  { }
+  explicit Channel(Handle const& h) : raw_handle_(h.raw_handle()) { }
 
   template <typename Handle>
-  Channel(Handle const& handle, int events_type)
-    : raw_handle_(handle.raw_handle()), events_type_(events_type)
+  Channel(Handle const& h, int events_type)
+    : raw_handle_(h.raw_handle()), events_type_(events_type)
   { }
 
   Channel(Channel&& ch) { *this = std::move(ch); }
-
   Channel& operator = (Channel&& ch);
 
   int raw_handle() const { return raw_handle_; }
 
-  void clear() { ::bzero(this, sizeof(Channel)); }
-
   int events_type() const { return events_type_; }
   void set_events_type(int et) { events_type_ = et; }
-  int events() const { return events_; }
-  void set_events(int events) { events_ = events; }
 
-  void handle_event();
+  Events const& events() const { return events_; }
+
+  template <Event Ev>
+  void set_event() { events_.set(Ev); }
+
+  template <Event Ev>
+  bool has_event() { return events_.test(Ev); }
+
+  bool any_event() { return events_.any(); }
+  bool non_event() { return events_.none(); }
 
 private:
+  void clear() { ::bzero(this, sizeof(Channel)); events_.reset(); }
+
   int raw_handle_;
   int events_type_;
-  int events_;
+  Events events_;
 };
 
-
-class ChannelList
+class ChannelList : public std::vector<Channel*>
 {
-public:
-  void add(Channel* ch) { channels_.push_back(ch); }
+  typedef std::vector<Channel*> Base;
 
-private:
-  std::vector<Channel*> channels_; 
+public:
+  ChannelList() = default;
+  ~ChannelList() = default;
+
+  ChannelList(size_t capacity) : Base(capacity) { }
+
+  void add(Channel* ch) { push_back(ch); }
+  Channel& channel(size_t n) { return *at(n); }
+  Channel const& channel(size_t n) const { return *at(n); }
 };
 
 
