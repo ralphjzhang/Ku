@@ -1,15 +1,15 @@
 #pragma once
 #include <poll.h>
-#include <strings.h>
 #include <vector>
+#include <utility>
 #include <system_error>
 #include <chrono>
 #include <unordered_map>
 #include <ku/util/noncopyable.hpp>
+#include "channel.hpp"
 
 namespace ku { namespace net {
 
-class Channel;
 class ChannelList;
 
 namespace poll {
@@ -19,33 +19,41 @@ enum class EventsType
   None = 0, Read = POLLIN, Write = POLLOUT
 };
 
-class Events
+inline int to_int(EventsType et) { return static_cast<int>(et); }
+
+class Events : private ku::util::noncopyable
 {
   friend class Poller;
-  friend ChannelList& dispatch(Events&, ChannelList&);
+  static const size_t InitialCapacity = 16;
+
+  typedef std::vector<pollfd> EventList;
+  // Mapping (file descriptor) --> (Channel, index in events_)
+  typedef std::unordered_map<int, std::pair<Channel, size_t> > ChannelMap;
 
 public:
-  Events() : count_(0) { clear(); }
-  Events(size_t capacity) : count_(0), events_(capacity) { clear(); }
-  Events(Events&& e) { events_ = std::move(e.events_); }
+  Events() : events_(Events::InitialCapacity) { clear(); }
+  Events(size_t capacity) : events_(capacity) { clear(); }
+  Events(Events&& e);
 
-  pollfd* raw_begin() { return &*events_.begin(); }
-  pollfd const& raw_event(int n) const { return events_[n]; }
+  pollfd const& raw_event(unsigned n) const { return events_[n]; }
+  unsigned active_count() const { return active_count_; }
 
-  int count() const { return count_; }
-  void set_count(int count) { count_ = count; }
-
-  void add_channel(Channel& ch);
+  bool add_channel(Channel&& ch);
+  bool remove_channel(int socket_fd);
+  bool update_channel(Channel const& ch);
+  ChannelList& dispatch(ChannelList& chs);
 
 private:
-  int size() const { return static_cast<int>(events_.size()); }
+  pollfd* raw_begin() { return &*events_.begin(); }
+  void set_active_count(unsigned n) { active_count_ = n; }
+
+  void clear();
+  void compress(size_t idx);
   void resize(size_t size) { events_.resize(size); }
 
-  void clear() { ::bzero(raw_begin(), sizeof(pollfd) * size()); }
-
-  int count_;
-  std::vector<pollfd> events_;
-  std::unordered_map<int, Channel*> channels_;
+  unsigned active_count_;
+  EventList events_;
+  ChannelMap channels_;
 };
 
 class Poller : private ku::util::noncopyable
@@ -58,6 +66,8 @@ public:
     : error_(h.error_)
   { h.clear(); }
 
+  ~Poller() = default;
+
   static Poller create() { return Poller(); }
 
   Events& poll(Events& evts,
@@ -69,12 +79,11 @@ public:
   void set_error(std::error_code const& ec) { error_ = ec; }
 
   void clear() { error_.clear(); }
+  void close() { clear(); }
 
 private: 
   std::error_code error_;
 };
-
-ChannelList& dispatch(Events& evts, ChannelList& chs);
 
 } // namespace ku::net::poll
 

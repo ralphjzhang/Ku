@@ -22,26 +22,24 @@ addrinfo addr()
 TEST(Socket, handle)
 {
   Socket sock = Socket::create(addr());
-  close(sock);
+  sock.close();
 }
 
 TEST(Channel, handle)
 {
   Socket sock = Socket::create(addr());
-  close(sock);
+  sock.close();
   Channel chan(sock);
-  close(sock);
+  sock.close();
 }
 
 TEST(epoll, handle)
 {
   Socket sock = Socket::create(addr());
-  close(sock);
   Channel chan(sock);
   auto poller = epoll::Poller::create(); 
-  poller.add_channel(chan);
-  epoll::close(poller);
-  close(sock);
+  poller.close();
+  sock.close();
 }
 
 void epoll_test()
@@ -53,26 +51,26 @@ void epoll_test()
   Channel chan(sock, to_int(epoll::EventsType::Read));
 
   auto poller = epoll::Poller::create(); 
-  poller.add_channel(chan);
-  epoll::Events evts(16);
+  epoll::Events evts(poller, 16);
+  evts.add_channel(std::move(chan));
 
   while (1) {
     poller.poll(evts, std::chrono::milliseconds(100000));
     ChannelList chans;
-    epoll::dispatch(evts, chans);
+    evts.dispatch(chans);
     auto in_sock = sock.accept(adr);
     if (in_sock.error())
       std::cout << in_sock.error().message() << std::endl;
     else
       std::cout << "Accepted incoming connection." << std::endl;
-    poller.add_channel(Channel(in_sock, to_int(epoll::EventsType::Read)));
+    evts.add_channel(Channel(in_sock, to_int(epoll::EventsType::Read)));
     if (poller.error())
       std::cout << poller.error().message() << std::endl;
     break;
   }
 
-  epoll::close(poller);
-  close(sock);
+  poller.close();
+  sock.close();
 }
 
 void poll_test()
@@ -81,33 +79,34 @@ void poll_test()
   Address adr("127.0.0.1", 8888);
   if (sock.bind_listen(adr).error())
     std::cout << sock.error().message() << std::endl;
-  Channel chan(sock, to_int(epoll::EventsType::Read));
+  Channel chan(sock, to_int(poll::EventsType::Read));
 
   auto poller = poll::Poller::create(); 
   poll::Events evts(16);
-  evts.add_channel(chan);
+  evts.add_channel(std::move(chan));
 
   while (1) {
     poller.poll(evts, std::chrono::milliseconds(100000));
     ChannelList chans;
-    poll::dispatch(evts, chans);
+    evts.dispatch(chans);
     auto in_sock = sock.accept(adr);
     if (in_sock.error())
       std::cout << in_sock.error().message() << std::endl;
     else
       std::cout << "Accepted incoming connection." << std::endl;
-    //poller.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
+    evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
     if (poller.error())
       std::cout << poller.error().message() << std::endl;
     break;
   }
-  close(sock);
+  poller.close();
+  sock.close();
 }
 
 int main()
 {
-  // epoll_test();
-  poll_test();
+  epoll_test();
+  //poll_test();
 }
 
 

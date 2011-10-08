@@ -1,9 +1,95 @@
+#include <cassert>
 #include <sys/epoll.h>
 #include <strings.h>
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 
 namespace ku { namespace net { namespace epoll {
+
+//////////////
+/// Events ///
+//////////////
+
+Events::Events(Events&& e)
+{
+  poller_handle_ = e.poller_handle_;
+  active_count_ = e.active_count_;
+  events_ = std::move(e.events_);
+  channels_ = std::move(e.channels_);
+  e.poller_handle_ = 0;
+  e.active_count_ = 0;
+  e.events_.clear();
+  e.channels_.clear();
+}
+
+void Events::clear()
+{
+  active_count_ = 0;
+  ::bzero(raw_begin(), sizeof(epoll_event) * events_.size());
+}
+
+bool Events::add_channel(Channel&& ch)
+{
+  auto res = channels_.insert(std::make_pair(ch.raw_handle(), ch));
+  if (res.second) {
+    Channel *ch_ptr = &(res.first->second);
+    epoll_event ev;
+    ev.data.ptr = ch_ptr;
+    ev.events = ch.events_type();
+    if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch.raw_handle(), &ev) != -1)
+      return true;
+    else
+      channels_.erase(res.first);
+    // TODO else propogate error?
+  }
+  return false;
+}
+
+bool Events::remove_channel(int fd)
+{
+  if (channels_.erase(fd)) {
+    epoll_event ev;
+    if (::epoll_ctl(poller_handle_, EPOLL_CTL_DEL, fd, &ev) != -1)
+      return true;
+    // TODO else propogate error?
+  }
+  return false;
+}
+
+bool Events::modify_channel(int fd, int events_type)
+{
+  auto find = channels_.find(fd);
+  if (channels_.end() != find) {
+    Channel& ch = find->second;
+    assert(ch.raw_handle() == fd);
+    epoll_event ev;
+    ev.events = events_type;
+    if (::epoll_ctl(poller_handle_, EPOLL_CTL_MOD, fd, &ev) != -1) {
+      ch.set_events_type(ch.events_type());
+      return true;
+    }
+    // TODO else propogate error?
+  }
+  return false;
+}
+
+ChannelList& Events::dispatch(ChannelList& chs)
+{
+  for (unsigned i = 0; i < active_count_; ++i) {
+    auto const& ev = raw_event(i);
+    Channel* ch = static_cast<Channel*>(ev.data.ptr);
+    assert(ch == &channels_[ch->raw_handle()]);
+    ch->set_events(ev.events);
+    chs.add(ch);
+  }
+  if (active_count_ >= events_.size())
+    resize(active_count_ + active_count_ / 2);
+  return chs;
+}
+
+//////////////
+/// Poller ///
+//////////////
 
 Poller Poller::create(int flags)
 {
@@ -15,59 +101,25 @@ Poller Poller::create(int flags)
 
 Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
-  int event_num = ::epoll_wait(raw_handle(), evts.raw_begin(), evts.size(), timeout.count());
-  if (event_num == -1)
+  int event_num = ::epoll_wait(raw_handle(), evts.raw_begin(), evts.events_.size(),
+                               timeout.count());
+  if (event_num == -1) {
+    evts.set_active_count(0);
     set_error(errno);
-  else
-    if (event_num >= evts.size())
-      evts.resize(event_num * 2);
-  evts.set_count(event_num);
+  }
+  evts.set_active_count(event_num);
   return evts;
 }
 
-ChannelList& dispatch(Events const& evts, ChannelList& chs)
+void Poller::close()
 {
-  for (int i = 0; i < evts.count(); ++i) {
-    auto const& ev = evts.raw_event(i);
-    auto ch = static_cast<Channel*>(ev.data.ptr);
-    ch->set_events(ev.events);
-    chs.add(ch);
+  if (raw_handle_) {
+    if (::close(raw_handle_) == -1)
+      set_error(errno);
+    else
+      clear();
   }
-  return chs;
-}
-
-Poller& Poller::update(int op, Channel const& ch)
-{
-  epoll_event event;
-  bzero(&event, sizeof(event));
-  event.data.fd = ch.raw_handle();
-  event.data.ptr = const_cast<Channel*>(&ch);
-  event.events = ch.events_type();
-  if (::epoll_ctl(raw_handle(), op, ch.raw_handle(), &event) == -1)
-    set_error(errno);
-  return *this;
-}
-
-Poller& Poller::add_channel(Channel const& ch)
-{
-  return update(EPOLL_CTL_ADD, ch);
-}
-
-Poller& Poller::remove_channel(Channel const& ch)
-{
-  return update(EPOLL_CTL_DEL, ch);
-}
-
-Poller& Poller::modify_channel(Channel const& ch)
-{
-  return update(EPOLL_CTL_MOD, ch);
-}
-
-Poller& close(Poller& h)
-{
-  if (::close(h.raw_handle()) == -1)
-    h.set_error(errno);
-  return h;
 }
 
 } } } // namespace ku::net::poller
+

@@ -1,12 +1,14 @@
 #pragma once
 #include <sys/epoll.h>
 #include <system_error>
+#include <map>
+#include <vector>
 #include <chrono>
 #include <ku/util/noncopyable.hpp>
+#include "channel.hpp"
 
 namespace ku { namespace net {
 
-class Channel;
 class ChannelList;
   
 namespace epoll {
@@ -18,49 +20,7 @@ enum class EventsType
 
 inline int to_int(EventsType et) { return static_cast<int>(et); }
 
-class Event
-{
-  friend class Events;
-  Event(epoll_event const* event) : event_(event) { }
-
-  epoll_event const* event_;
-
-public:
-  bool connect() const;
-  bool read() const;
-  bool write() const;
-};
-
-
-class Events
-{
-public:
-  typedef Event* iterator;
-  typedef Event const* const_iterator;
-
-  Events() : count_(0) { clear(); }
-  Events(size_t capacity) : count_(0), events_(capacity) { clear(); }
-  Events(Events&& e) { events_ = std::move(e.events_); }
-
-  const_iterator begin() const { return iterator(raw_begin()); }
-  const_iterator end() const { return iterator(nullptr); }
-
-  epoll_event* raw_begin() { return &*events_.begin(); }
-  epoll_event const* raw_begin() const { return &*events_.cbegin(); }
-  epoll_event const& raw_event(int n) const { return events_[n]; }
- 
-  int size() const { return static_cast<int>(events_.size()); }
-  void resize(size_t size) { events_.resize(size); }
-
-  int count() const { return count_; }
-  void set_count(int count) { count_ = count; }
-
-private:
-  void clear() { ::bzero(raw_begin(), sizeof(epoll_event) * size()); }
-
-  int count_;
-  std::vector<epoll_event> events_;
-};
+class Events;
 
 class Poller : private ku::util::noncopyable
 {
@@ -79,32 +39,69 @@ public:
     : raw_handle_(h.raw_handle_), error_(h.error_)
   { h.clear(); }
 
+  ~Poller() { ::close(raw_handle_); }
+
   static Poller create(int flags = EPOLL_CLOEXEC);
   int raw_handle() const { return raw_handle_; }
 
   Events& poll(Events& evts,
       std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
 
-  Poller& update(int op, Channel const& ch);
-  Poller& add_channel(Channel const& ch);
-  Poller& remove_channel(Channel const& ch);
-  Poller& modify_channel(Channel const& ch);
-
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
   void set_error(std::error_code const& ec) { error_ = ec; }
 
-  void clear() { raw_handle_ = 0; error_.clear(); }
+  void close();
 
 private:
+  void clear() { raw_handle_ = 0; error_.clear(); }
+
   int raw_handle_;
   std::error_code error_;
 };
 
-ChannelList& dispatch(Events const& evts, ChannelList& chs);
 
-Poller& close(Poller& h);
+
+class Events
+{
+  friend class Poller;
+
+  static const size_t InitialCapacity = 16;
+  // Mapping (file descriptor) -> Channel
+  typedef std::map<int, Channel> ChannelMap;
+
+public:
+  Events(Poller const& p)
+    : poller_handle_(p.raw_handle()), events_(Events::InitialCapacity)
+  { clear(); }
+  Events(Poller const& p, size_t capacity)
+    : poller_handle_(p.raw_handle()), events_(capacity)
+  { clear(); }
+
+  Events(Events&& e);
+
+  epoll_event const& raw_event(unsigned n) const { return events_[n]; }
+  unsigned active_count() const { return active_count_; }
+
+  bool add_channel(Channel&& ch);
+  bool remove_channel(int fd);
+  bool modify_channel(int fd, int events_type);
+  ChannelList& dispatch(ChannelList& chs);
+
+private:
+  epoll_event* raw_begin() { return &*events_.begin(); }
+  void set_active_count(unsigned n) { active_count_ = n; }
+
+  void clear();
+  void resize(size_t size) { events_.resize(size); }
+
+  int poller_handle_;
+  std::vector<epoll_event> events_;
+  unsigned active_count_;
+  ChannelMap channels_;
+};
+
 
 } } } // namespace ku::net::epoll
 

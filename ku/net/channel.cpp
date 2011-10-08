@@ -9,6 +9,18 @@
 
 namespace ku { namespace net {
 
+Channel& Channel::operator = (Channel&& ch)
+{
+  if (this != &ch)
+  {
+    raw_handle_ = ch.raw_handle_;
+    events_type_ = ch.events_type_;
+    events_ = ch.events_;
+    ch.clear();
+  }
+  return *this;
+}
+
 void Channel::handle_event()
 {
   if ((events_ & EPOLLHUP) && !(events_ & EPOLLIN))

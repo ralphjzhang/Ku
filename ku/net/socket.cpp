@@ -68,6 +68,16 @@ Socket Socket::accept(Address& addr) const
   return Socket(socket_fd);
 }
 
+void Socket::close()
+{
+  if (raw_handle_) {
+    if (::close(raw_handle_) == -1)
+      set_error(errno);
+    else
+      clear();
+  }
+}
+
 ssize_t read(Socket const& h, void* buf, size_t count)
 {
   return ::read(h.raw_handle(), buf, count);
@@ -76,13 +86,6 @@ ssize_t read(Socket const& h, void* buf, size_t count)
 ssize_t write(Socket const& h, void* buf, size_t count)
 {
   return ::write(h.raw_handle(), buf, count);
-}
-
-Socket& close(Socket& h)
-{
-  if (::close(h.raw_handle()) == -1)
-    h.set_error(errno);
-  return h;
 }
 
 } } // namespace ku::net

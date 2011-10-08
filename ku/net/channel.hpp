@@ -8,9 +8,16 @@ namespace ku { namespace net {
 
 class Socket;
 
+/**
+ * Channel is the link among Socket, Events and event handlers.
+ * Channels don't own socket file descriptors
+ * A Channel is movable but not copyable, its life cycle is in general managed by Events
+ **/
 class Channel : private ku::util::noncopyable
 {
 public:
+  Channel() : raw_handle_(0), events_type_(0), events_(0) { }
+
   template <typename Handle>
   explicit Channel(Handle const& handle)
     : raw_handle_(handle.raw_handle())
@@ -21,13 +28,13 @@ public:
     : raw_handle_(handle.raw_handle()), events_type_(events_type)
   { }
 
-  Channel(Channel&& chan)
-    : raw_handle_(chan.raw_handle_), events_type_(chan.events_type_), events_(chan.events_)
-  { chan.clear(); }
+  Channel(Channel&& ch) { *this = std::move(ch); }
+
+  Channel& operator = (Channel&& ch);
 
   int raw_handle() const { return raw_handle_; }
 
-  void clear() { bzero(this, sizeof(Channel)); }
+  void clear() { ::bzero(this, sizeof(Channel)); }
 
   int events_type() const { return events_type_; }
   void set_events_type(int et) { events_type_ = et; }
