@@ -23,6 +23,7 @@ public:
 
   static Socket create(addrinfo const& addr);
   int raw_handle() const { return raw_handle_; }
+  int release_handle() { int ret = raw_handle_; clear(); return ret; }
 
   Socket& bind_listen(Address const& addr);
   Socket accept(Address& addr) const;

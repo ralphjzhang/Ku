@@ -60,6 +60,8 @@ private:
   Events events_;
 };
 
+std::string to_str(Channel::Events evts);
+
 class ChannelList : public std::vector<Channel*>
 {
   typedef std::vector<Channel*> Base;

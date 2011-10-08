@@ -10,8 +10,6 @@
 
 namespace ku { namespace net {
 
-class ChannelList;
-
 namespace poll {
 
 enum class EventsType
@@ -91,19 +89,31 @@ private:
 
 void translate_events(pollfd const& ev, Channel& ch);
 
-template <typename EventHandler>
-ChannelList& dispatch(Events& evts, ChannelList& chs, EventHandler eh)
+/**
+ * Default event dispatcher for poll::Events
+ * It's by design a free template with both type templated, so that user has multiple choices
+ * overriding this function, e.g.,
+ *
+ * template <typename EventHandler>
+ * unsigned dispatcher(poll::Events& evts, EventHandler eh);
+ *
+ * As this template is resoluted by argument-dependent lookup, a dispatcher defined in
+ * calling namespace can also override this one.
+ **/
+template <typename Events, typename EventHandler>
+unsigned dispatch(Events& evts, EventHandler eh)
 {
+  unsigned count = 0;
   for (unsigned i = 0; i < evts.events_count(); ++i) {
     pollfd const& ev = evts.raw_event(i);
     if (ev.revents == 0)
       continue;
     Channel* ch = evts.find_channel(ev.fd);
     translate_events(ev, *ch);
-    chs.add(ch);
+    ++count;
     eh(*ch);
   }
-  return chs;
+  return count;
 }
 
 

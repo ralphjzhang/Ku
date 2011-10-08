@@ -110,13 +110,13 @@ void Events::compress(size_t idx)
 
 void translate_events(pollfd const& ev, Channel& ch)
 {
-  if ((ev.events & POLLHUP) && !(ev.events & POLLIN))
+  if ((ev.revents & POLLHUP) && !(ev.revents & POLLIN))
     ch.set_event<Channel::Close>();
-  if (ev.events & (POLLIN | POLLPRI | POLLRDHUP))
+  if (ev.revents & (POLLIN | POLLPRI | POLLRDHUP))
     ch.set_event<Channel::Read>();
-  if (ev.events & POLLOUT)
+  if (ev.revents & POLLOUT)
     ch.set_event<Channel::Write>();
-  if (ev.events & (POLLERR | POLLNVAL))
+  if (ev.revents & (POLLERR | POLLNVAL))
     ch.set_event<Channel::Error>();
 }
 

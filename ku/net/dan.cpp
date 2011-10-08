@@ -5,6 +5,7 @@
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
+#include "loop.hpp"
 
 using namespace ku;
 using namespace ku::net;
@@ -42,11 +43,36 @@ TEST(epoll, handle)
   sock.close();
 }
 
-struct no_op
+struct print_event 
 {
-  void operator () (Channel&) { }
+  void operator () (Channel& ch) { std::cout << ku::net::to_str(ch.events()) << std::endl; }
 };
 
+/*
+template <typename EventHandler>
+void dispatch(epoll::Events& evts, EventHandler eh)
+{
+  std::cout << "override epoll::Events dispatcher" << std::endl;
+}
+*/
+
+void accept_connections(Socket& sock, epoll::Events& evts)
+{
+  Address adr("127.0.0.1", 8888);
+  while (1) {
+    auto in_sock = sock.accept(adr);
+    if (in_sock.error()) {
+      if (in_sock.error() == std::errc::operation_would_block)
+        break;
+      else {
+        std::cout << in_sock.error().message() << std::endl;
+        exit(-1);
+      }
+    }
+    evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
+    in_sock.release_handle();
+  }
+}
 
 void epoll_test()
 {
@@ -60,20 +86,22 @@ void epoll_test()
   epoll::Events evts(poller, 16);
   evts.add_channel(std::move(chan));
 
-  while (1) {
-    poller.poll(evts, std::chrono::milliseconds(100000));
-    ChannelList chans;
-    epoll::dispatch(evts, chans, no_op());
-    auto in_sock = sock.accept(adr);
-    if (in_sock.error())
-      std::cout << in_sock.error().message() << std::endl;
-    else
-      std::cout << "Accepted incoming connection." << std::endl;
-    evts.add_channel(Channel(in_sock, to_int(epoll::EventsType::Read)));
-    if (poller.error())
-      std::cout << poller.error().message() << std::endl;
-    break;
-  }
+  auto handler = [&](Channel& ch) {
+    if (ch.raw_handle() == sock.raw_handle()) {
+      accept_connections(sock, evts);
+      std::cout << "Connection accepted." << std::endl;
+    }
+    else {
+      char buf[10];
+      ::read(ch.raw_handle(), buf, 10);
+      std::cout << "We have some data to read: " << buf << std::endl;
+      strcpy(buf, "World");
+      ::write(ch.raw_handle(), buf, 6);
+      exit(0);
+    }
+  };
+
+  loop(poller, evts, handler);
 }
 
 void poll_test()
@@ -82,32 +110,40 @@ void poll_test()
   Address adr("127.0.0.1", 8888);
   if (sock.bind_listen(adr).error())
     std::cout << sock.error().message() << std::endl;
-  Channel chan(sock, to_int(poll::EventsType::Read));
 
   auto poller = poll::Poller::create(); 
   poll::Events evts(16);
-  evts.add_channel(std::move(chan));
+  evts.add_channel(Channel(sock, to_int(poll::EventsType::Read)));
 
-  while (1) {
-    poller.poll(evts, std::chrono::milliseconds(100000));
-    ChannelList chans;
-    poll::dispatch(evts, chans, no_op());
-    auto in_sock = sock.accept(adr);
-    if (in_sock.error())
-      std::cout << in_sock.error().message() << std::endl;
-    else
-      std::cout << "Accepted incoming connection." << std::endl;
-    evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
-    if (poller.error())
-      std::cout << poller.error().message() << std::endl;
-    break;
-  }
+  auto handler = [&](Channel& ch) {
+    if (ch.raw_handle() == sock.raw_handle()) {
+      // new connections
+      while (1) {
+        auto in_sock = sock.accept(adr);
+        if (in_sock.error()) {
+          if (in_sock.error() == std::errc::operation_would_block)
+            break;
+          else {
+            std::cout << in_sock.error().message() << std::endl;
+            exit(-1);
+          }
+        }
+        evts.add_channel(Channel(in_sock, to_int(poll::EventsType::Read)));
+        in_sock.release_handle();
+      }
+    }
+    else {
+      std::cout << "We have some data to read." << std::endl;
+    }
+  };
+
+  loop(poller, evts, handler);
 }
 
 int main()
 {
   epoll_test();
-  poll_test();
+  //poll_test();
 }
 
 
