@@ -107,7 +107,7 @@ void poll_test()
 int main()
 {
   epoll_test();
-  //poll_test();
+  poll_test();
 }
 
 
