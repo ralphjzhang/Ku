@@ -1,10 +1,20 @@
 #pragma once
-
+#include <ku/util/noncopyable.hpp>
+#include "socket.hpp"
+#include "channel.hpp"
 
 namespace ku { namespace net {
 
-class acceptor
+class Address;
+
+class Acceptor : ku::util::noncopyable
 {
+public:
+  Acceptor(addrinfo const& aif, Address const& addr);
+
+private:
+  Socket socket_;
+  Channel channel_;
 };
 
 } } // namespace ku::net

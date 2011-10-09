@@ -42,13 +42,6 @@ private:
 };
 
 template <typename Buffer>
-ssize_t read(Socket const& h, Buffer& buf)
-{
-  //return ::read(h.raw_handle(), buf, count);
-  return 0;
-}
-
-template <typename Buffer>
 ssize_t write(Socket const& h, Buffer& buf)
 {
   //return ::write(h.raw_handle(), buf, count);

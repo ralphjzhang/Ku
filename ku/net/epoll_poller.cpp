@@ -136,13 +136,13 @@ bool Events::modify_channel(int fd, int events_type)
 void translate_events(epoll_event const& ev, Channel& ch)
 {
   if ((ev.events & EPOLLHUP) && !(ev.events & EPOLLIN))
-    ch.set_event<Channel::Close>();
+    ch.set_event(Channel::Close);
   if (ev.events & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
-    ch.set_event<Channel::Read>();
+    ch.set_event(Channel::Read);
   if (ev.events & EPOLLOUT)
-    ch.set_event<Channel::Write>();
+    ch.set_event(Channel::Write);
   if (ev.events & EPOLLERR)
-    ch.set_event<Channel::Error>();
+    ch.set_event(Channel::Error);
 }
 
 } } } // namespace ku::net::poller

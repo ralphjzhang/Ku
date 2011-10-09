@@ -43,13 +43,8 @@ public:
   void set_events_type(EventsType et) { events_type_ = et; }
 
   Events const& events() const { return events_; }
-
-  template <Event Ev>
-  void set_event() { events_.set(Ev); }
-
-  template <Event Ev>
-  bool has_event() { return events_.test(Ev); }
-
+  void set_event(Event ev) { events_.set(ev); }
+  bool has_event(Event ev) { return events_.test(ev); }
   bool any_event() { return events_.any(); }
   bool non_event() { return events_.none(); }
 

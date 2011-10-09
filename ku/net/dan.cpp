@@ -1,11 +1,13 @@
 #include <netdb.h>
 #include <ku/dan/dan.hpp>
 #include "address.hpp"
+#include "buffer.hpp"
 #include "socket.hpp"
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
 #include "loop.hpp"
+#include "acceptor.hpp"
 
 using namespace ku;
 using namespace ku::net;
@@ -48,14 +50,6 @@ struct print_event
   void operator () (Channel& ch) { std::cout << ku::net::to_str(ch.events()) << std::endl; }
 };
 
-/*
-template <typename EventHandler>
-void dispatch(epoll::Events& evts, EventHandler eh)
-{
-  std::cout << "override epoll::Events dispatcher" << std::endl;
-}
-*/
-
 void accept_connections(Socket& sock, epoll::Events& evts)
 {
   Address adr("127.0.0.1", 8888);
@@ -78,6 +72,8 @@ void epoll_test()
 {
   auto sock = Socket::create(addr());
   Address adr("127.0.0.1", 8888);
+  Acceptor acceptor(addr(), adr);
+
   if (sock.bind_listen(adr).error())
     std::cout << sock.error().message() << std::endl;
   Channel chan(sock, Channel::In);

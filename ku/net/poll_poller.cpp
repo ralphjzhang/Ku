@@ -122,13 +122,13 @@ void Events::compress(size_t idx)
 void translate_events(pollfd const& ev, Channel& ch)
 {
   if ((ev.revents & POLLHUP) && !(ev.revents & POLLIN))
-    ch.set_event<Channel::Close>();
+    ch.set_event(Channel::Close);
   if (ev.revents & (POLLIN | POLLPRI | POLLRDHUP))
-    ch.set_event<Channel::Read>();
+    ch.set_event(Channel::Read);
   if (ev.revents & POLLOUT)
-    ch.set_event<Channel::Write>();
+    ch.set_event(Channel::Write);
   if (ev.revents & (POLLERR | POLLNVAL))
-    ch.set_event<Channel::Error>();
+    ch.set_event(Channel::Error);
 }
 
 } } } // namespace ku::net::poll
