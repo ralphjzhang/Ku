@@ -22,6 +22,13 @@ Channel& Channel::operator = (Channel&& ch)
   return *this;
 }
 
+int Channel::release_handle()
+{
+  int handle = raw_handle_;
+  raw_handle_ = 0;
+  return handle;
+}
+
 bool Channel::listen(Address const& addr)
 {
   set_error(sys::bind(raw_handle(), addr));

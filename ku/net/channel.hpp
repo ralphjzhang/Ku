@@ -29,10 +29,9 @@ public:
   Channel& operator = (Channel&& ch);
   Channel(Channel&& ch) { *this = std::move(ch); }
 
-  template <typename Handle>
-  void adopt(Handle&& h) { raw_handle_ = h.release_handle(); }
-
+  template <typename Handle> void adopt(Handle&& h);
   int raw_handle() const { return raw_handle_; }
+  int release_handle();
 
   bool listen(Address const& addr);
   bool listening() const { return has_event_type(Channel::Listen); }
@@ -65,6 +64,15 @@ private:
   Events events_;
   std::error_code error_;
 };
+
+template <typename Handle>
+void Channel::adopt(Handle&& h)
+{
+  raw_handle_ = h.release_handle();
+  error_ = h.error();
+  if (h.listening())
+    set_event_type(Channel::Listen);
+}
 
 std::string to_str(Channel::Events evts);
 std::string to_str(Channel::EventTypes et);

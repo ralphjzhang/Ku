@@ -59,7 +59,7 @@ class Poller : private ku::util::noncopyable
 {
 private:
   template <typename Err>
-  Poller(int raw_handle, Err err) : raw_handle_(raw_handle), events_(*this)
+  Poller(int raw_handle, Err err) : raw_handle_(raw_handle)
   { set_error(err); }
 
 public:
@@ -68,7 +68,6 @@ public:
 
   static Poller create(int flags = EPOLL_CLOEXEC);
   int raw_handle() const { return raw_handle_; }
-  Events& events() { return events_; }
 
   Events& poll(Events& evts,
       std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
@@ -81,13 +80,13 @@ public:
   void close();
 
 private:
-  void clear() { raw_handle_ = 0; error_.clear(); events_.clear(); }
+  void clear() { raw_handle_ = 0; error_.clear(); }
 
   int raw_handle_;
   std::error_code error_;
-  Events events_;
 };
 
+inline Events make_events(Poller& poller) { return Events(poller); }
 
 void translate_events(epoll_event const& ev, Channel& ch);
 
@@ -109,7 +108,7 @@ unsigned dispatch(Events& evts, EventHandler eh)
     epoll_event const& ev = evts.raw_event(i);
     Channel* ch = evts.find_channel(ev);
     translate_events(ev, *ch);
-    eh(*ch);
+    eh(*ch, evts);
   }
   return evts.active_count();
 }

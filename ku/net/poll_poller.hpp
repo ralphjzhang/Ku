@@ -59,7 +59,7 @@ private:
   Poller() = default;
 
 public:
-  Poller(Poller&& h) : error_(h.error_), events_(std::move(h.events_)) { h.clear(); }
+  Poller(Poller&& h) : error_(h.error_) { h.clear(); }
   ~Poller() = default;
 
   static Poller create() { return Poller(); }
@@ -67,20 +67,19 @@ public:
   Events& poll(Events& evts,
       std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
 
-  Events& events() { return events_; }
-
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
   void set_error(std::error_code const& ec) { error_ = ec; }
 
-  void clear() { error_.clear(); events_.clear(); }
+  void clear() { error_.clear(); }
   void close() { clear(); }
 
 private: 
   std::error_code error_;
-  Events events_;
 };
+
+inline Events make_events(Poller& poller) { return Events(); }
 
 void translate_events(pollfd const& ev, Channel& ch);
 
@@ -106,7 +105,7 @@ unsigned dispatch(Events& evts, EventHandler eh)
     Channel* ch = evts.find_channel(ev.fd);
     translate_events(ev, *ch);
     ++count;
-    eh(*ch);
+    eh(*ch, evts);
   }
   return count;
 }

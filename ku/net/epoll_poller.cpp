@@ -134,7 +134,7 @@ bool Events::modify_channel(int fd, int event_types)
 //////////////
 
 Poller::Poller(Poller&& h) 
-  : raw_handle_(h.raw_handle_), error_(h.error_), events_(std::move(h.events_))
+  : raw_handle_(h.raw_handle_), error_(h.error_)
 {
   h.clear();
 }
