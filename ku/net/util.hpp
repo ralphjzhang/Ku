@@ -7,6 +7,16 @@ struct sockaddr_in;
 
 namespace ku { namespace net { namespace util {
 
+struct noncopyable
+{
+  noncopyable() = default;
+  ~noncopyable() = default;
+
+  noncopyable(noncopyable const&) = delete;
+  noncopyable& operator=(noncopyable const&) = delete;
+};
+
+
 inline sockaddr const* sockaddr_cast(sockaddr_in const* addr)
 {
   return static_cast<sockaddr const*>(implicit_cast<void const*>(addr));

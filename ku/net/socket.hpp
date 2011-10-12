@@ -1,6 +1,6 @@
 #pragma once
 #include <system_error>
-#include <ku/util/noncopyable.hpp>
+#include "util.hpp"
 
 struct addrinfo;
 struct sockaddr_in;
@@ -9,7 +9,7 @@ namespace ku { namespace net {
   
 class Address;
  
-class Socket : private ku::util::noncopyable
+class Socket : private util::noncopyable
 {
 private:
   explicit Socket(int raw_handle) : raw_handle_(raw_handle) { }
@@ -18,15 +18,16 @@ private:
   Socket(int raw_handle, Err err) : raw_handle_(raw_handle) { set_error(err); }
 
 public:
-  Socket(Socket&& s) : raw_handle_(s.raw_handle_), error_(s.error_) { s.clear(); }
+  Socket(Socket&& s);
   ~Socket() { close(); }
 
   static Socket create(addrinfo const& addr);
   int raw_handle() const { return raw_handle_; }
-  int release_handle() { int ret = raw_handle_; clear(); return ret; }
+  int release_handle();
 
-  Socket& bind_listen(Address const& addr);
+  Socket& listen(Address const& addr);
   Socket accept(Address& addr) const;
+  bool listening() const { return listening_; }
 
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
@@ -39,6 +40,7 @@ public:
 private:
   int raw_handle_;
   std::error_code error_;
+  bool listening_;
 };
 
 template <typename Buffer>

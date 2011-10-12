@@ -2,14 +2,14 @@
 
 namespace ku { namespace net {
 
-template <typename Poller, typename Events, typename EventHandler>
-void loop(Poller& poller, Events& evts, EventHandler eh)
+template <typename Poller, typename EventHandler>
+void loop(Poller& poller, EventHandler eh)
 {
   while (1) {
-    poller.poll(evts, std::chrono::milliseconds(100000));
+    poller.poll(poller.events(), std::chrono::milliseconds(3000));
     if (poller.error())
-      ; // handle poller error
-    dispatch(evts, eh);
+      std::cout << poller.error().message() << std::endl; // handle poller error
+    dispatch(poller.events(), eh);
   }
 }
 

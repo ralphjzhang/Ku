@@ -11,45 +11,7 @@ namespace ku { namespace net {
 
 namespace epoll {
 
-class Events;
-
-/**
- * epoll::Poller manages epoll file descriptor and associated operation, namely, 
- * epoll_create, epoll_wait
- * It is supposed to be used with epoll::Events
- **/
-class Poller : private ku::util::noncopyable
-{
-private:
-  explicit Poller(int raw_handle) : raw_handle_(raw_handle) { }
-
-  template <typename Err>
-  Poller(int raw_handle, Err err) : raw_handle_(raw_handle) { set_error(err); }
-
-public:
-  Poller(Poller&& h) : raw_handle_(h.raw_handle_), error_(h.error_) { h.clear(); }
-  ~Poller() { close(); }
-
-  static Poller create(int flags = EPOLL_CLOEXEC);
-  int raw_handle() const { return raw_handle_; }
-
-  Events& poll(Events& evts,
-      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
-
-  std::error_code error() const { return error_; }
-  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
-  void set_error(std::errc err) { error_ = std::make_error_code(err); }
-  void set_error(std::error_code const& ec) { error_ = ec; }
-
-  void close();
-
-private:
-  void clear() { raw_handle_ = 0; error_.clear(); }
-
-  int raw_handle_;
-  std::error_code error_;
-};
-
+class Poller;
 
 class Events
 {
@@ -60,23 +22,19 @@ class Events
   typedef std::map<int, Channel> ChannelMap;
 
 public:
-  Events(Poller const& p)
-    : poller_handle_(p.raw_handle()), events_(Events::InitialCapacity)
-  { clear(); }
-  Events(Poller const& p, size_t capacity)
-    : poller_handle_(p.raw_handle()), events_(capacity)
-  { clear(); }
+  Events(Poller const& p);
+  Events(Poller const& p, size_t capacity);
 
   Events(Events&& e);
 
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  bool add_channel(Channel&& ch);
+  bool adopt_channel(Channel&& ch);
   Channel* find_channel(int fd);
   Channel* find_channel(epoll_event const& ev);
   bool remove_channel(int fd);
-  bool modify_channel(int fd, int events_type);
+  bool modify_channel(int fd, int event_types);
 
 private:
   epoll_event* raw_begin() { return &*events_.begin(); }
@@ -90,6 +48,46 @@ private:
   unsigned active_count_;
   ChannelMap channels_;
 };
+
+
+/**
+ * epoll::Poller manages epoll file descriptor and associated operation, namely, 
+ * epoll_create, epoll_wait
+ * It is supposed to be used with epoll::Events
+ **/
+class Poller : private ku::util::noncopyable
+{
+private:
+  template <typename Err>
+  Poller(int raw_handle, Err err) : raw_handle_(raw_handle), events_(*this)
+  { set_error(err); }
+
+public:
+  Poller(Poller&& h);
+  ~Poller() { close(); }
+
+  static Poller create(int flags = EPOLL_CLOEXEC);
+  int raw_handle() const { return raw_handle_; }
+  Events& events() { return events_; }
+
+  Events& poll(Events& evts,
+      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
+
+  std::error_code error() const { return error_; }
+  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
+  void set_error(std::errc err) { error_ = std::make_error_code(err); }
+  void set_error(std::error_code const& ec) { error_ = ec; }
+
+  void close();
+
+private:
+  void clear() { raw_handle_ = 0; error_.clear(); events_.clear(); }
+
+  int raw_handle_;
+  std::error_code error_;
+  Events events_;
+};
+
 
 void translate_events(epoll_event const& ev, Channel& ch);
 

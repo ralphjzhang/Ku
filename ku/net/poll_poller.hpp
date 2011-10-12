@@ -12,38 +12,6 @@ namespace ku { namespace net {
 
 namespace poll {
 
-class Events;
-
-/**
- * poll::Poller wraps system call ::poll
- * It's supposed to be used with poll::Events
- **/
-class Poller : private ku::util::noncopyable
-{
-private:
-  Poller() = default;
-
-public:
-  Poller(Poller&& h) : error_(h.error_) { h.clear(); }
-  ~Poller() = default;
-
-  static Poller create() { return Poller(); }
-
-  Events& poll(Events& evts,
-      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
-
-  std::error_code error() const { return error_; }
-  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
-  void set_error(std::errc err) { error_ = std::make_error_code(err); }
-  void set_error(std::error_code const& ec) { error_ = ec; }
-
-  void clear() { error_.clear(); }
-  void close() { clear(); }
-
-private: 
-  std::error_code error_;
-};
-
 class Events : private ku::util::noncopyable
 {
   friend class Poller;
@@ -62,10 +30,10 @@ public:
   unsigned active_count() const { return active_count_; }
   unsigned events_count() const { return channels_.size(); }
 
-  bool add_channel(Channel&& ch);
+  bool adopt_channel(Channel&& ch);
   Channel* find_channel(int fd);
   bool remove_channel(int fd);
-  bool modify_channel(int fd, int events_type);
+  bool modify_channel(int fd, int event_types);
 
 private:
   pollfd* raw_begin() { return &*events_.begin(); }
@@ -78,6 +46,40 @@ private:
   unsigned active_count_;
   EventList events_;
   ChannelMap channels_;
+};
+
+
+/**
+ * poll::Poller wraps system call ::poll
+ * It's supposed to be used with poll::Events
+ **/
+class Poller : private ku::util::noncopyable
+{
+private:
+  Poller() = default;
+
+public:
+  Poller(Poller&& h) : error_(h.error_), events_(std::move(h.events_)) { h.clear(); }
+  ~Poller() = default;
+
+  static Poller create() { return Poller(); }
+
+  Events& poll(Events& evts,
+      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
+
+  Events& events() { return events_; }
+
+  std::error_code error() const { return error_; }
+  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
+  void set_error(std::errc err) { error_ = std::make_error_code(err); }
+  void set_error(std::error_code const& ec) { error_ = ec; }
+
+  void clear() { error_.clear(); events_.clear(); }
+  void close() { clear(); }
+
+private: 
+  std::error_code error_;
+  Events events_;
 };
 
 void translate_events(pollfd const& ev, Channel& ch);

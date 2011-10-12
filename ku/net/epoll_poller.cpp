@@ -7,55 +7,51 @@
 namespace ku { namespace net { namespace epoll {
 
 // Helper function
-int translate_events_type(Channel::EventsType et)
+int translate_event_types(Channel const& ch)
 {
-  int events_type = 0;
-  if (et | Channel::In)
-    events_type |= (EPOLLIN | EPOLLPRI);
-  if (et | Channel::Out)
-    events_type |= EPOLLOUT;
-  return events_type;
+  int event_types = 0;
+  if (ch.has_event_type(Channel::In) || ch.has_event_type(Channel::Listen))
+    event_types |= (EPOLLIN | EPOLLPRI);
+  if (ch.has_event_type(Channel::Out))
+    event_types |= EPOLLOUT;
+  return event_types;
 }
 
-//////////////
-/// Poller ///
-//////////////
-
-Poller Poller::create(int flags)
+void translate_event_types(int event_types, Channel& ch)
 {
-  int epoll_fd = epoll_create1(flags);
-  if (epoll_fd == -1)
-    return Poller(epoll_fd, errno);
-  return Poller(epoll_fd);
+  if (event_types & (EPOLLIN | EPOLLPRI))
+    ch.set_event_type(Channel::In);
+  if (event_types & EPOLLOUT)
+    ch.set_event_type(Channel::Out);
 }
 
-Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
+void translate_events(epoll_event const& ev, Channel& ch)
 {
-  int event_num = ::epoll_wait(raw_handle(), evts.raw_begin(), evts.events_.size(),
-                               timeout.count());
-  if (event_num == -1) {
-    evts.set_active_count(0);
-    set_error(errno);
-  }
-  evts.set_active_count(event_num);
-  if (evts.active_count() >= evts.events_.size())
-    evts.resize(evts.active_count() + evts.active_count() / 2);
-  return evts;
-}
-
-void Poller::close()
-{
-  if (raw_handle_) {
-    if (::close(raw_handle_) == -1)
-      set_error(errno);
-    else
-      clear();
-  }
+  if ((ev.events & EPOLLHUP) && !(ev.events & EPOLLIN))
+    ch.set_event(Channel::Close);
+  if (ev.events & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
+    ch.set_event(Channel::Read);
+  if (ev.events & EPOLLOUT)
+    ch.set_event(Channel::Write);
+  if (ev.events & EPOLLERR)
+    ch.set_event(Channel::Error);
 }
 
 //////////////
 /// Events ///
 //////////////
+
+Events::Events(Poller const& p)
+  : poller_handle_(p.raw_handle()), events_(Events::InitialCapacity)
+{
+  clear();
+}
+
+Events::Events(Poller const& p, size_t capacity)
+  : poller_handle_(p.raw_handle()), events_(capacity)
+{
+  clear();
+}
 
 Events::Events(Events&& e)
 {
@@ -75,15 +71,15 @@ void Events::clear()
   ::bzero(raw_begin(), sizeof(epoll_event) * events_.size());
 }
 
-bool Events::add_channel(Channel&& ch)
+bool Events::adopt_channel(Channel&& ch)
 {
-  auto res = channels_.insert(std::make_pair(ch.raw_handle(), ch));
+  auto res = channels_.insert(std::make_pair(ch.raw_handle(), std::move(ch)));
   if (res.second) {
     Channel *ch_ptr = &(res.first->second);
     epoll_event ev;
     ev.data.ptr = ch_ptr;
-    ev.events = translate_events_type(ch.events_type());
-    if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch.raw_handle(), &ev) != -1)
+    ev.events = translate_event_types(*ch_ptr);
+    if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) != -1)
       return true;
     else
       channels_.erase(res.first);
@@ -116,16 +112,16 @@ bool Events::remove_channel(int fd)
   return false;
 }
 
-bool Events::modify_channel(int fd, int events_type)
+bool Events::modify_channel(int fd, int event_types)
 {
   auto find = channels_.find(fd);
   if (channels_.end() != find) {
     Channel& ch = find->second;
     assert(ch.raw_handle() == fd);
     epoll_event ev;
-    ev.events = events_type;
+    ev.events = event_types;
     if (::epoll_ctl(poller_handle_, EPOLL_CTL_MOD, fd, &ev) != -1) {
-      ch.set_events_type(ch.events_type());
+      translate_event_types(event_types, ch);
       return true;
     }
     // TODO else propogate error?
@@ -133,17 +129,48 @@ bool Events::modify_channel(int fd, int events_type)
   return false;
 }
 
-void translate_events(epoll_event const& ev, Channel& ch)
+//////////////
+/// Poller ///
+//////////////
+
+Poller::Poller(Poller&& h) 
+  : raw_handle_(h.raw_handle_), error_(h.error_), events_(std::move(h.events_))
 {
-  if ((ev.events & EPOLLHUP) && !(ev.events & EPOLLIN))
-    ch.set_event(Channel::Close);
-  if (ev.events & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
-    ch.set_event(Channel::Read);
-  if (ev.events & EPOLLOUT)
-    ch.set_event(Channel::Write);
-  if (ev.events & EPOLLERR)
-    ch.set_event(Channel::Error);
+  h.clear();
 }
+
+Poller Poller::create(int flags)
+{
+  int epoll_fd = epoll_create1(flags);
+  if (epoll_fd == -1)
+    return Poller(epoll_fd, errno);
+  return Poller(epoll_fd, 0);
+}
+
+Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
+{
+  int event_num = ::epoll_wait(raw_handle(), evts.raw_begin(), evts.events_.size(),
+                               timeout.count());
+  if (event_num == -1) {
+    evts.set_active_count(0);
+    set_error(errno);
+  }
+  evts.set_active_count(event_num);
+  if (evts.active_count() >= evts.events_.size())
+    evts.resize(evts.active_count() + evts.active_count() / 2);
+  return evts;
+}
+
+void Poller::close()
+{
+  if (raw_handle_) {
+    if (::close(raw_handle_) == -1)
+      set_error(errno);
+    else
+      clear();
+  }
+}
+
 
 } } } // namespace ku::net::poller
 

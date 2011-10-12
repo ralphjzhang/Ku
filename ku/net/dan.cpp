@@ -1,4 +1,5 @@
 #include <netdb.h>
+#include <functional>
 #include <ku/dan/dan.hpp>
 #include "address.hpp"
 #include "buffer.hpp"
@@ -32,17 +33,16 @@ TEST(Channel, handle)
 {
   Socket sock = Socket::create(addr());
   sock.close();
-  Channel chan(sock);
-  sock.close();
+  Channel chan;
+  chan.adopt(sock);
 }
 
 TEST(epoll, handle)
 {
-  Socket sock = Socket::create(addr());
-  Channel chan(sock);
+  Channel chan;
+  chan.adopt(Socket::create(addr()));
   auto poller = epoll::Poller::create(); 
   poller.close();
-  sock.close();
 }
 
 struct print_event 
@@ -50,42 +50,19 @@ struct print_event
   void operator () (Channel& ch) { std::cout << ku::net::to_str(ch.events()) << std::endl; }
 };
 
-void accept_connections(Socket& sock, epoll::Events& evts)
+template <typename Events>
+void handler(Channel& ch, Events& evts)
 {
-  Address adr("127.0.0.1", 8888);
-  while (1) {
-    auto in_sock = sock.accept(adr);
-    if (in_sock.error()) {
-      if (in_sock.error() == std::errc::operation_would_block)
-        break;
+  if (ch.has_event(Channel::Read)) {
+    if (ch.listening()) {
+      Address adr;
+      Channel conn_ch(ch.accept(adr));
+      if (conn_ch.error())
+        std::cout << conn_ch.error().message() << std::endl;
       else {
-        std::cout << in_sock.error().message() << std::endl;
-        exit(-1);
+        evts.adopt_channel(std::move(conn_ch));
+        std::cout << "Connection accepted." << std::endl;
       }
-    }
-    evts.add_channel(Channel(in_sock, Channel::In));
-    in_sock.release_handle();
-  }
-}
-
-void epoll_test()
-{
-  auto sock = Socket::create(addr());
-  Address adr("127.0.0.1", 8888);
-  Acceptor acceptor(addr(), adr);
-
-  if (sock.bind_listen(adr).error())
-    std::cout << sock.error().message() << std::endl;
-  Channel chan(sock, Channel::In);
-
-  auto poller = epoll::Poller::create(); 
-  epoll::Events evts(poller, 16);
-  evts.add_channel(std::move(chan));
-
-  auto handler = [&](Channel& ch) {
-    if (ch.raw_handle() == sock.raw_handle()) {
-      accept_connections(sock, evts);
-      std::cout << "Connection accepted." << std::endl;
     }
     else {
       char buf[10];
@@ -95,51 +72,43 @@ void epoll_test()
       ::write(ch.raw_handle(), buf, 6);
       exit(0);
     }
-  };
+  }
+};
 
-  loop(poller, evts, handler);
+void epoll_test()
+{
+  Channel ch(Channel::Listen);
+  ch.adopt(Socket::create(addr()));
+  ch.listen(Address("127.0.0.1", 8888));
+  if (ch.error())
+    std::cout << ch.error().message() << std::endl;
+
+  auto poller = epoll::Poller::create(); 
+  poller.events().adopt_channel(std::move(ch));
+
+  using namespace std::placeholders;
+  loop(poller, std::bind(&handler<epoll::Events>, _1, std::ref(poller.events())));
 }
 
 void poll_test()
 {
-  auto sock = Socket::create(addr());
-  Address adr("127.0.0.1", 8888);
-  if (sock.bind_listen(adr).error())
-    std::cout << sock.error().message() << std::endl;
+  Channel ch(Channel::Listen);
+  ch.adopt(Socket::create(addr()));
+  ch.listen(Address("127.0.0.1", 8888));
+  if (ch.error())
+    std::cout << ch.error().message() << std::endl;
 
   auto poller = poll::Poller::create(); 
-  poll::Events evts(16);
-  evts.add_channel(Channel(sock, Channel::In));
+  poller.events().adopt_channel(std::move(ch));
 
-  auto handler = [&](Channel& ch) {
-    if (ch.raw_handle() == sock.raw_handle()) {
-      // new connections
-      while (1) {
-        auto in_sock = sock.accept(adr);
-        if (in_sock.error()) {
-          if (in_sock.error() == std::errc::operation_would_block)
-            break;
-          else {
-            std::cout << in_sock.error().message() << std::endl;
-            exit(-1);
-          }
-        }
-        evts.add_channel(Channel(in_sock, Channel::In));
-        in_sock.release_handle();
-      }
-    }
-    else {
-      std::cout << "We have some data to read." << std::endl;
-    }
-  };
-
-  loop(poller, evts, handler);
+  using namespace std::placeholders;
+  loop(poller, std::bind(&handler<poll::Events>, _1, std::ref(poller.events())));
 }
-
+ 
 int main()
 {
-  epoll_test();
-  //poll_test();
+  //epoll_test();
+  poll_test();
 }
 
 

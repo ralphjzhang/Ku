@@ -12,9 +12,13 @@ class Acceptor : ku::util::noncopyable
 public:
   Acceptor(addrinfo const& aif, Address const& addr);
 
+  ChannelList accept();
+  Socket const& socket() { return socket_; }
+
+  std::error_code error() { return socket_.error(); }
+
 private:
   Socket socket_;
-  Channel channel_;
 };
 
 } } // namespace ku::net

@@ -1,71 +1,52 @@
 #include <strings.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
 #include <sys/epoll.h>
 #include <cerrno>
-#include "util.hpp"
+#include "sys.hpp"
 #include "address.hpp"
 #include "socket.hpp"
 
-namespace {
-
-int set_non_block(int socket_fd)
-{
-  int flags = ::fcntl(socket_fd, F_GETFL, 0);
-  if (flags == -1)
-    return errno;
-  flags |= O_NONBLOCK;
-  int ret = ::fcntl(socket_fd, F_SETFL, flags);
-  if (ret == -1)
-    return errno;
-
-  flags = ::fcntl(socket_fd, F_GETFL, 0);
-  flags |= FD_CLOEXEC;
-  ret = ::fcntl(socket_fd, F_SETFD, flags);
-  if (ret == -1)
-    return errno;
-
-  return 0;
-}
-
-} // unamed namespace
-
 namespace ku { namespace net {
+
+Socket::Socket(Socket&& s)
+  : raw_handle_(s.raw_handle_), error_(s.error_), listening_(s.listening_)
+{
+  s.clear();
+}
 
 Socket Socket::create(addrinfo const& addr)
 {
   int socket_fd = ::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
   if (socket_fd == -1)
     return Socket(socket_fd, errno);
-  int error_no = set_non_block(socket_fd);
-  return Socket(socket_fd, error_no);
+  std::error_code ec = sys::set_non_block(socket_fd);
+  if (ec)
+    return Socket(socket_fd, ec);
+  return Socket(socket_fd, sys::set_close_exec(socket_fd));
 }
 
-Socket& Socket::bind_listen(Address const& addr)
+int Socket::release_handle()
 {
-  if (::bind(raw_handle(), util::sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1) {
-    set_error(errno);
-    return *this;
-  }
-  if (::listen(raw_handle(), SOMAXCONN) == -1) {
-    set_error(errno);
-    return *this;
+  listening_ = false;
+  int handle = raw_handle_;
+  raw_handle_ = 0;
+  return handle;
+}
+
+Socket& Socket::listen(Address const& addr)
+{
+  error_ = (sys::bind(raw_handle(), addr));
+  if (!error_) {
+    error_ = (sys::listen(raw_handle()));
+    if (!error_)
+      listening_ = true;
   }
   return *this;
 }
 
 Socket Socket::accept(Address& addr) const
 {
-  socklen_t addr_len = sizeof(sockaddr_in);
-  int socket_fd = ::accept4(raw_handle(), util::sockaddr_cast(&addr.sockaddr()), &addr_len,
-      SOCK_NONBLOCK | SOCK_CLOEXEC);
-  if (socket_fd == -1)
-    return Socket(socket_fd, errno);
-  return Socket(socket_fd);
+  auto ret = sys::accept(raw_handle(), addr);
+  return Socket(ret.first, ret.second);
 }
 
 void Socket::close()
