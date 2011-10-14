@@ -9,9 +9,9 @@ Acceptor::Acceptor(addrinfo const& aif, Address const& addr)
   socket_.listen(addr);
 }
 
+  /*
 ChannelList Acceptor::accept()
 {
-  /*
   ChannelList channels;
   while (true) {
     Address addr;
@@ -27,8 +27,8 @@ ChannelList Acceptor::accept()
     conn_sock.clear();
   }
   // return std::move(channels);
-  */
 }
+  */
 
 } } // namespace ku::net
 

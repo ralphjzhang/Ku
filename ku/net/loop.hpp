@@ -22,9 +22,9 @@ void handle_connect(Channel& chan, Events& evts, Handler handler)
       while (true) {
         Address addr;
         Channel conn_ch(chan.accept(addr));
-        if (conn_ch.error() == std::errc::operation_would_block)
+        if (conn_ch.error() == std::errc::operation_would_block) // TODO EAGAIN
           break;
-        else if (handler.handle_connect(conn_ch))
+        else if (handler.handle_connect(conn_ch, addr))
           evts.adopt_channel(std::move(conn_ch));
       }
     }
@@ -34,7 +34,7 @@ void handle_connect(Channel& chan, Events& evts, Handler handler)
   }
 };
 
-template <typename Poller, typename Handler>
+template <typename PollType, typename Handler>
 std::error_code server_loop(Address const& addr, Handler eh)
 {
   Channel chan;
@@ -43,7 +43,7 @@ std::error_code server_loop(Address const& addr, Handler eh)
   if (chan.error())
     return chan.error();
 
-  Poller poller = Poller::create();
+  auto poller = PollType::Poller::create();
   auto events = make_events(poller);
   events.adopt_channel(std::move(chan));
 
@@ -53,7 +53,7 @@ std::error_code server_loop(Address const& addr, Handler eh)
       return poller.error();
     using namespace std::placeholders;
     dispatch(events, 
-        std::bind(handle_connect<decltype(events), decltype(eh)>, _1, _2, eh));
+        std::bind(handle_connect<decltype(events), Handler>, _1, _2, eh));
   }
 }
 

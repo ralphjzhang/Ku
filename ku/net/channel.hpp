@@ -77,6 +77,7 @@ void Channel::adopt(Handle&& h)
 std::string to_str(Channel::Events evts);
 std::string to_str(Channel::EventTypes et);
 
+/*
 class ChannelList : private util::noncopyable
 {
   typedef std::vector<Channel> Container;
@@ -92,7 +93,7 @@ public:
 
 private:
   Container channels_;
-};
+};*/
 
 // read(Channel const& ch, buffer)
 // write(Channel const& ch, buffer)

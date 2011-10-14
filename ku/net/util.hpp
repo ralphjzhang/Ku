@@ -29,7 +29,6 @@ inline sockaddr* sockaddr_cast(sockaddr_in* addr)
 
 bool self_connect(int socket_fd);
 
-std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& addr);
 
 sockaddr_in get_local_addr(int socket_fd);
 

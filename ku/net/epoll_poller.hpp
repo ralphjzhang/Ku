@@ -113,5 +113,14 @@ unsigned dispatch(Events& evts, EventHandler eh)
   return evts.active_count();
 }
 
-} } } // namespace ku::net::epoll
+} // namespace ku::net::epoll
+
+struct Epoll
+{
+  typedef epoll::Poller Poller;
+  typedef epoll::Events Events;
+};
+
+} } // namespace ku::net
+
 

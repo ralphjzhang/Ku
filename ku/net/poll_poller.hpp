@@ -110,8 +110,15 @@ unsigned dispatch(Events& evts, EventHandler eh)
   return count;
 }
 
-
 } // namespace ku::net::poll
+
+
+struct Poll
+{
+  typedef poll::Poller Poller;
+  typedef poll::Events Events;
+};
+
 
 } } // namespace ku::net
 

@@ -27,15 +27,6 @@ bool self_connect(int socket_fd)
       && local_addr.sin_addr.s_addr == peer_addr.sin_addr.s_addr;
 }
 
-std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& addr)
-{
-  addr.sin_family = AF_INET;
-  addr.sin_port = ::htons(port);
-  if (::inet_pton(AF_INET, ip, &addr.sin_addr) <= 0)
-    return errno_code();
-  return no_error();
-}
-
 sockaddr_in get_local_addr(int socket_fd)
 {
   sockaddr_in addr;

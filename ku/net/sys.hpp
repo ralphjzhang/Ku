@@ -1,11 +1,16 @@
 #pragma once
+#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <strings.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <system_error>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <chrono>
 
 #include "address.hpp"
 #include "util.hpp"
@@ -57,6 +62,16 @@ inline std::error_code set_close_exec(int fd)
     return errno_code();
   return ::fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1 ? errno_code() : no_error();
 }
+
+std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& addr);
+
+void make_sockaddr(uint16_t port, sockaddr_in& addr);
+
+std::string ip_str(sockaddr_in const& addr);
+
+timespec to_timespec(std::chrono::nanoseconds ns);
+
+std::chrono::nanoseconds from_timespec(timespec const& spec);
 
 } } } // namespace ku::net::sys
 

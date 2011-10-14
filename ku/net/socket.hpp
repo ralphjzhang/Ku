@@ -3,7 +3,6 @@
 #include "util.hpp"
 
 struct addrinfo;
-struct sockaddr_in;
 
 namespace ku { namespace net {
   
