@@ -10,7 +10,7 @@ namespace ku { namespace net { namespace epoll {
 int translate_event_types(Channel const& ch)
 {
   int event_types = 0;
-  if (ch.has_event_type(Channel::In) || ch.has_event_type(Channel::Listen))
+  if (ch.has_event_type(Channel::In))
     event_types |= (EPOLLIN | EPOLLPRI);
   if (ch.has_event_type(Channel::Out))
     event_types |= EPOLLOUT;
@@ -73,6 +73,7 @@ void Events::clear()
 
 bool Events::adopt_channel(Channel&& ch)
 {
+  assert(ch.any_event_type());
   auto res = channels_.insert(std::make_pair(ch.raw_handle(), std::move(ch)));
   if (res.second) {
     Channel *ch_ptr = &(res.first->second);
@@ -81,9 +82,8 @@ bool Events::adopt_channel(Channel&& ch)
     ev.events = translate_event_types(*ch_ptr);
     if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) != -1)
       return true;
-    else
-      channels_.erase(res.first);
-    // TODO else propogate error?
+    channels_.erase(res.first);
+    ch.set_error(errno);
   }
   return false;
 }

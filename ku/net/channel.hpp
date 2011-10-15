@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <bitset>
-#include "util.hpp"
+#include "handle.hpp"
 
 namespace ku { namespace net {
 
@@ -13,65 +13,56 @@ class Address;
  * Channel is the link among Socket, Events and event handlers.
  * A Channel is movable but not copyable, its life cycle is in general managed by Events
  **/
-class Channel : private util::noncopyable
+class Channel
 {
-  typedef std::bitset<4> Events;
-  typedef std::bitset<3> EventTypes;
+  struct Events : public std::bitset<4> { };
+  struct EventTypes : public std::bitset<2> { };
   friend std::string to_str(Events evts);
   friend std::string to_str(EventTypes evts);
+  friend Channel accept(Channel& chan, Address& addr);
 
 public:
-  enum EventType { Listen, In, Out };
-  enum Event { Close, Read, Write, Error };
+  enum Type : uint8_t { None, Acceptor, Connection, Timer };
+  enum EventType : uint8_t { In, Out };
+  enum Event : uint8_t { Close, Read, Write, Error };
 
-  Channel() { clear(); }
-  Channel(EventType et) : raw_handle_(0) { set_event_type(et); }
-  Channel& operator = (Channel&& ch);
-  Channel(Channel&& ch) { *this = std::move(ch); }
+  Channel() : handle_(0, false), type_(Type::None) { }
+  Channel& operator = (Channel&& chan);
+  Channel(Channel&& chan) { *this = std::move(chan); }
 
   template <typename Handle> void adopt(Handle&& h);
-  int raw_handle() const { return raw_handle_; }
-  int release_handle();
 
-  bool listen(Address const& addr);
-  bool listening() const { return has_event_type(Channel::Listen); }
-  Channel accept(Address& addr);
+  int raw_handle() const { return handle_.raw_handle(); }
+  bool owner() const { return handle_.owner(); }
+  std::error_code error() const { return handle_.error(); }
+  template <typename Err> void set_error(Err err) { handle_.set_error(err); }
 
+  Type type() const { return type_; }
   EventTypes const& event_types() const { return event_types_; }
   void set_event_type(EventType et) { event_types_.set(et); }
   bool has_event_type(EventType et) const { return event_types_.test(et); }
+  bool any_event_type() const { return event_types_.any(); }
 
   Events const& events() const { return events_; }
   void set_event(Event ev) { events_.set(ev); }
   bool has_event(Event ev) const { return events_.test(ev); }
   bool any_event() const { return events_.any(); }
-  bool non_event() const { return events_.none(); }
-
-  std::error_code error() const { return error_; }
-  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
-  void set_error(std::errc err) { error_ = std::make_error_code(err); }
-  void set_error(std::error_code const& ec) { error_ = ec; }
 
 private:
-  Channel(int raw_handle, EventType et, std::error_code err)
-    : raw_handle_(raw_handle), error_(err)
-  { set_event_type(et); }
-
+  Channel(Handle&& handle) : handle_(std::move(handle)) { }
   void clear();
 
-  int raw_handle_;
+  Handle handle_;
+  Type type_;
   EventTypes event_types_;
   Events events_;
-  std::error_code error_;
 };
 
 template <typename Handle>
 void Channel::adopt(Handle&& h)
 {
-  raw_handle_ = h.release_handle();
-  error_ = h.error();
-  if (h.listening())
-    set_event_type(Channel::Listen);
+  type_ = channel_type(h);
+  handle_.adopt(std::move(h));
 }
 
 std::string to_str(Channel::Events evts);
@@ -94,9 +85,6 @@ public:
 private:
   Container channels_;
 };*/
-
-// read(Channel const& ch, buffer)
-// write(Channel const& ch, buffer)
 
 
 } } // namespace ku::net

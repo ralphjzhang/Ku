@@ -10,7 +10,7 @@ namespace ku { namespace net { namespace poll {
 int translate_event_types(Channel const& ch)
 {
   int event_types = 0;
-  if (ch.has_event_type(Channel::In) || ch.has_event_type(Channel::Listen))
+  if (ch.has_event_type(Channel::In))
     event_types |= (POLLIN | POLLPRI);
   if (ch.has_event_type(Channel::Out))
     event_types |= POLLOUT;
@@ -59,6 +59,7 @@ void Events::clear()
 
 bool Events::adopt_channel(Channel&& ch)
 {
+  assert(ch.any_event_type());
   size_t evt_count = channels_.size();
   int raw_handle = ch.raw_handle();
   auto res = channels_.insert(

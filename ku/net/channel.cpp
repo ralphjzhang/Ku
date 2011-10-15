@@ -9,56 +9,25 @@
 
 namespace ku { namespace net {
 
-Channel& Channel::operator = (Channel&& ch)
+Channel& Channel::operator = (Channel&& chan)
 {
-  if (this != &ch)
+  if (this != &chan)
   {
-    raw_handle_ = ch.raw_handle_;
-    event_types_ = ch.event_types_;
-    events_ = ch.events_;
-    error_ = ch.error_;
-    ch.clear();
+    handle_.adopt(std::move(chan.handle_));
+    type_ = chan.type_;
+    event_types_ = chan.event_types_;
+    events_ = chan.events_;
+    chan.clear();
   }
   return *this;
 }
 
-int Channel::release_handle()
-{
-  int handle = raw_handle_;
-  raw_handle_ = 0;
-  return handle;
-}
-
-bool Channel::listen(Address const& addr)
-{
-  set_error(sys::bind(raw_handle(), addr));
-  if (!error_) {
-    set_error(sys::listen(raw_handle()));
-    if (!error_) {
-      set_event_type(Channel::Listen);
-      return true;
-    }
-  }
-  return false;
-}
-
-Channel Channel::accept(Address& addr)
-{
-  auto ret = sys::accept(raw_handle(), addr);
-  Channel conn_chan(ret.first, Channel::In, ret.second);
-  if (!conn_chan.error()) {
-    conn_chan.set_error(sys::set_non_block(conn_chan.raw_handle()));
-    if (!conn_chan.error())
-      conn_chan.set_error(sys::set_close_exec(conn_chan.raw_handle()));
-  }
-  return std::move(conn_chan);
-}
-
 void Channel::clear()
 {
+  handle_.clear();
+  type_ = Type::None;
   events_.reset();
   event_types_.reset();
-  raw_handle_ = 0;
 }
 
 std::string to_str(Channel::Events evts)
@@ -78,10 +47,8 @@ std::string to_str(Channel::Events evts)
 std::string to_str(Channel::EventTypes et)
 {
   std::string s;
-  if (et.test(Channel::Listen))
-    s.append("Listen");
   if (et.test(Channel::In))
-    s.empty() ? s.append("In") : s.append("|In");
+    s.append("In");
   if (et.test(Channel::Out))
     s.empty() ? s.append("Out") : s.append("|Out");
   return s;
