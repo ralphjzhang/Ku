@@ -24,6 +24,7 @@ public:
   ~Timer() = default;
 
   bool set_interval(std::chrono::nanoseconds interval);
+  bool clear_interval() { return set_interval(std::chrono::nanoseconds(0)); }
 
   template <typename Duration = std::chrono::nanoseconds>
   Duration interval() { return std::chrono::duration_cast<Duration>(get_interval_()); }

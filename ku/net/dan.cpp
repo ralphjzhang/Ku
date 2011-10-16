@@ -26,9 +26,9 @@ void test_owner_handle(HandleType&& h)
   EXPECT_TRUE(h2.owner()); EXPECT_FALSE(h.owner());
   EXPECT_EQ(h2.raw_handle(), raw_handle);
 
-  raw_handle = h2.release_handle();
+  h2.release_handle();
   EXPECT_FALSE(h2.owner());
-  EXPECT_EQ(h2.raw_handle(), raw_handle);
+  EXPECT_EQ(h2.raw_handle(), 0);
 
   h2.close();
   EXPECT_TRUE(!h2.error());
@@ -100,7 +100,7 @@ TEST(epoll, handle)
 
 struct Handler
 {
-  bool handle_connect(Channel const&, Address const& addr)
+  bool handle_accept(Channel const&, Address const& addr)
   {
     std::cout << "Connection from: " << to_str(addr) << std::endl;
     return true;
@@ -118,6 +118,13 @@ struct Handler
   {
     std::cout << "Timer ticks" << std::endl;
     return true;
+  }
+  bool handle_close(Channel& chan, ChannelHub& hub)
+  {
+    // TODO this is fatal for poll::Poller
+    std::cout << "Connection closed, removing channel" << std::endl;
+    hub.remove_channel(chan.raw_handle());
+    exit(0);
   }
 };
 

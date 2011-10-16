@@ -49,7 +49,6 @@ public:
   bool any_event() const { return events_.any(); }
 
 private:
-  Channel(Handle&& handle) : handle_(std::move(handle)) { }
   void clear();
 
   Handle handle_;

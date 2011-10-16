@@ -6,6 +6,7 @@
 #include <chrono>
 #include <ku/util/noncopyable.hpp>
 #include "channel.hpp"
+#include "channel_hub.hpp"
 
 namespace ku { namespace net {
 
@@ -13,7 +14,7 @@ namespace epoll {
 
 class Poller;
 
-class Events
+class Events : public ChannelHub
 {
   friend class Poller;
 
@@ -30,11 +31,11 @@ public:
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  bool adopt_channel(Channel&& ch);
+  virtual bool adopt_channel(Channel&& ch);
+  virtual bool remove_channel(int fd);
+  virtual bool modify_channel(int fd, int event_types);
   Channel* find_channel(int fd);
   Channel* find_channel(epoll_event const& ev);
-  bool remove_channel(int fd);
-  bool modify_channel(int fd, int event_types);
 
 private:
   epoll_event* raw_begin() { return &*events_.begin(); }

@@ -16,7 +16,7 @@ namespace ku { namespace net {
 class Address;
 
 template <typename Handle, typename Buffer>
-inline ssize_t read(Handle& h, Buffer& buf, size_t count)
+inline ssize_t read(Handle& h, Buffer&& buf, size_t count)
 {
   ssize_t ret = ::read(h.raw_handle(), raw_buffer(buf), count);
   if (ret == -1) h.set_error(errno);
@@ -36,9 +36,6 @@ inline ssize_t writev(Handle& h, Buffer& buf, size_t count)
 {
   // TODO
 }
-
-// Not all handles are applicable to accept()
-Handle accept(Handle& h, Address& addr);
 
 } } // namespace ku::net
 

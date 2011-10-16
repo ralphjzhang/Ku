@@ -7,12 +7,14 @@
 #include <unordered_map>
 #include <ku/util/noncopyable.hpp>
 #include "channel.hpp"
+#include "channel_hub.hpp"
 
 namespace ku { namespace net {
 
 namespace poll {
 
-class Events : private ku::util::noncopyable
+class Events : public ChannelHub
+             , private ku::util::noncopyable
 {
   friend class Poller;
   static const size_t InitialCapacity = 16;
@@ -30,10 +32,10 @@ public:
   unsigned active_count() const { return active_count_; }
   unsigned events_count() const { return channels_.size(); }
 
-  bool adopt_channel(Channel&& ch);
+  virtual bool adopt_channel(Channel&& ch);
+  virtual bool remove_channel(int fd);
+  virtual bool modify_channel(int fd, int event_types);
   Channel* find_channel(int fd);
-  bool remove_channel(int fd);
-  bool modify_channel(int fd, int event_types);
 
 private:
   pollfd* raw_begin() { return &*events_.begin(); }

@@ -12,7 +12,7 @@ namespace ku { namespace net {
  * Operations for common buffer types are provided, user can extend to any type as needed.
  **/
 
-inline void* raw_buffer(char *buf) { return buf; }
+inline void* raw_buffer(void *buf) { return buf; }
 
 template <typename T>
 inline void* raw_buffer(std::vector<T>& buf) { return &*buf.begin(); }

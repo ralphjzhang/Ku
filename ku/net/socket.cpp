@@ -9,13 +9,13 @@ namespace ku { namespace net {
 
 Socket Socket::create(addrinfo const& addr)
 {
-  int socket_fd = ::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol);
-  if (socket_fd == -1)
-    return Socket(socket_fd, errno);
-  std::error_code ec = sys::set_non_block(socket_fd);
-  if (ec)
-    return Socket(socket_fd, ec);
-  return Socket(socket_fd, sys::set_close_exec(socket_fd));
+  Socket socket(::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol));
+  if (socket.raw_handle() == -1) {
+    socket.set_error(errno);
+    return socket;
+  }
+  socket.set_non_block();
+  return socket;
 }
 
 Socket& Socket::listen(Address const& addr)
@@ -32,7 +32,30 @@ Socket& Socket::listen(Address const& addr)
 Socket Socket::accept(Address& addr) const
 {
   auto ret = sys::accept(raw_handle(), addr);
-  return Socket(ret.first, ret.second);
+  Socket socket(ret.first);
+  socket.set_error(ret.second);
+  socket.set_non_block();
+  return socket;
+}
+
+bool Socket::set_non_block()
+{
+  set_error(sys::set_non_block(raw_handle()));
+  if (!error()) {
+    set_error(sys::set_close_exec(raw_handle()));
+    return !error();
+  }
+  return false;
+}
+
+
+Socket accept(Handle& h, Address& addr)
+{
+  auto ret = sys::accept(h.raw_handle(), addr);
+  Socket socket(ret.first);
+  socket.set_error(ret.second);
+  socket.set_non_block();
+  return socket;
 }
 
 } } // namespace ku::net

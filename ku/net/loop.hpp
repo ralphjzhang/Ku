@@ -14,28 +14,41 @@ addrinfo aif()
   return addr;
 }
 
-template <typename Events, typename Handler>
-void handle_connect(Channel& chan, Events& evts, Handler handler)
+template <typename AcceptHandler>
+void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
 {
   if (chan.has_event(Channel::Read)) {
     if (chan.type() == Channel::Timer) {
       handler.handle_timer(chan);
+      int64_t tick;
+      read(chan, &tick, sizeof(tick));
     }
     else if (chan.type() == Channel::Acceptor) {
-      while (true) {
+      //while (true) {
         Address addr;
         Channel conn_ch(accept(chan, addr));
-        if (conn_ch.error() == std::errc::operation_would_block) // TODO EAGAIN
-          break;
-        else if (handler.handle_connect(conn_ch, addr))
-          evts.adopt_channel(std::move(conn_ch));
-      }
+        if (conn_ch.error() == std::errc::operation_would_block ||
+            conn_ch.error() == std::errc::resource_unavailable_try_again)
+          ;//break; TODO never breaks
+        else if (handler.handle_accept(conn_ch, addr))
+          hub.adopt_channel(std::move(conn_ch));
+      //}
     }
     else {
+      assert(chan.type() == Channel::Connection);
       handler.handle_read(chan);
     }
   }
-};
+  if (chan.has_event(Channel::Write)) {
+    ; // handle_write???
+  }
+  if (chan.has_event(Channel::Error)) {
+    ; // handle_error???
+  }
+  if (chan.has_event(Channel::Close)) {
+    handler.handle_close(chan, hub);
+  }
+}
 
 template <typename PollType, typename Handler>
 std::error_code server_loop(Address const& addr, Handler eh)
@@ -70,7 +83,7 @@ std::error_code server_loop(Address const& addr, Handler eh)
       return poller.error();
     using namespace std::placeholders;
     dispatch(events, 
-        std::bind(handle_connect<decltype(events), Handler>, _1, _2, eh));
+        std::bind(handle_channel<Handler>, _1, _2, eh));
   }
 }
 

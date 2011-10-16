@@ -50,7 +50,7 @@ public:
 
   bool owner() const { return owner_; }
   int raw_handle() const { return raw_handle_; }
-  int release_handle() { int ret = raw_handle_; owner_ = false; return ret; }
+  int release_handle() { int ret = raw_handle_; clear(); return ret; }
 
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
