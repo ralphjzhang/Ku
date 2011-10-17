@@ -1,5 +1,5 @@
 #pragma once
-#include <functional>
+#include "call_traits.hpp"
 
 namespace ku { namespace net {
 
@@ -19,35 +19,39 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
 {
   if (chan.has_event(Channel::Read)) {
     if (chan.type() == Channel::Timer) {
-      handler.handle_timer(chan);
+      util::if_handle_timer(handler, chan);
       int64_t tick;
       read(chan, &tick, sizeof(tick));
     }
     else if (chan.type() == Channel::Acceptor) {
-      //while (true) {
+      while (true) {
         Address addr;
         Channel conn_ch(accept(chan, addr));
-        if (conn_ch.error() == std::errc::operation_would_block ||
-            conn_ch.error() == std::errc::resource_unavailable_try_again)
-          ;//break; TODO never breaks
-        else if (handler.handle_accept(conn_ch, addr))
+        if (conn_ch.error()) {
+          if (conn_ch.error() == std::errc::operation_would_block ||
+              conn_ch.error() == std::errc::resource_unavailable_try_again) {
+            break;
+          }
+          else {
+            ;// handler.handle_error(conn_ch);
+            // break;
+          }
+        }
+        else if (util::if_handle_accept(handler, conn_ch, addr))
           hub.adopt_channel(std::move(conn_ch));
-      //}
+      }
     }
     else {
       assert(chan.type() == Channel::Connection);
-      handler.handle_read(chan);
+      util::if_handle_read(handler, chan);
     }
   }
-  if (chan.has_event(Channel::Write)) {
-    ; // handle_write???
-  }
-  if (chan.has_event(Channel::Error)) {
-    ; // handle_error???
-  }
-  if (chan.has_event(Channel::Close)) {
-    handler.handle_close(chan, hub);
-  }
+  if (chan.has_event(Channel::Write))
+    util::if_handle_write(handler, chan);
+  if (chan.has_event(Channel::Error))
+    util::if_handle_error(handler, chan);
+  if (chan.has_event(Channel::Close))
+    util::if_handle_close(handler, chan, hub);
 }
 
 template <typename PollType, typename Handler>

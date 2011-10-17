@@ -112,14 +112,13 @@ struct Handler
     std::cout << "We have some data to read: " << buf << std::endl;
     strcpy(buf, "World");
     write(chan, buf, 6);
-    exit(0);
   }
   bool handle_timer(Channel& chan)
   {
     std::cout << "Timer ticks" << std::endl;
     return true;
   }
-  bool handle_close(Channel& chan, ChannelHub& hub)
+  bool handle_close(Channel const& chan, ChannelHub& hub)
   {
     // TODO this is fatal for poll::Poller
     std::cout << "Connection closed, removing channel" << std::endl;

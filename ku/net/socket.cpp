@@ -54,7 +54,8 @@ Socket accept(Handle& h, Address& addr)
   auto ret = sys::accept(h.raw_handle(), addr);
   Socket socket(ret.first);
   socket.set_error(ret.second);
-  socket.set_non_block();
+  if (!socket.error())
+    socket.set_non_block();
   return socket;
 }
 

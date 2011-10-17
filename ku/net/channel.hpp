@@ -19,7 +19,6 @@ class Channel
   struct EventTypes : public std::bitset<2> { };
   friend std::string to_str(Events evts);
   friend std::string to_str(EventTypes evts);
-  friend Channel accept(Channel& chan, Address& addr);
 
 public:
   enum Type : uint8_t { None, Acceptor, Connection, Timer };
@@ -32,6 +31,8 @@ public:
 
   template <typename Handle> void adopt(Handle&& h);
 
+  Handle& handle() { return handle_; }
+  Handle const& handle() const { return handle_; }
   int raw_handle() const { return handle_.raw_handle(); }
   bool owner() const { return handle_.owner(); }
   std::error_code error() const { return handle_.error(); }
