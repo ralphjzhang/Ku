@@ -68,7 +68,7 @@ Events::Events(Events&& e)
 void Events::clear()
 {
   active_count_ = 0;
-  ::bzero(raw_begin(), sizeof(epoll_event) * events_.size());
+  ::bzero(raw_events(), sizeof(epoll_event) * events_.size());
 }
 
 bool Events::adopt_channel(Channel&& ch)
@@ -149,7 +149,7 @@ Poller Poller::create(int flags)
 
 Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
-  int event_num = ::epoll_wait(raw_handle(), evts.raw_begin(), evts.events_.size(),
+  int event_num = ::epoll_wait(raw_handle(), evts.raw_events(), evts.events_.size(),
                                timeout.count());
   if (event_num == -1) {
     evts.set_active_count(0);

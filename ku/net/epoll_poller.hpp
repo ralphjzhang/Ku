@@ -38,7 +38,7 @@ public:
   Channel* find_channel(epoll_event const& ev);
 
 private:
-  epoll_event* raw_begin() { return &*events_.begin(); }
+  epoll_event* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
 
   void clear();

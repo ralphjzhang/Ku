@@ -37,8 +37,12 @@ public:
   virtual bool modify_channel(int fd, int event_types);
   Channel* find_channel(int fd);
 
+  void apply_removal(); // TODO open this or not?
+
 private:
-  pollfd* raw_begin() { return &*events_.begin(); }
+  bool remove_channel_internal(int fd);
+
+  pollfd* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
 
   void clear();
@@ -48,6 +52,7 @@ private:
   unsigned active_count_;
   EventList events_;
   ChannelMap channels_;
+  std::vector<int> removal_;
 };
 
 
@@ -109,6 +114,7 @@ unsigned dispatch(Events& evts, EventHandler eh)
     ++count;
     eh(*ch, evts);
   }
+  evts.apply_removal();
   return count;
 }
 

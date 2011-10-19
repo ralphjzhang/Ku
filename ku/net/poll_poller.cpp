@@ -1,5 +1,6 @@
 #include <cassert>
 #include <strings.h>
+#include <algorithm>
 #include <ku/util/cast.hpp>
 #include "poll_poller.hpp"
 #include "channel.hpp"
@@ -46,15 +47,16 @@ Events::Events(Events&& e)
   active_count_ = e.active_count_;
   events_ = std::move(e.events_);
   channels_ = std::move(e.channels_);
-  e.active_count_ = 0;
-  e.events_.clear();
-  e.channels_.clear();
+  removal_ = std::move(e.removal_);
+  e.clear();
 }
 
 void Events::clear()
 {
   active_count_ = 0;
-  ::bzero(raw_begin(), sizeof(pollfd) * events_.size());
+  events_.clear();
+  channels_.clear();
+  removal_.clear();
 }
 
 bool Events::adopt_channel(Channel&& ch)
@@ -84,16 +86,8 @@ Channel* Events::find_channel(int fd)
 
 bool Events::remove_channel(int fd)
 {
-  auto find = channels_.find(fd);
-  if (channels_.end() != find) {
-    assert(find->second.first.raw_handle() == fd);
-    size_t idx = find->second.second;
-    assert(0 <= idx && idx < events_.size());
-    pollfd& ev = events_[idx];
-    assert(ev.fd == fd);
-    ev.fd = 0;
-    channels_.erase(find);
-    compress(idx);
+  if (find_channel(fd)) {
+    removal_.push_back(fd);
     return true;
   }
   return false;
@@ -109,6 +103,30 @@ bool Events::modify_channel(int fd, int event_types)
     assert(ev.fd == fd);
     ev.events = event_types;
     translate_event_types(event_types, find->second.first);
+    return true;
+  }
+  return false;
+}
+
+void Events::apply_removal()
+{
+  for_each(removal_.begin(), removal_.end(), [this](int fd) {
+      remove_channel_internal(fd);
+      });
+}
+
+bool Events::remove_channel_internal(int fd)
+{
+  auto find = channels_.find(fd);
+  if (channels_.end() != find) {
+    assert(find->second.first.raw_handle() == fd);
+    size_t idx = find->second.second;
+    assert(0 <= idx && idx < events_.size());
+    pollfd& ev = events_[idx];
+    assert(ev.fd == fd);
+    ev.fd = 0;
+    channels_.erase(find);
+    compress(idx);
     return true;
   }
   return false;
@@ -135,12 +153,13 @@ void Events::compress(size_t idx)
 
 Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
-  int event_num = ::poll(evts.raw_begin(), evts.channels_.size(), timeout.count());
+  int event_num = ::poll(evts.raw_events(), evts.channels_.size(), timeout.count());
   if (event_num == -1) {
     set_error(errno);
     evts.set_active_count(0);
+  } else {
+    evts.set_active_count(implicit_cast<unsigned>(event_num));
   }
-  evts.set_active_count(implicit_cast<unsigned>(event_num));
   return evts;
 }
 

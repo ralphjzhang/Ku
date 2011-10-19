@@ -97,6 +97,7 @@ TEST(epoll, handle)
   auto poller = epoll::Poller::create(); 
   poller.close();
 }
+#include <functional>
 
 struct Handler
 {
@@ -138,12 +139,14 @@ void epoll_test()
 void poll_test()
 {
   Address addr("127.0.0.1", 8888);
-  server_loop<Poll>(addr, Handler());
+  std::error_code err = server_loop<Poll>(addr, Handler());
+  if (err)
+    std::cout << err.message() << std::endl;
 }
 
 int main()
 {
-  epoll_test();
-  //poll_test();
+  //epoll_test();
+  poll_test();
 }
 

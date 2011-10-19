@@ -22,8 +22,7 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
       util::if_handle_timer(handler, chan);
       int64_t tick;
       read(chan, &tick, sizeof(tick));
-    }
-    else if (chan.type() == Channel::Acceptor) {
+    } else if (chan.type() == Channel::Acceptor) {
       while (true) {
         Address addr;
         Channel conn_ch(accept(chan, addr));
@@ -31,17 +30,14 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
           if (conn_ch.error() == std::errc::operation_would_block ||
               conn_ch.error() == std::errc::resource_unavailable_try_again) {
             break;
-          }
-          else {
+          } else {
             ;// handler.handle_error(conn_ch);
             // break;
           }
-        }
-        else if (util::if_handle_accept(handler, conn_ch, addr))
+        } else if (util::if_handle_accept(handler, conn_ch, addr))
           hub.adopt_channel(std::move(conn_ch));
       }
-    }
-    else {
+    } else {
       assert(chan.type() == Channel::Connection);
       util::if_handle_read(handler, chan);
     }
@@ -86,8 +82,7 @@ std::error_code server_loop(Address const& addr, Handler eh)
     if (poller.error())
       return poller.error();
     using namespace std::placeholders;
-    dispatch(events, 
-        std::bind(handle_channel<Handler>, _1, _2, eh));
+    dispatch(events, std::bind(handle_channel<Handler>, _1, _2, eh));
   }
 }
 
