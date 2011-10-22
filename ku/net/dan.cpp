@@ -1,4 +1,3 @@
-#include <netdb.h>
 #include <functional>
 #include <thread>
 #include <ku/dan/dan.hpp>
@@ -11,8 +10,7 @@
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
-#include "dispatcher.hpp"
-#include "loop.hpp"
+#include "acceptor.hpp"
 
 using namespace ku;
 using namespace ku::net;
@@ -122,30 +120,14 @@ struct Handler
     std::cout << "Timer ticks" << std::endl;
     return true;
   }
-  bool handle_close(Channel const& chan, ChannelHub& hub)
+  void handle_close(Channel const& chan)
   {
     std::cout << "Connection closed, removing channel " << chan.raw_handle() << std::endl;
-    hub.remove_channel(chan);
-    return true;
   }
 };
 
 bool setup_channels(ChannelHub& hub, Address const& addr)
 {
-  Channel chan;
-  chan.set_event_type(Channel::In);
-  {
-    // Prevent sock referenced out of scope accidentally
-    Socket sock = Socket::create(AddrInfo::create());
-    sock.listen(addr);
-    if (sock.error()) {
-      std::cout << sock.error().message() << std::endl;
-      exit(0);
-    }
-    chan.adopt(std::move(sock));
-    chan.set_event_handler(std::make_shared<Handler>());
-  }
-
   Channel tchan;
   tchan.set_event_type(Channel::In);
   {
@@ -155,7 +137,6 @@ bool setup_channels(ChannelHub& hub, Address const& addr)
     tchan.set_event_handler(std::make_shared<Handler>());
   }
 
-  hub.adopt_channel(std::move(chan));
   hub.adopt_channel(std::move(tchan));
   return true;
 }
@@ -164,15 +145,10 @@ bool setup_channels(ChannelHub& hub, Address const& addr)
 void epoll_test()
 {
   Address addr("127.0.0.1", 8888);
-  Dispatcher<Handler> dispatcher;
-  dispatcher.on_setup = [&addr](ChannelHub& hub) { return setup_channels(hub, addr); };
-  dispatcher.on_error = [](std::error_code ec) {
-    std::cout << "Poller error: " << ec.message() << std::endl;
-    return true;
-  };
-  std::thread t([&dispatcher](){ epoll::poll_loop(dispatcher); });
+  Acceptor<Handler> acceptor(addr);
+  std::thread t([&acceptor](){ epoll::poll_loop(acceptor); });
   std::getchar();
-  dispatcher.quit();
+  acceptor.quit();
   t.join();
 }
 

@@ -53,8 +53,8 @@ auto if_handle_error(T& t, Args&... args)
   -> decltype(std::declval<T>().handle_error(args...))
 { return t.handle_error(args...); }
 
-template <typename... T> void if_handle_error(T&...)
-{ }
+template <typename... T> bool if_handle_error(T&...)
+{ return false; }
 
 } } } // namespace ku::net::util
 

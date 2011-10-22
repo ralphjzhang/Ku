@@ -1,20 +1,16 @@
 #pragma once
 #include <poll.h>
 #include <vector>
-#include <utility>
 #include <system_error>
 #include <chrono>
 #include <unordered_map>
-#include <ku/util/noncopyable.hpp>
 #include "channel.hpp"
 #include "channel_hub.hpp"
 
-namespace ku { namespace net {
-
-namespace poll {
+namespace ku { namespace net { namespace poll {
 
 class Events : public ChannelHub
-             , private ku::util::noncopyable
+             , private util::noncopyable
 {
   friend class Poller;
   static const size_t InitialCapacity = 16;
@@ -61,7 +57,7 @@ private:
  * poll::Poller wraps system call ::poll
  * It's supposed to be used with poll::Events
  **/
-class Poller : private ku::util::noncopyable
+class Poller : private util::noncopyable
 {
 private:
   Poller() = default;
@@ -120,7 +116,5 @@ std::error_code poll_loop(Dispatcher& dispatcher,
   return std::error_code();
 }
 
-} // namespace ku::net::poll
-
-} } // namespace ku::net
+} } } // namespace ku::net::poll
 

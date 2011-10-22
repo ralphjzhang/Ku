@@ -1,6 +1,4 @@
 #include <cassert>
-#include <strings.h>
-#include <ku/util/cast.hpp>
 #include "poll_poller.hpp"
 #include "channel.hpp"
 
@@ -37,9 +35,7 @@ void translate_events(pollfd const& ev, Channel& chan)
     chan.set_event(Channel::Error);
 }
 
-//////////////
 /// Events ///
-//////////////
 
 Events::Events(Events&& e)
 {
@@ -145,9 +141,7 @@ void Events::compress(size_t idx)
     events_.resize(evt_count + evt_count / 2);
 }
 
-//////////////
 /// Poller ///
-//////////////
 
 Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
@@ -156,7 +150,7 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
     set_error(errno);
     evts.set_active_count(0);
   } else {
-    evts.set_active_count(implicit_cast<unsigned>(event_num));
+    evts.set_active_count(util::implicit_cast<unsigned>(event_num));
   }
   return evts;
 }

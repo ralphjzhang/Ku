@@ -4,13 +4,10 @@
 #include <map>
 #include <vector>
 #include <chrono>
-#include <ku/util/noncopyable.hpp>
 #include "channel.hpp"
 #include "channel_hub.hpp"
 
-namespace ku { namespace net {
-
-namespace epoll {
+namespace ku { namespace net { namespace epoll {
 
 class Poller;
 
@@ -55,7 +52,7 @@ private:
  * epoll_create, epoll_wait
  * It is supposed to be used with epoll::Events
  **/
-class Poller : private ku::util::noncopyable
+class Poller : private util::noncopyable
 {
 private:
   template <typename Err>
@@ -123,8 +120,6 @@ std::error_code poll_loop(Dispatcher& dispatcher,
   return std::error_code();
 }
 
-} // namespace ku::net::epoll
-
-} } // namespace ku::net
+} } } // namespace ku::net::epoll
 
 

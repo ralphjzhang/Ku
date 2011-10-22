@@ -29,9 +29,7 @@ void translate_events(epoll_event const& ev, Channel& chan)
     chan.set_event(Channel::Error);
 }
 
-//////////////
 /// Events ///
-//////////////
 
 Events::Events(Poller& poller, size_t capacity)
   : poller_(poller), events_(capacity), active_count_(0)
@@ -114,9 +112,7 @@ bool Events::modify_channel(Channel const& chan)
   return false;
 }
 
-//////////////
 /// Poller ///
-//////////////
 
 Poller::Poller(Poller&& h) 
   : raw_handle_(h.raw_handle_), error_(h.error_)

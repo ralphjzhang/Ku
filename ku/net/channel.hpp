@@ -12,10 +12,10 @@ namespace ku { namespace net {
 class Address;
 
 /**
- * Channel is the link among Socket, Events and event handlers.
+ * Channel is the link among handle, events and event handlers.
  * A Channel is movable but not copyable, its life cycle is in general managed by Events
  **/
-class Channel
+class Channel : util::noncopyable
 {
   struct Events : public std::bitset<4> { };
   struct EventTypes : public std::bitset<2> { };
@@ -31,7 +31,11 @@ public:
   Channel& operator = (Channel&& chan);
   Channel(Channel&& chan) { *this = std::move(chan); }
 
-  template <typename Handle> void adopt(Handle&& h);
+  template <typename Handle> void adopt(Handle&& h)
+  {
+    type_ = channel_type(h);
+    handle_.adopt(std::move(h));
+  }
 
   Handle& handle() { return handle_; }
   Handle const& handle() const { return handle_; }
@@ -73,33 +77,8 @@ private:
   std::shared_ptr<void> event_handler_;
 };
 
-template <typename Handle>
-void Channel::adopt(Handle&& h)
-{
-  type_ = channel_type(h);
-  handle_.adopt(std::move(h));
-}
-
 std::string to_str(Channel::Events evts);
 std::string to_str(Channel::EventTypes et);
-
-/*
-class ChannelList : private util::noncopyable
-{
-  typedef std::vector<Channel> Container;
-
-public:
-  ChannelList() = default;
-  ~ChannelList() = default;
-
-  ChannelList(ChannelList&& chs);
-  ChannelList(size_t capacity) : channels_(capacity) { }
-
-  void add_channel(Channel&& ch) { channels_.push_back(std::move(ch)); }
-
-private:
-  Container channels_;
-};*/
 
 
 } } // namespace ku::net

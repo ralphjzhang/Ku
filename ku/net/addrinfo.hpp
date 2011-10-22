@@ -1,5 +1,6 @@
 #pragma once
 #include <sys/types.h>
+#include <netdb.h>
 #include "util.hpp"
 
 namespace ku { namespace net {

@@ -1,11 +1,16 @@
 #pragma once
 #include <system_error>
-#include <ku/util/cast.hpp>
 
 struct sockaddr;
 struct sockaddr_in;
 
 namespace ku { namespace net { namespace util {
+
+template<typename To, typename From>
+inline To implicit_cast(From const &f)
+{
+  return f;
+}
 
 struct noncopyable
 {

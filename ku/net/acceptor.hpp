@@ -1,24 +1,48 @@
 #pragma once
-#include <ku/util/noncopyable.hpp>
+#include <system_error>
+#include <iostream>
+#include "addrinfo.hpp"
+#include "address.hpp"
 #include "socket.hpp"
 #include "channel.hpp"
+#include "channel_hub.hpp"
+#include "dispatcher.hpp"
 
 namespace ku { namespace net {
 
 class Address;
+class ChannelHub;
 
-class Acceptor : ku::util::noncopyable
+template <typename EventHandler>
+class Acceptor : public Dispatcher<EventHandler>
 {
 public:
-  Acceptor(addrinfo const& aif, Address const& addr);
+  Acceptor(Address const& addr) : address_(addr) { }
 
-  //ChannelList accept();
-  Socket const& socket() { return socket_; }
+  bool on_setup(ChannelHub& hub)
+  {
+    Socket socket(Socket::create(AddrInfo::create()));
+    socket.listen(address_);
+    if (socket.error()) {
+      std::cout << "Listener error: " << socket.error().message() << std::endl;
+      exit(0);
+    }
+    Channel chan;
+    chan.adopt(std::move(socket));
+    chan.set_event_type(Channel::In);
+    chan.set_event_handler(std::make_shared<EventHandler>());
+    hub.adopt_channel(std::move(chan));
+    return true;
+  }
 
-  std::error_code error() { return socket_.error(); }
+  bool on_error(std::error_code ec)
+  {
+    std::cout << "Poller error: " << ec.message() << std::endl;
+    return false;
+  }
 
 private:
-  Socket socket_;
+  Address address_;
 };
 
 } } // namespace ku::net
