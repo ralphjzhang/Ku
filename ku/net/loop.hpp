@@ -3,17 +3,6 @@
 
 namespace ku { namespace net {
 
-addrinfo aif()
-{
-  // TODO: model this better
-  addrinfo addr;
-  addr.ai_family = AF_INET;
-  addr.ai_socktype = SOCK_STREAM;
-  addr.ai_protocol = IPPROTO_TCP;
-  addr.ai_flags = AI_PASSIVE;
-  return addr;
-}
-
 template <typename AcceptHandler>
 void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
 {
@@ -34,8 +23,9 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
             ;// handler.handle_error(conn_ch);
             // break;
           }
-        } else if (util::if_handle_accept(handler, conn_ch, addr))
+        } else if (util::if_handle_accept(handler, conn_ch, addr)) {
           hub.adopt_channel(std::move(conn_ch));
+        }
       }
     } else {
       assert(chan.type() == Channel::Connection);
@@ -50,17 +40,18 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
     util::if_handle_close(handler, chan, hub);
 }
 
-template <typename PollType, typename Handler>
-std::error_code server_loop(Address const& addr, Handler eh)
+void setup_channels(ChannelHub& hub, Address const& addr)
 {
   Channel chan;
   chan.set_event_type(Channel::In);
   {
     // Prevent sock referenced out of scope accidentally
-    Socket sock = Socket::create(aif());
+    Socket sock = Socket::create(AddrInfo::create());
     sock.listen(addr);
-    if (sock.error())
-      return sock.error();
+    if (sock.error()) {
+      std::cout << sock.error().message() << std::endl;
+      exit(0);
+    }
     chan.adopt(std::move(sock));
   }
 
@@ -72,20 +63,9 @@ std::error_code server_loop(Address const& addr, Handler eh)
     tchan.adopt(std::move(timer));
   }
 
-  auto poller = PollType::Poller::create();
-  auto events = make_events(poller);
-  events.adopt_channel(std::move(chan));
-  events.adopt_channel(std::move(tchan));
-
-  while (1) {
-    poller.poll(events, std::chrono::milliseconds(3000));
-    if (poller.error())
-      return poller.error();
-    using namespace std::placeholders;
-    dispatch(events, std::bind(handle_channel<Handler>, _1, _2, eh));
-  }
+  hub.adopt_channel(std::move(chan));
+  hub.adopt_channel(std::move(tchan));
 }
-
 
 } } // namespace ku::net
 

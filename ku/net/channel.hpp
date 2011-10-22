@@ -40,6 +40,7 @@ public:
 
   Type type() const { return type_; }
   EventTypes const& event_types() const { return event_types_; }
+  void set_event_types(EventTypes const& evts) { event_types_ = evts; }
   void set_event_type(EventType et) { event_types_.set(et); }
   bool has_event_type(EventType et) const { return event_types_.test(et); }
   bool any_event_type() const { return event_types_.any(); }

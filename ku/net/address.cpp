@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include "address.hpp"
 #include "sys.hpp"
 

@@ -2,6 +2,7 @@
 #include <functional>
 #include <ku/dan/dan.hpp>
 #include "address.hpp"
+#include "addrinfo.hpp"
 #include "handle_ops.hpp"
 #include "socket.hpp"
 #include "timer.hpp"
@@ -9,8 +10,8 @@
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
+#include "poll_dispatcher.hpp"
 #include "loop.hpp"
-#include "acceptor.hpp"
 
 using namespace ku;
 using namespace ku::net;
@@ -37,14 +38,14 @@ void test_owner_handle(HandleType&& h)
 
 TEST(Socket, handle)
 {
-  Socket sock = Socket::create(aif());
+  Socket sock = Socket::create(AddrInfo::create());
   test_owner_handle(std::move(sock));
 }
 
 Socket make_listener()
 {
   Address addr("127.0.0.1", 8888);
-  Socket sock = Socket::create(aif());
+  Socket sock = Socket::create(AddrInfo::create());
   sock.listen(addr);
   return sock;
 }
@@ -93,11 +94,10 @@ TEST(Channel, handle)
 TEST(epoll, handle)
 {
   Channel chan;
-  chan.adopt(Socket::create(aif()));
+  chan.adopt(Socket::create(AddrInfo::create()));
   auto poller = epoll::Poller::create(); 
   poller.close();
 }
-#include <functional>
 
 struct Handler
 {
@@ -112,7 +112,7 @@ struct Handler
     read(chan, buf, 10);
     std::cout << "We have some data to read: " << buf << std::endl;
     strcpy(buf, "World");
-    write(chan, buf, 6);
+    //write(chan, buf, 6);
   }
   bool handle_timer(Channel& chan)
   {
@@ -121,17 +121,17 @@ struct Handler
   }
   bool handle_close(Channel const& chan, ChannelHub& hub)
   {
-    // TODO this is fatal for poll::Poller
     std::cout << "Connection closed, removing channel" << std::endl;
     hub.remove_channel(chan.raw_handle());
-    exit(0);
   }
 };
 
 void epoll_test()
 {
   Address addr("127.0.0.1", 8888);
-  std::error_code err = server_loop<Epoll>(addr, Handler());
+  Handler handler;
+  PollDispatcher poll_dispatcher;
+  std::error_code err = epoll::poll_loop(poll_dispatcher);
   if (err)
     std::cout << err.message() << std::endl;
 }
@@ -139,14 +139,16 @@ void epoll_test()
 void poll_test()
 {
   Address addr("127.0.0.1", 8888);
-  std::error_code err = server_loop<Poll>(addr, Handler());
+  Handler handler;
+  PollDispatcher poll_dispatcher;
+  std::error_code err = poll::poll_loop(poll_dispatcher);
   if (err)
     std::cout << err.message() << std::endl;
 }
 
 int main()
 {
-  //epoll_test();
-  poll_test();
+  epoll_test();
+  //poll_test();
 }
 

@@ -1,6 +1,5 @@
 #include <cassert>
 #include <strings.h>
-#include <algorithm>
 #include <ku/util/cast.hpp>
 #include "poll_poller.hpp"
 #include "channel.hpp"
@@ -8,34 +7,34 @@
 namespace ku { namespace net { namespace poll {
 
 // Helper function
-int translate_event_types(Channel const& ch)
+int translate_event_types(Channel const& chan)
 {
   int event_types = 0;
-  if (ch.has_event_type(Channel::In))
-    event_types |= (POLLIN | POLLPRI);
-  if (ch.has_event_type(Channel::Out))
+  if (chan.has_event_type(Channel::In))
+    event_types |= (POLLIN | POLLPRI | POLLRDHUP);
+  if (chan.has_event_type(Channel::Out))
     event_types |= POLLOUT;
   return event_types;
 }
 
-void translate_event_types(int event_types, Channel& ch)
+void translate_event_types(int event_types, Channel& chan)
 {
   if (event_types & (POLLIN | POLLPRI))
-    ch.set_event_type(Channel::In);
+    chan.set_event_type(Channel::In);
   if (event_types & POLLOUT)
-    ch.set_event_type(Channel::Out);
+    chan.set_event_type(Channel::Out);
 }
 
-void translate_events(pollfd const& ev, Channel& ch)
+void translate_events(pollfd const& ev, Channel& chan)
 {
-  if ((ev.revents & POLLHUP) && !(ev.revents & POLLIN))
-    ch.set_event(Channel::Close);
+  if (ev.revents & (POLLHUP | POLLRDHUP))
+    chan.set_event(Channel::Close);
   if (ev.revents & (POLLIN | POLLPRI | POLLRDHUP))
-    ch.set_event(Channel::Read);
+    chan.set_event(Channel::Read);
   if (ev.revents & POLLOUT)
-    ch.set_event(Channel::Write);
+    chan.set_event(Channel::Write);
   if (ev.revents & (POLLERR | POLLNVAL))
-    ch.set_event(Channel::Error);
+    chan.set_event(Channel::Error);
 }
 
 //////////////
@@ -59,13 +58,13 @@ void Events::clear()
   removal_.clear();
 }
 
-bool Events::adopt_channel(Channel&& ch)
+bool Events::adopt_channel(Channel&& chan)
 {
-  assert(ch.any_event_type());
+  assert(chan.any_event_type());
   size_t evt_count = channels_.size();
-  int raw_handle = ch.raw_handle();
-  auto res = channels_.insert(
-      std::make_pair(raw_handle, std::make_pair(std::move(ch), evt_count)));
+  int raw_handle = chan.raw_handle();
+  auto res = channels_.insert(std::make_pair(raw_handle, 
+                                             std::make_pair(std::move(chan), evt_count)));
   if (res.second) {
     if (evt_count >= events_.size())
       resize(evt_count + evt_count / 2);
@@ -93,16 +92,16 @@ bool Events::remove_channel(int fd)
   return false;
 }
 
-bool Events::modify_channel(int fd, int event_types)
+bool Events::modify_channel(Channel const& chan)
 {
-  auto find = channels_.find(fd);
+  auto find = channels_.find(chan.raw_handle());
   if (channels_.end() != find) {
     size_t idx = find->second.second;
     assert(0 <= idx && idx < events_.size());
     pollfd& ev = events_[idx];
-    assert(ev.fd == fd);
-    ev.events = event_types;
-    translate_event_types(event_types, find->second.first);
+    assert(ev.fd == chan.raw_handle());
+    ev.events = translate_event_types(chan);
+    find->second.first.set_event_types(chan.event_types());
     return true;
   }
   return false;
@@ -110,9 +109,8 @@ bool Events::modify_channel(int fd, int event_types)
 
 void Events::apply_removal()
 {
-  for_each(removal_.begin(), removal_.end(), [this](int fd) {
-      remove_channel_internal(fd);
-      });
+  for (int fd : removal_)
+    remove_channel_internal(fd);
 }
 
 bool Events::remove_channel_internal(int fd)

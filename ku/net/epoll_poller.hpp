@@ -15,6 +15,7 @@ namespace epoll {
 class Poller;
 
 class Events : public ChannelHub
+             , private util::noncopyable
 {
   friend class Poller;
 
@@ -23,17 +24,16 @@ class Events : public ChannelHub
   typedef std::map<int, Channel> ChannelMap;
 
 public:
-  Events(Poller const& p);
-  Events(Poller const& p, size_t capacity);
-
+  Events(Poller& p, size_t capacity = InitialCapacity);
   Events(Events&& e);
+  virtual ~Events() { }
 
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  virtual bool adopt_channel(Channel&& ch);
+  virtual bool adopt_channel(Channel&& chan);
   virtual bool remove_channel(int fd);
-  virtual bool modify_channel(int fd, int event_types);
+  virtual bool modify_channel(Channel const& chan);
   Channel* find_channel(int fd);
   Channel* find_channel(epoll_event const& ev);
 
@@ -44,7 +44,7 @@ private:
   void clear();
   void resize(size_t size) { events_.resize(size); }
 
-  int poller_handle_;
+  Poller& poller_;
   std::vector<epoll_event> events_;
   unsigned active_count_;
   ChannelMap channels_;
@@ -77,6 +77,7 @@ public:
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
   void set_error(std::error_code const& ec) { error_ = ec; }
+  void clear_error() { error_.clear(); }
 
   void close();
 
@@ -87,40 +88,38 @@ private:
   std::error_code error_;
 };
 
-inline Events make_events(Poller& poller) { return Events(poller); }
-
 void translate_events(epoll_event const& ev, Channel& ch);
 
-/**
- * Default event dispatcher for epoll::Events
- * It's by design a free template with both type templated, so that user has multiple choices
- * overriding this function, e.g.,
- *
- * template <typename EventHandler>
- * unsigned dispatcher(epoll::Events& evts, EventHandler eh);
- *
- * As this template is resoluted by argument-dependent lookup, a dispatcher defined in
- * calling namespace can also override this one.
- **/
-template <typename Events, typename EventHandler>
-unsigned dispatch(Events& evts, EventHandler eh)
+template <typename PollDispatcher>
+std::error_code poll_loop(PollDispatcher& dispatcher,
+    std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
 {
-  for (unsigned i = 0; i < evts.active_count(); ++i) {
-    epoll_event const& ev = evts.raw_event(i);
-    Channel* ch = evts.find_channel(ev);
-    translate_events(ev, *ch);
-    eh(*ch, evts);
+  Poller poller = Poller::create();
+  Events events(poller);
+  if (!dispatcher.setup(events))
+    return std::error_code();
+
+  while (!dispatcher.quit()) {
+    poller.poll(events, timeout);
+    if (poller.error()) {
+      if (dispatcher.on_error(poller.error()))
+        poller.clear_error();
+      else
+        return poller.error();
+    }
+
+    for (unsigned i = 0; i < events.active_count(); ++i) {
+      epoll_event const& ev = events.raw_event(i);
+      Channel* ch = events.find_channel(ev);
+      translate_events(ev, *ch);
+      dispatcher.dispatch(*ch, events);
+      // TODO dispatcher.on_error() // channel operation may have error
+    }
   }
-  return evts.active_count();
+  return std::error_code();
 }
 
 } // namespace ku::net::epoll
-
-struct Epoll
-{
-  typedef epoll::Poller Poller;
-  typedef epoll::Events Events;
-};
 
 } } // namespace ku::net
 

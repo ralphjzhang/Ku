@@ -1,89 +1,72 @@
 #include <cassert>
 #include <sys/epoll.h>
-#include <strings.h>
+#include "sys.hpp"
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 
 namespace ku { namespace net { namespace epoll {
 
 // Helper function
-int translate_event_types(Channel const& ch)
+int translate_event_types(Channel const& chan)
 {
   int event_types = 0;
-  if (ch.has_event_type(Channel::In))
-    event_types |= (EPOLLIN | EPOLLPRI);
-  if (ch.has_event_type(Channel::Out))
+  if (chan.has_event_type(Channel::In))
+    event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP);
+  if (chan.has_event_type(Channel::Out))
     event_types |= EPOLLOUT;
   return event_types;
 }
 
-void translate_event_types(int event_types, Channel& ch)
+void translate_events(epoll_event const& ev, Channel& chan)
 {
-  if (event_types & (EPOLLIN | EPOLLPRI))
-    ch.set_event_type(Channel::In);
-  if (event_types & EPOLLOUT)
-    ch.set_event_type(Channel::Out);
-}
-
-void translate_events(epoll_event const& ev, Channel& ch)
-{
-  if ((ev.events & EPOLLHUP) && !(ev.events & EPOLLIN))
-    ch.set_event(Channel::Close);
-  if (ev.events & (EPOLLIN | EPOLLPRI | EPOLLRDHUP))
-    ch.set_event(Channel::Read);
+  if (ev.events & (EPOLLHUP | EPOLLRDHUP))
+    chan.set_event(Channel::Close);
+  if (ev.events & (EPOLLIN | EPOLLPRI))
+    chan.set_event(Channel::Read);
   if (ev.events & EPOLLOUT)
-    ch.set_event(Channel::Write);
+    chan.set_event(Channel::Write);
   if (ev.events & EPOLLERR)
-    ch.set_event(Channel::Error);
+    chan.set_event(Channel::Error);
 }
 
 //////////////
 /// Events ///
 //////////////
 
-Events::Events(Poller const& p)
-  : poller_handle_(p.raw_handle()), events_(Events::InitialCapacity)
-{
-  clear();
-}
-
-Events::Events(Poller const& p, size_t capacity)
-  : poller_handle_(p.raw_handle()), events_(capacity)
+Events::Events(Poller& poller, size_t capacity)
+  : poller_(poller), events_(capacity)
 {
   clear();
 }
 
 Events::Events(Events&& e)
+  : poller_(e.poller_), events_(std::move(e.events_)), active_count_(e.active_count_)
+  , channels_(std::move(e.channels_))
 {
-  poller_handle_ = e.poller_handle_;
-  active_count_ = e.active_count_;
-  events_ = std::move(e.events_);
-  channels_ = std::move(e.channels_);
-  e.poller_handle_ = 0;
-  e.active_count_ = 0;
-  e.events_.clear();
-  e.channels_.clear();
+  e.clear();
 }
 
 void Events::clear()
 {
+  events_.clear();
   active_count_ = 0;
-  ::bzero(raw_events(), sizeof(epoll_event) * events_.size());
+  channels_.clear();
 }
 
-bool Events::adopt_channel(Channel&& ch)
+bool Events::adopt_channel(Channel&& chan)
 {
-  assert(ch.any_event_type());
-  auto res = channels_.insert(std::make_pair(ch.raw_handle(), std::move(ch)));
+  assert(chan.any_event_type());
+  auto res = channels_.insert(std::make_pair(chan.raw_handle(), std::move(chan)));
   if (res.second) {
     Channel *ch_ptr = &(res.first->second);
     epoll_event ev;
     ev.data.ptr = ch_ptr;
     ev.events = translate_event_types(*ch_ptr);
-    if (::epoll_ctl(poller_handle_, EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) != -1)
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) != -1)
       return true;
+    poller_.set_error(sys::errno_code());
     channels_.erase(res.first);
-    ch.set_error(errno);
+    chan.set_error(errno);
   }
   return false;
 }
@@ -105,26 +88,26 @@ bool Events::remove_channel(int fd)
 {
   if (channels_.erase(fd)) {
     epoll_event ev;
-    if (::epoll_ctl(poller_handle_, EPOLL_CTL_DEL, fd, &ev) != -1)
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_DEL, fd, &ev) != -1)
       return true;
-    // TODO else propogate error?
+    poller_.set_error(sys::errno_code());
   }
   return false;
 }
 
-bool Events::modify_channel(int fd, int event_types)
+bool Events::modify_channel(Channel const& chan)
 {
-  auto find = channels_.find(fd);
+  auto find = channels_.find(chan.raw_handle());
   if (channels_.end() != find) {
-    Channel& ch = find->second;
-    assert(ch.raw_handle() == fd);
+    Channel& chan_find = find->second;
+    assert(chan_find.raw_handle() == chan.raw_handle());
     epoll_event ev;
-    ev.events = event_types;
-    if (::epoll_ctl(poller_handle_, EPOLL_CTL_MOD, fd, &ev) != -1) {
-      translate_event_types(event_types, ch);
+    ev.events = translate_event_types(chan);
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_MOD, chan.raw_handle(), &ev) != -1) {
+      chan_find.set_event_types(chan.event_types());
       return true;
     }
-    // TODO else propogate error?
+    poller_.set_error(sys::errno_code());
   }
   return false;
 }

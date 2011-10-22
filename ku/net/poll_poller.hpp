@@ -27,14 +27,15 @@ public:
   Events() : events_(Events::InitialCapacity) { clear(); }
   Events(size_t capacity) : events_(capacity) { clear(); }
   Events(Events&& e);
+  virtual ~Events() { }
 
   pollfd const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
   unsigned events_count() const { return channels_.size(); }
 
-  virtual bool adopt_channel(Channel&& ch);
+  virtual bool adopt_channel(Channel&& chan);
   virtual bool remove_channel(int fd);
-  virtual bool modify_channel(int fd, int event_types);
+  virtual bool modify_channel(Channel const& chan);
   Channel* find_channel(int fd);
 
   void apply_removal(); // TODO open this or not?
@@ -78,6 +79,7 @@ public:
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
   void set_error(std::error_code const& ec) { error_ = ec; }
+  void clear_error() { error_.clear(); }
 
   void clear() { error_.clear(); }
   void close() { clear(); }
@@ -86,47 +88,39 @@ private:
   std::error_code error_;
 };
 
-inline Events make_events(Poller& poller) { return Events(); }
-
 void translate_events(pollfd const& ev, Channel& ch);
 
-/**
- * Default event dispatcher for poll::Events
- * It's by design a free template with both type templated, so that user has multiple choices
- * overriding this function, e.g.,
- *
- * template <typename EventHandler>
- * unsigned dispatcher(poll::Events& evts, EventHandler eh);
- *
- * As this template is resoluted by argument-dependent lookup, a dispatcher defined in
- * calling namespace can also override this one.
- **/
-template <typename Events, typename EventHandler>
-unsigned dispatch(Events& evts, EventHandler eh)
+template <typename PollDispatcher>
+std::error_code poll_loop(PollDispatcher const& dispatcher,
+    std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
 {
-  unsigned count = 0;
-  for (unsigned i = 0; i < evts.events_count(); ++i) {
-    pollfd const& ev = evts.raw_event(i);
-    if (ev.revents == 0)
-      continue;
-    Channel* ch = evts.find_channel(ev.fd);
-    translate_events(ev, *ch);
-    ++count;
-    eh(*ch, evts);
+  Poller poller = Poller::create();
+  Events events;
+  dispatcher.setup(events);
+
+  while (!dispatcher.quit()) {
+    poller.poll(events, timeout);
+    if (poller.error()) {
+      if (dispatcher.on_error(poller.error()))
+        poller.clear_error();
+      else
+        return poller.error();
+    }
+
+    for (unsigned i = 0; i < events.events_count(); ++i) {
+      pollfd const& ev = events.raw_event(i);
+      if (ev.revents == 0)
+        continue;
+      Channel* ch = events.find_channel(ev.fd);
+      translate_events(ev, *ch);
+      dispatcher.dispatch(*ch, events);
+    }
+    events.apply_removal();
   }
-  evts.apply_removal();
-  return count;
+  return std::error_code();
 }
 
 } // namespace ku::net::poll
-
-
-struct Poll
-{
-  typedef poll::Poller Poller;
-  typedef poll::Events Events;
-};
-
 
 } } // namespace ku::net
 
