@@ -34,9 +34,8 @@ void translate_events(epoll_event const& ev, Channel& chan)
 //////////////
 
 Events::Events(Poller& poller, size_t capacity)
-  : poller_(poller), events_(capacity)
+  : poller_(poller), events_(capacity), active_count_(0)
 {
-  clear();
 }
 
 Events::Events(Events&& e)
@@ -62,7 +61,7 @@ bool Events::adopt_channel(Channel&& chan)
     epoll_event ev;
     ev.data.ptr = ch_ptr;
     ev.events = translate_event_types(*ch_ptr);
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) != -1)
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) == 0)
       return true;
     poller_.set_error(sys::errno_code());
     channels_.erase(res.first);
@@ -84,11 +83,14 @@ Channel* Events::find_channel(epoll_event const& ev)
   return ch;
 }
 
-bool Events::remove_channel(int fd)
+bool Events::remove_channel(Channel const& chan)
 {
-  if (channels_.erase(fd)) {
-    epoll_event ev;
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_DEL, fd, &ev) != -1)
+  int raw_handle = chan.raw_handle();
+  bool owner = chan.owner();
+  if (channels_.erase(chan.raw_handle())) {
+    if (owner)
+      return true; // Owner will close the file descriptor, so we don't do epoll_ctl
+    else if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr) == 0)
       return true;
     poller_.set_error(sys::errno_code());
   }
@@ -103,7 +105,7 @@ bool Events::modify_channel(Channel const& chan)
     assert(chan_find.raw_handle() == chan.raw_handle());
     epoll_event ev;
     ev.events = translate_event_types(chan);
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_MOD, chan.raw_handle(), &ev) != -1) {
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_MOD, chan.raw_handle(), &ev) == 0) {
       chan_find.set_event_types(chan.event_types());
       return true;
     }
@@ -137,10 +139,11 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
   if (event_num == -1) {
     evts.set_active_count(0);
     set_error(errno);
+  } else {
+    evts.set_active_count(event_num);
+    if (evts.active_count() >= evts.events_.size())
+      evts.resize(evts.active_count() + evts.active_count() / 2);
   }
-  evts.set_active_count(event_num);
-  if (evts.active_count() >= evts.events_.size())
-    evts.resize(evts.active_count() + evts.active_count() / 2);
   return evts;
 }
 

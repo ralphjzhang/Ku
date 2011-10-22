@@ -19,12 +19,11 @@ class Events : public ChannelHub
 {
   friend class Poller;
 
-  static const size_t InitialCapacity = 16;
   // Mapping (file descriptor) -> Channel
   typedef std::map<int, Channel> ChannelMap;
 
 public:
-  Events(Poller& p, size_t capacity = InitialCapacity);
+  Events(Poller& poller, size_t capacity = 16);
   Events(Events&& e);
   virtual ~Events() { }
 
@@ -32,7 +31,7 @@ public:
   unsigned active_count() const { return active_count_; }
 
   virtual bool adopt_channel(Channel&& chan);
-  virtual bool remove_channel(int fd);
+  virtual bool remove_channel(Channel const& chan);
   virtual bool modify_channel(Channel const& chan);
   Channel* find_channel(int fd);
   Channel* find_channel(epoll_event const& ev);
@@ -90,16 +89,16 @@ private:
 
 void translate_events(epoll_event const& ev, Channel& ch);
 
-template <typename PollDispatcher>
-std::error_code poll_loop(PollDispatcher& dispatcher,
+template <typename Dispatcher>
+std::error_code poll_loop(Dispatcher& dispatcher,
     std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
 {
   Poller poller = Poller::create();
   Events events(poller);
-  if (!dispatcher.setup(events))
+  if (!dispatcher.on_setup(events))
     return std::error_code();
 
-  while (!dispatcher.quit()) {
+  while (!dispatcher.get_quit()) {
     poller.poll(events, timeout);
     if (poller.error()) {
       if (dispatcher.on_error(poller.error()))
@@ -113,7 +112,12 @@ std::error_code poll_loop(PollDispatcher& dispatcher,
       Channel* ch = events.find_channel(ev);
       translate_events(ev, *ch);
       dispatcher.dispatch(*ch, events);
-      // TODO dispatcher.on_error() // channel operation may have error
+      if (poller.error()) {
+        if (dispatcher.on_error(poller.error())) // channel operation may have error
+          poller.clear_error();
+        else
+          return poller.error();
+      }
     }
   }
   return std::error_code();

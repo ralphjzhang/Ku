@@ -17,6 +17,7 @@ Channel& Channel::operator = (Channel&& chan)
     type_ = chan.type_;
     event_types_ = chan.event_types_;
     events_ = chan.events_;
+    event_handler_ = chan.event_handler_;
     chan.clear();
   }
   return *this;
@@ -28,6 +29,7 @@ void Channel::clear()
   type_ = Type::None;
   events_.reset();
   event_types_.reset();
+  event_handler_.reset();
 }
 
 std::string to_str(Channel::Events evts)

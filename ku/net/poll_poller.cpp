@@ -83,10 +83,10 @@ Channel* Events::find_channel(int fd)
   return channels_.end() == find ? nullptr : &find->second.first;
 }
 
-bool Events::remove_channel(int fd)
+bool Events::remove_channel(Channel const& chan)
 {
-  if (find_channel(fd)) {
-    removal_.push_back(fd);
+  if (find_channel(chan.raw_handle())) {
+    removal_.push_back(chan.raw_handle());
     return true;
   }
   return false;

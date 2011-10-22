@@ -1,29 +1,38 @@
 #pragma once
+#include <system_error>
+#include <functional>
 #include "call_traits.hpp"
 
 namespace ku { namespace net {
 
-template <typename AcceptHandler>
-void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
+class ChannelHub;
+
+template <typename EventHandler>
+void dispatch(Channel& chan, ChannelHub& hub)
 {
+  EventHandler& handler = chan.event_handler<EventHandler>();
+
   if (chan.has_event(Channel::Read)) {
     if (chan.type() == Channel::Timer) {
       util::if_handle_timer(handler, chan);
       int64_t tick;
       read(chan, &tick, sizeof(tick));
     } else if (chan.type() == Channel::Acceptor) {
+      // Handle incoming connections
       while (true) {
         Address addr;
         Channel conn_ch(accept(chan, addr));
         if (conn_ch.error()) {
           if (conn_ch.error() == std::errc::operation_would_block ||
               conn_ch.error() == std::errc::resource_unavailable_try_again) {
+            // All incoming connections handled
             break;
           } else {
-            ;// handler.handle_error(conn_ch);
-            // break;
+            util::if_handle_error(handler, conn_ch);
+            break;
           }
         } else if (util::if_handle_accept(handler, conn_ch, addr)) {
+          conn_ch.set_event_handler(std::make_shared<EventHandler>());
           hub.adopt_channel(std::move(conn_ch));
         }
       }
@@ -40,32 +49,30 @@ void handle_channel(Channel& chan, ChannelHub& hub, AcceptHandler handler)
     util::if_handle_close(handler, chan, hub);
 }
 
-void setup_channels(ChannelHub& hub, Address const& addr)
+
+template <typename EventHandler>
+class Dispatcher
 {
-  Channel chan;
-  chan.set_event_type(Channel::In);
+public:
+  // Dispatcher requirements
+  std::function<bool(ChannelHub&)> on_setup;
+  std::function<bool(std::error_code)> on_error;
+
+  bool get_quit() const { return quit_; }
+  void dispatch(Channel& chan, ChannelHub& hub) { return ku::net::dispatch<EventHandler>(chan, hub); }
+
+  Dispatcher() : quit_(false)
   {
-    // Prevent sock referenced out of scope accidentally
-    Socket sock = Socket::create(AddrInfo::create());
-    sock.listen(addr);
-    if (sock.error()) {
-      std::cout << sock.error().message() << std::endl;
-      exit(0);
-    }
-    chan.adopt(std::move(sock));
+    // Client code can(should) override these default callbacks
+    on_setup = [](ChannelHub&) { return true; };
+    on_error = [](std::error_code) { return false; };
   }
 
-  Channel tchan;
-  tchan.set_event_type(Channel::In);
-  {
-    Timer timer = Timer::create();
-    timer.set_interval(std::chrono::seconds(2));
-    tchan.adopt(std::move(timer));
-  }
+  void quit() { quit_ = true; }
 
-  hub.adopt_channel(std::move(chan));
-  hub.adopt_channel(std::move(tchan));
-}
+private:
+  bool quit_;
+};
 
 } } // namespace ku::net
 

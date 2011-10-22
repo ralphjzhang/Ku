@@ -1,5 +1,6 @@
 #include <netdb.h>
 #include <functional>
+#include <thread>
 #include <ku/dan/dan.hpp>
 #include "address.hpp"
 #include "addrinfo.hpp"
@@ -10,7 +11,7 @@
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
-#include "poll_dispatcher.hpp"
+#include "dispatcher.hpp"
 #include "loop.hpp"
 
 using namespace ku;
@@ -101,9 +102,11 @@ TEST(epoll, handle)
 
 struct Handler
 {
-  bool handle_accept(Channel const&, Address const& addr)
+  ~Handler() { std::cout << "~Handler" << std::endl; }
+  bool handle_accept(Channel const& chan, Address const& addr)
   {
-    std::cout << "Connection from: " << to_str(addr) << std::endl;
+    std::cout << "Connection from: " << to_str(addr)  << ", fd=" << chan.raw_handle()
+      << std::endl;
     return true;
   }
   bool handle_read(Channel& chan)
@@ -121,27 +124,63 @@ struct Handler
   }
   bool handle_close(Channel const& chan, ChannelHub& hub)
   {
-    std::cout << "Connection closed, removing channel" << std::endl;
-    hub.remove_channel(chan.raw_handle());
+    std::cout << "Connection closed, removing channel " << chan.raw_handle() << std::endl;
+    hub.remove_channel(chan);
+    return true;
   }
 };
+
+bool setup_channels(ChannelHub& hub, Address const& addr)
+{
+  Channel chan;
+  chan.set_event_type(Channel::In);
+  {
+    // Prevent sock referenced out of scope accidentally
+    Socket sock = Socket::create(AddrInfo::create());
+    sock.listen(addr);
+    if (sock.error()) {
+      std::cout << sock.error().message() << std::endl;
+      exit(0);
+    }
+    chan.adopt(std::move(sock));
+    chan.set_event_handler(std::make_shared<Handler>());
+  }
+
+  Channel tchan;
+  tchan.set_event_type(Channel::In);
+  {
+    Timer timer = Timer::create();
+    timer.set_interval(std::chrono::seconds(2));
+    tchan.adopt(std::move(timer));
+    tchan.set_event_handler(std::make_shared<Handler>());
+  }
+
+  hub.adopt_channel(std::move(chan));
+  hub.adopt_channel(std::move(tchan));
+  return true;
+}
+
 
 void epoll_test()
 {
   Address addr("127.0.0.1", 8888);
-  Handler handler;
-  PollDispatcher poll_dispatcher;
-  std::error_code err = epoll::poll_loop(poll_dispatcher);
-  if (err)
-    std::cout << err.message() << std::endl;
+  Dispatcher<Handler> dispatcher;
+  dispatcher.on_setup = [&addr](ChannelHub& hub) { return setup_channels(hub, addr); };
+  dispatcher.on_error = [](std::error_code ec) {
+    std::cout << "Poller error: " << ec.message() << std::endl;
+    return true;
+  };
+  std::thread t([&dispatcher](){ epoll::poll_loop(dispatcher); });
+  std::getchar();
+  dispatcher.quit();
+  t.join();
 }
 
 void poll_test()
 {
   Address addr("127.0.0.1", 8888);
-  Handler handler;
-  PollDispatcher poll_dispatcher;
-  std::error_code err = poll::poll_loop(poll_dispatcher);
+  Dispatcher<Handler> dispatcher;
+  std::error_code err = poll::poll_loop(dispatcher);
   if (err)
     std::cout << err.message() << std::endl;
 }

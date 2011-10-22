@@ -1,4 +1,6 @@
 #pragma once
+#include <cassert>
+#include <memory>
 #include <system_error>
 #include <vector>
 #include <string>
@@ -50,6 +52,17 @@ public:
   bool has_event(Event ev) const { return events_.test(ev); }
   bool any_event() const { return events_.any(); }
 
+  template <typename EventHandler>
+  void set_event_handler(std::shared_ptr<EventHandler> eh_ptr)
+  { event_handler_ = eh_ptr; }
+
+  template <typename EventHandler>
+  EventHandler& event_handler()
+  {
+    assert(event_handler_.get());
+    return *static_cast<EventHandler*>(event_handler_.get());
+  }
+
 private:
   void clear();
 
@@ -57,6 +70,7 @@ private:
   Type type_;
   EventTypes event_types_;
   Events events_;
+  std::shared_ptr<void> event_handler_;
 };
 
 template <typename Handle>

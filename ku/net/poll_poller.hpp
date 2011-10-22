@@ -34,7 +34,7 @@ public:
   unsigned events_count() const { return channels_.size(); }
 
   virtual bool adopt_channel(Channel&& chan);
-  virtual bool remove_channel(int fd);
+  virtual bool remove_channel(Channel const& chan);
   virtual bool modify_channel(Channel const& chan);
   Channel* find_channel(int fd);
 
@@ -90,15 +90,15 @@ private:
 
 void translate_events(pollfd const& ev, Channel& ch);
 
-template <typename PollDispatcher>
-std::error_code poll_loop(PollDispatcher const& dispatcher,
+template <typename Dispatcher>
+std::error_code poll_loop(Dispatcher& dispatcher,
     std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
 {
   Poller poller = Poller::create();
   Events events;
-  dispatcher.setup(events);
+  dispatcher.on_setup(events);
 
-  while (!dispatcher.quit()) {
+  while (!dispatcher.get_quit()) {
     poller.poll(events, timeout);
     if (poller.error()) {
       if (dispatcher.on_error(poller.error()))

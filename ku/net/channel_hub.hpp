@@ -8,7 +8,7 @@ class ChannelHub
 {
 public:
   virtual bool adopt_channel(Channel&& chan) = 0;
-  virtual bool remove_channel(int fd) = 0;
+  virtual bool remove_channel(Channel const& chan) = 0;
   virtual bool modify_channel(Channel const& chan) = 0;
 
   ChannelHub() = default;
