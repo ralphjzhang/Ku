@@ -1,5 +1,4 @@
 #include "address.hpp"
-#include "sys.hpp"
 #include "channel.hpp"
 
 namespace ku { namespace net {

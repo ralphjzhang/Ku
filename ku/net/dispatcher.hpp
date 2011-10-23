@@ -10,8 +10,8 @@ namespace ku { namespace net {
 class ChannelHub;
 
 // TODO parameterize EventHandler creation?
-template <typename EventHandler>
-void dispatch(Channel& chan, ChannelHub& hub)
+template <typename Acceptor, typename EventHandler>
+void accept_dispatch(Channel& chan, ChannelHub& hub)
 {
   EventHandler& handler = chan.event_handler<EventHandler>();
 
@@ -20,7 +20,7 @@ void dispatch(Channel& chan, ChannelHub& hub)
     if (chan.type() == Channel::Timer) {
       // Timer
       int64_t tick;
-      read(chan, &tick, sizeof(tick));
+      read(chan.handle(), &tick, sizeof(tick));
       if (!util::if_handle_timer(handler, chan))
         hub.remove_channel(chan);
     } else if (chan.type() == Channel::Acceptor) {
@@ -38,9 +38,12 @@ void dispatch(Channel& chan, ChannelHub& hub)
               hub.remove_channel(chan);
             break;
           }
-        } else if (util::if_handle_accept(handler, conn_ch, addr)) {
-          conn_ch.set_event_handler(std::make_shared<EventHandler>());
-          hub.adopt_channel(std::move(conn_ch));
+        } else {
+          Acceptor& acceptor = chan.event_handler<Acceptor>();
+          if (util::if_handle_accept(acceptor, conn_ch, addr)) {
+            conn_ch.set_event_handler(std::make_shared<EventHandler>());
+            hub.adopt_channel(std::move(conn_ch));
+          }
         }
       }
     } else {
@@ -83,11 +86,10 @@ public:
   Dispatcher() : quit_(false) { }
 
   // Dispatcher requirements
-  bool on_setup(ChannelHub&) { return true; }
+  bool initialize(ChannelHub&) { return true; }
   bool on_error(std::error_code) { return false; }
   bool get_quit() const { return quit_; }
-  void dispatch(Channel& chan, ChannelHub& hub)
-  { return ku::net::dispatch<EventHandler>(chan, hub); }
+  void dispatch(Channel& chan, ChannelHub& hub) { }
 
   void quit() { quit_ = true; }
 

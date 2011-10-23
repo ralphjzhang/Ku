@@ -5,6 +5,6 @@ env.Append(HOME = os.environ['HOME'])
 KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
 
 Program('dan', Glob('*.cpp') + [KUDIR + 'gtest/gtest_main.a'], 
-    LIBS = ['pthread', 'dl', 'm'],
+    LIBS = ['pthread'],
     CCFLAGS = '-Wall --std=c++0x -g -fPIC -I' + KUDIR
     )

@@ -1,8 +1,8 @@
 #pragma once
 #include <system_error>
+#include "addrinfo.hpp"
 #include "handle.hpp"
-
-struct addrinfo;
+#include "handle_ops.hpp"
 
 namespace ku { namespace net {
   
@@ -14,29 +14,40 @@ class Address;
  **/
 class Socket : public Handle
 {
-  friend Socket accept(Handle& h, Address& addr);
-
-private:
-  explicit Socket(int raw_handle) : Handle(raw_handle, true), listening_(false) { }
-
 public:
-  static Socket create(addrinfo const& addr);
-  Socket(Socket&& s) : Handle(std::move(s)), listening_(s.listening_)
-  { s.listening_ = false; };
+  explicit Socket(addrinfo const& addr);
+  Socket(Socket&& s) : Handle(std::move(s)) { }
   ~Socket() = default;
 
-  bool listening() const { return listening_; }
-  Socket& listen(Address const& addr);
-  Socket accept(Address& addr) const;
-
-private:
-  bool set_non_block();
-
-  bool listening_;
+  explicit Socket(Handle&& h) : Handle(std::move(h)) { }
 };
 
-// Not all handles are applicable to accept()
-Socket accept(Handle& h, Address& addr);
+
+class AcceptorSocket : public Socket
+{
+public:
+  explicit AcceptorSocket(Address const& address) : Socket(AddrInfo())
+  { listen(address); }
+
+  Socket accept(Address& addr) { return Socket(ku::net::accept(*this, addr)); }
+
+private:
+  bool listen(Address const& addr)
+  { return ku::net::bind(*this, addr) && ku::net::listen(*this); }
+};
+
+class StreamSocket : public Socket
+{
+public:
+  template <typename Buffer>
+  inline ssize_t read(Buffer&& buf, size_t count)
+  { return ku::net::read(*this, buf, count); }
+
+
+  template <typename Buffer>
+  inline ssize_t write(Buffer& buf, size_t count)
+  { return ku::net::write(*this, buf, count); }
+};
 
 } } // namespace ku::net
 

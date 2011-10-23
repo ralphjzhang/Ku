@@ -10,19 +10,31 @@
 
 namespace ku { namespace net {
 
-class Address;
-class ChannelHub;
-
 template <typename EventHandler>
-class Acceptor : public Dispatcher<EventHandler>
+class Acceptor
 {
 public:
-  Acceptor(Address const& addr) : address_(addr) { }
+  Acceptor(Address const& addr) : address_(addr), quit_(false) { }
 
-  bool on_setup(ChannelHub& hub)
+  bool handle_accept(Channel const& chan, Address const& addr)
   {
-    Socket socket(Socket::create(AddrInfo::create()));
-    socket.listen(address_);
+    std::cout << "Connection from: " << to_str(addr)  << ", fd=" << chan.raw_handle()
+      << std::endl;
+    return true;
+  }
+
+  void quit() { quit_ = true; }
+
+  void dispatch(Channel& chan, ChannelHub& hub)
+  {
+    return ku::net::accept_dispatch<Acceptor<EventHandler>, EventHandler>(chan, hub);
+  }
+
+  bool get_quit() const { return quit_; }
+
+  bool initialize(ChannelHub& hub)
+  {
+    AcceptorSocket socket(address_);
     if (socket.error()) {
       std::cout << "Listener error: " << socket.error().message() << std::endl;
       exit(0);
@@ -43,6 +55,7 @@ public:
 
 private:
   Address address_;
+  bool quit_;
 };
 
 } } // namespace ku::net

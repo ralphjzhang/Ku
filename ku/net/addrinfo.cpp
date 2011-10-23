@@ -6,45 +6,28 @@
 
 namespace ku { namespace net {
 
-AddrInfo AddrInfo::create()
+AddrInfo::AddrInfo() : error_(0)
 {
-  // TODO is ok to freeaddrinfo a malloc-ed addrinfo?
-  addrinfo* ai = static_cast<addrinfo*>(malloc(sizeof(addrinfo)));
-  ::bzero(ai, sizeof(addrinfo));
-  ai->ai_family = AF_INET;
-  ai->ai_protocol = TCP;
-  ai->ai_socktype = Stream;
-  ai->ai_flags = Passive;
-  return AddrInfo(ai);
+  addrinfo_ = static_cast<addrinfo*>(malloc(sizeof(addrinfo)));
+  ::bzero(addrinfo_, sizeof(addrinfo));
+  addrinfo_->ai_family = AF_INET;
+  addrinfo_->ai_protocol = TCP;
+  addrinfo_->ai_socktype = Stream;
+  addrinfo_->ai_flags = Passive;
 }
 
-AddrInfo AddrInfo::create(unsigned port, Family family, Protocol protocol, Flag flag)
+AddrInfo::AddrInfo(Address const& addr, Family fml, Protocol proto, Flag flag)
+  : addrinfo_(nullptr)
 {
   char buf[8];
-  sprintf(buf, ":%u", port);
-  return create(buf, nullptr, family, protocol, flag);
-}
+  sprintf(buf, ":%u", addr.port());
 
-AddrInfo AddrInfo::create(char const* service, char const* node, Family family, Protocol protocol,
-    Flag flag)
-{
   addrinfo hints;
-  hints.ai_family = family;
-  hints.ai_protocol = protocol;
+  hints.ai_family = fml;
+  hints.ai_protocol = proto;
   hints.ai_flags = flag;
-  hints.ai_socktype = protocol == UDP ? Datagram : Stream;
-  // TODO get errors
-  addrinfo* ai_ptr = nullptr;
-  int ret = ::getaddrinfo(node, service, &hints, &ai_ptr);
-  if (ret == 0)
-    return AddrInfo(ai_ptr);
-  return AddrInfo();
-}
-
-AddrInfo::~AddrInfo()
-{
-  if (addrinfo_)
-    ::freeaddrinfo(addrinfo_);
+  hints.ai_socktype = proto == UDP ? Datagram : Stream;
+  error_ = ::getaddrinfo(addr.ip().c_str(), buf, &hints, &addrinfo_);
 }
 
 } } // namespace ku::net

@@ -37,23 +37,15 @@ void test_owner_handle(HandleType&& h)
 
 TEST(Socket, handle)
 {
-  Socket sock = Socket::create(AddrInfo::create());
+  AddrInfo ai;
+  Socket sock(ai);
   test_owner_handle(std::move(sock));
 }
 
-Socket make_listener()
+TEST(AcceptorSocket, listen)
 {
-  Address addr("127.0.0.1", 8888);
-  Socket sock = Socket::create(AddrInfo::create());
-  sock.listen(addr);
-  return sock;
-}
-
-TEST(Socket, listen)
-{
-  Socket sock = make_listener();
+  AcceptorSocket sock(Address("127.0.0.1", 8888));
   EXPECT_TRUE(!sock.error());
-  EXPECT_TRUE(sock.listening());
 }
 
 TEST(Timer, handle)
@@ -80,7 +72,7 @@ TEST(Timer, interval)
 
 TEST(Channel, handle)
 {
-  Socket sock = make_listener();
+  AcceptorSocket sock(Address("127.0.0.1", 8888));
   int sock_fd = sock.raw_handle();
   Channel chan;
   chan.adopt(std::move(sock));
@@ -93,7 +85,7 @@ TEST(Channel, handle)
 TEST(epoll, handle)
 {
   Channel chan;
-  chan.adopt(Socket::create(AddrInfo::create()));
+  chan.adopt(Socket(AddrInfo()));
   auto poller = epoll::Poller::create(); 
   poller.close();
 }
@@ -101,16 +93,10 @@ TEST(epoll, handle)
 struct Handler
 {
   ~Handler() { std::cout << "~Handler" << std::endl; }
-  bool handle_accept(Channel const& chan, Address const& addr)
-  {
-    std::cout << "Connection from: " << to_str(addr)  << ", fd=" << chan.raw_handle()
-      << std::endl;
-    return true;
-  }
   bool handle_read(Channel& chan)
   {
     char buf[10];
-    read(chan, buf, 10);
+    read(chan.handle(), buf, 10);
     std::cout << "We have some data to read: " << buf << std::endl;
     strcpy(buf, "World");
     //write(chan, buf, 6);

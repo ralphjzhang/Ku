@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include "util.hpp"
+#include "address.hpp"
 
 namespace ku { namespace net {
 
@@ -15,19 +16,22 @@ public:
   enum Protocol { Auto = 0, TCP = IPPROTO_TCP, UDP = IPPROTO_UDP };
   enum Flag { Passive = AI_PASSIVE, CanonName = AI_CANONNAME };
 
-  static AddrInfo create();
-  static AddrInfo create(unsigned port, Family family = Both, Protocol protocol = TCP, Flag flag = Passive);
+  AddrInfo();
+  AddrInfo(Address const& addr, Family fml = Both, Protocol proto = TCP, Flag flag = Passive);
+  AddrInfo(AddrInfo&& ai) : addrinfo_(ai.addrinfo_), error_(ai.error_)
+  { ai.addrinfo_ = nullptr; ai.error_ = 0; }
 
-  static AddrInfo create(char const* service, char const* node = nullptr, Family family = Both, Protocol protocol = TCP, Flag flag = Passive);
-  
-  AddrInfo() : addrinfo_(nullptr) { }
-  AddrInfo(AddrInfo&& ai) : addrinfo_(ai.addrinfo_) { ai.addrinfo_ = nullptr; }
-  ~AddrInfo();
+  ~AddrInfo() { if (addrinfo_) ::freeaddrinfo(addrinfo_); }
 
   operator addrinfo const& () { return *addrinfo_; }
 
+  int error() const { return error_; }
+  std::string error_message() const
+  { return error() ? std::string(::gai_strerror(error())) : std::string(); }
+
 private:
   addrinfo* addrinfo_;
+  int error_;
 };
 
 } } // namespace ku::net

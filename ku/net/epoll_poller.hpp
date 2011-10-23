@@ -92,7 +92,7 @@ std::error_code poll_loop(Dispatcher& dispatcher,
 {
   Poller poller = Poller::create();
   Events events(poller);
-  if (!dispatcher.on_setup(events))
+  if (!dispatcher.initialize(events))
     return std::error_code();
 
   while (!dispatcher.get_quit()) {

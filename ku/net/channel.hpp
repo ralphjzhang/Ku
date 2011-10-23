@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <memory>
+#include <type_traits>
 #include <system_error>
 #include <vector>
 #include <string>
@@ -22,6 +23,8 @@ class Channel : util::noncopyable
   friend std::string to_str(Events evts);
   friend std::string to_str(EventTypes evts);
 
+  friend Channel accept(Channel& chan, Address& addr);
+
 public:
   enum Type : uint8_t { None, Acceptor, Connection, Timer };
   enum EventType : uint8_t { In, Out };
@@ -31,7 +34,9 @@ public:
   Channel& operator = (Channel&& chan);
   Channel(Channel&& chan) { *this = std::move(chan); }
 
-  template <typename Handle> void adopt(Handle&& h)
+  template <typename Handle>
+  typename std::enable_if<!std::is_lvalue_reference<Handle>::value, void>::type
+  adopt(Handle&& h)
   {
     type_ = channel_type(h);
     handle_.adopt(std::move(h));

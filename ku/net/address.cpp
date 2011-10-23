@@ -1,22 +1,22 @@
 #include <cstdio>
 #include "address.hpp"
-#include "sys.hpp"
+#include "util.hpp"
 
 namespace ku { namespace net {
 
 Address::Address(std::string const& ip, uint16_t port)
 {
-  sys::make_sockaddr(ip.c_str(), port, sockaddr_);
+  util::make_sockaddr(ip.c_str(), port, sockaddr_);
 }
 
 Address::Address(uint16_t port)
 {
-  sys::make_sockaddr(port, sockaddr_);
+  util::make_sockaddr(port, sockaddr_);
 }
 
 std::string Address::ip() const
 {
-  return sys::ip_str(sockaddr_);
+  return util::ip_str(sockaddr_);
 }
 
 uint16_t Address::port() const

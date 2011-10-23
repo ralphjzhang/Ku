@@ -34,7 +34,7 @@ class Handle : private util::noncopyable
 
 public:
   explicit Handle(int raw_handle, bool owner) 
-    : owner_(owner), raw_handle_(raw_handle)
+    : owner_(owner), raw_handle_(std::max(raw_handle, 0))
   { }
 
   template <typename Err>

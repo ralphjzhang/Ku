@@ -1,6 +1,5 @@
 #include <cassert>
 #include <sys/epoll.h>
-#include "sys.hpp"
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 
@@ -61,7 +60,7 @@ bool Events::adopt_channel(Channel&& chan)
     ev.events = translate_event_types(*ch_ptr);
     if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) == 0)
       return true;
-    poller_.set_error(sys::errno_code());
+    poller_.set_error(util::errno_code());
     channels_.erase(res.first);
     chan.set_error(errno);
   }
@@ -90,7 +89,7 @@ bool Events::remove_channel(Channel const& chan)
       return true; // Owner will close the file descriptor, so we don't do epoll_ctl
     else if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr) == 0)
       return true;
-    poller_.set_error(sys::errno_code());
+    poller_.set_error(util::errno_code());
   }
   return false;
 }
@@ -107,7 +106,7 @@ bool Events::modify_channel(Channel const& chan)
       chan_find.set_event_types(chan.event_types());
       return true;
     }
-    poller_.set_error(sys::errno_code());
+    poller_.set_error(util::errno_code());
   }
   return false;
 }
