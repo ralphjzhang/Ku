@@ -29,13 +29,13 @@ public:
   void handle_accept(ChannelHub& hub)
   {
     while (true) {
-      Address addr;
-      StreamSocket conn_socket = acceptor_socket_.accept(addr);
+      Address peer_addr;
+      StreamSocket conn_socket = acceptor_socket_.accept(peer_addr);
       if (!acceptor_socket_.error()) {
-        std::cout << "Connection from: " << to_str(addr) << std::endl;
+        std::cout << "Connection from: " << to_str(peer_addr) << std::endl;
         Channel conn_chan(conn_socket.raw_handle(), Channel::Connection);
         conn_chan.set_event_type(Channel::In);
-        conn_chan.set_event_handler(new EventHandler(std::move(conn_socket)));
+        conn_chan.set_event_handler(new EventHandler(std::move(conn_socket), peer_addr));
         hub.add_channel(std::move(conn_chan));
       } else {
         std::error_code ec = acceptor_socket_.error();

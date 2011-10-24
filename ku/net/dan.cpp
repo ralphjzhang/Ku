@@ -11,6 +11,7 @@
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
 #include "tcp_connection.hpp"
+#include "tcp_server.hpp"
 #include "acceptor.hpp"
 
 using namespace ku;
@@ -135,10 +136,10 @@ void epoll_test()
 {
   Address addr("127.0.0.1", 8888);
   Acceptor<TCPConnection> acceptor(addr);
-  std::thread t([&acceptor](){ epoll::poll_loop(acceptor); });
+  TCPServer<decltype(acceptor)> server(acceptor);
+  server.start();
   std::getchar();
-  acceptor.quit();
-  t.join();
+  server.stop();
 }
 
 void poll_test()
