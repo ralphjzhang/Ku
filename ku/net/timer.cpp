@@ -5,10 +5,11 @@
 
 namespace ku { namespace net {
 
-Timer Timer::create(Clock clock)
+Timer::Timer(Clock clock)
+  : handle_(::timerfd_create(static_cast<int>(clock), TFD_NONBLOCK | TFD_CLOEXEC), true)
 {
-  int timer_fd = ::timerfd_create(static_cast<int>(clock), TFD_NONBLOCK | TFD_CLOEXEC);
-  return timer_fd == -1 ? Timer(timer_fd, errno) : Timer(timer_fd);
+  if (!handle_.raw_handle())
+    handle_.set_error(errno);
 }
 
 bool Timer::set_interval(std::chrono::nanoseconds ns)
@@ -17,18 +18,18 @@ bool Timer::set_interval(std::chrono::nanoseconds ns)
   ::bzero(&spec, sizeof(itimerspec));
   spec.it_value = util::to_timespec(ns);
   spec.it_interval = util::to_timespec(ns);
-  if (::timerfd_settime(raw_handle(), 0, &spec, NULL) != -1)
+  if (::timerfd_settime(handle_.raw_handle(), 0, &spec, NULL) != -1)
     return true;
-  set_error(errno);
+  handle_.set_error(errno);
   return false;
 }
 
 std::chrono::nanoseconds Timer::get_interval_()
 {
   itimerspec spec;
-  if (::timerfd_gettime(raw_handle(), &spec) != -1)
+  if (::timerfd_gettime(handle_.raw_handle(), &spec) != -1)
     return util::from_timespec(spec.it_interval);
-  set_error(errno);
+  handle_.set_error(errno);
   return std::chrono::nanoseconds(0);
 }
 

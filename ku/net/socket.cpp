@@ -2,19 +2,22 @@
 #include <sys/epoll.h>
 #include <cerrno>
 #include "address.hpp"
+#include "addrinfo.hpp"
+#include "util.hpp"
 #include "socket.hpp"
 
 namespace ku { namespace net {
 
-Socket::Socket(addrinfo const& addr)
-  : Handle(::socket(addr.ai_family, addr.ai_socktype, addr.ai_protocol), true)
+/// StreamSocket ///
+
+
+/// AcceptorSocket ///
+
+AcceptorSocket::AcceptorSocket(Address const& address)
+  : handle_(ku::net::socket(AddrInfo()))
 {
-  if (raw_handle()) {
-    ku::net::set_non_block(*this);
-    ku::net::set_close_exec(*this);
-  } else {
-    set_error(errno);
-  }
+  if (ku::net::set_non_block(handle_) && ku::net::set_close_exec(handle_))
+    listen(address);
 }
 
 } } // namespace ku::net

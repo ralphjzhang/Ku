@@ -3,15 +3,18 @@
 
 namespace ku { namespace net {
 
+std::atomic<ChannelId> Channel::next_channel_id(0);
+
 Channel& Channel::operator = (Channel&& chan)
 {
   if (this != &chan)
   {
-    handle_.adopt(std::move(chan.handle_));
+    event_handler_ = chan.event_handler_;
+    raw_handle_ = chan.raw_handle_;
+    id_ = chan.id_;
     type_ = chan.type_;
     event_types_ = chan.event_types_;
     events_ = chan.events_;
-    event_handler_ = chan.event_handler_;
     chan.clear();
   }
   return *this;
@@ -19,11 +22,12 @@ Channel& Channel::operator = (Channel&& chan)
 
 void Channel::clear()
 {
-  handle_.clear();
+  event_handler_ = nullptr;
+  raw_handle_ = 0;
+  id_ = 0;
   type_ = Type::None;
   events_.reset();
   event_types_.reset();
-  event_handler_.reset();
 }
 
 std::string to_str(Channel::Events evts)

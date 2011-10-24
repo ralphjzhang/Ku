@@ -12,11 +12,6 @@ inline std::error_code errno_code()
   return std::make_error_code(static_cast<std::errc>(errno));
 }
 
-inline std::error_code no_error()
-{
-  return std::error_code();
-}
-
 template<typename To, typename From>
 inline To implicit_cast(From const &f)
 {
@@ -30,7 +25,6 @@ struct noncopyable
   noncopyable(noncopyable const&) = delete;
   noncopyable& operator=(noncopyable const&) = delete;
 };
-
 
 inline sockaddr const* sockaddr_cast(sockaddr_in const* addr)
 {

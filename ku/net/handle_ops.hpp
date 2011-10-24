@@ -9,11 +9,20 @@
 #include <fcntl.h>
 #include <sys/uio.h>
 #include <errno.h>
+#include <netdb.h>
 #include "address.hpp"
 #include "raw_buffer.hpp"
 #include "handle.hpp"
 
 namespace ku { namespace net {
+
+inline Handle socket(addrinfo const& ai)
+{
+  Handle socket_handle(::socket(ai.ai_family, ai.ai_socktype, ai.ai_protocol), true);
+  if (!socket_handle)
+    socket_handle.set_error(errno);
+  return std::move(socket_handle);
+}
 
 inline bool bind(Handle& h, Address const& addr)
 {
@@ -50,12 +59,12 @@ inline bool set_close_exec(Handle& h)
 inline Handle accept(Handle& h, Address& addr)
 {
   socklen_t addr_len = sizeof(sockaddr_in);
-  int conn_fd = ::accept4(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), &addr_len,
-      SOCK_NONBLOCK | SOCK_CLOEXEC);
-  if (conn_fd == -1)
-    return Handle(0, errno, true);
-  else
-    return Handle(conn_fd, true);
+  Handle socket_handle(
+      ::accept4(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), &addr_len,
+                SOCK_NONBLOCK | SOCK_CLOEXEC), true);
+  if (!socket_handle)
+    h.set_error(errno);
+  return socket_handle;
 }
 
 

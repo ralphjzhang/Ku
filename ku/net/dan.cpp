@@ -10,11 +10,13 @@
 #include "channel.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
+#include "tcp_connection.hpp"
 #include "acceptor.hpp"
 
 using namespace ku;
 using namespace ku::net;
 
+/*
 template <typename HandleType>
 void test_owner_handle(HandleType&& h)
 {
@@ -89,6 +91,7 @@ TEST(epoll, handle)
   auto poller = epoll::Poller::create(); 
   poller.close();
 }
+*/
 
 struct Handler
 {
@@ -96,7 +99,7 @@ struct Handler
   bool handle_read(Channel& chan)
   {
     char buf[10];
-    read(chan.handle(), buf, 10);
+    //read(chan.handle(), buf, 10);
     std::cout << "We have some data to read: " << buf << std::endl;
     strcpy(buf, "World");
     //write(chan, buf, 6);
@@ -108,7 +111,8 @@ struct Handler
   }
   void handle_close(Channel const& chan)
   {
-    std::cout << "Connection closed, removing channel " << chan.raw_handle() << std::endl;
+    std::cout << "Connection closed, removing channel " << std::endl;
+    delete this;
   }
 };
 
@@ -117,13 +121,12 @@ bool setup_channels(ChannelHub& hub, Address const& addr)
   Channel tchan;
   tchan.set_event_type(Channel::In);
   {
-    Timer timer = Timer::create();
+    Timer timer;
     timer.set_interval(std::chrono::seconds(2));
-    tchan.adopt(std::move(timer));
-    tchan.set_event_handler(std::make_shared<Handler>());
+    tchan.set_event_handler(new Handler);
   }
 
-  hub.adopt_channel(std::move(tchan));
+  hub.add_channel(std::move(tchan));
   return true;
 }
 
@@ -131,7 +134,7 @@ bool setup_channels(ChannelHub& hub, Address const& addr)
 void epoll_test()
 {
   Address addr("127.0.0.1", 8888);
-  Acceptor<Handler> acceptor(addr);
+  Acceptor<TCPConnection> acceptor(addr);
   std::thread t([&acceptor](){ epoll::poll_loop(acceptor); });
   std::getchar();
   acceptor.quit();
@@ -140,11 +143,13 @@ void epoll_test()
 
 void poll_test()
 {
+  /*
   Address addr("127.0.0.1", 8888);
   Dispatcher<Handler> dispatcher;
   std::error_code err = poll::poll_loop(dispatcher);
   if (err)
     std::cout << err.message() << std::endl;
+  */
 }
 
 int main()

@@ -4,6 +4,7 @@
 
 namespace ku { namespace net { namespace poll {
 
+/*
 // Helper function
 int translate_event_types(Channel const& chan)
 {
@@ -154,7 +155,7 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
   }
   return evts;
 }
-
+*/
 
 } } } // namespace ku::net::poll
 

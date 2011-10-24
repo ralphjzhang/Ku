@@ -16,8 +16,8 @@ class Events : public ChannelHub
   static const size_t InitialCapacity = 16;
 
   typedef std::vector<pollfd> EventList;
-  // Mapping (file descriptor) --> (Channel, index in events_)
-  typedef std::unordered_map<int, std::pair<Channel, size_t> > ChannelMap;
+  // Mapping ChannelId --> (Channel, index in events_)
+  typedef std::unordered_map<ChannelId, std::pair<Channel, size_t> > ChannelMap;
 
 public:
   Events() : events_(Events::InitialCapacity) { clear(); }
@@ -29,7 +29,7 @@ public:
   unsigned active_count() const { return active_count_; }
   unsigned events_count() const { return channels_.size(); }
 
-  virtual bool adopt_channel(Channel&& chan);
+  virtual bool add_channel(Channel&& chan);
   virtual bool remove_channel(Channel const& chan);
   virtual bool modify_channel(Channel const& chan);
   Channel* find_channel(int fd);

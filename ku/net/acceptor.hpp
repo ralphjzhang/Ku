@@ -1,5 +1,6 @@
 #pragma once
 #include <system_error>
+#include <memory>
 #include <iostream>
 #include "addrinfo.hpp"
 #include "address.hpp"
@@ -14,36 +15,61 @@ template <typename EventHandler>
 class Acceptor
 {
 public:
-  Acceptor(Address const& addr) : address_(addr), quit_(false) { }
+  Acceptor(Address const& addr)
+    : address_(addr), quit_(false), acceptor_socket_(addr) { }
 
-  bool handle_accept(Channel const& chan, Address const& addr)
+  bool handle_accept_error(AcceptorSocket const& sock)
   {
-    std::cout << "Connection from: " << to_str(addr)  << ", fd=" << chan.raw_handle()
-      << std::endl;
     return true;
   }
 
   void quit() { quit_ = true; }
 
+  // Acceptor requirement
+  void handle_accept(ChannelHub& hub)
+  {
+    while (true) {
+      Address addr;
+      StreamSocket conn_socket = acceptor_socket_.accept(addr);
+      if (!acceptor_socket_.error()) {
+        std::cout << "Connection from: " << to_str(addr) << std::endl;
+        Channel conn_chan(conn_socket.raw_handle(), Channel::Connection);
+        conn_chan.set_event_type(Channel::In);
+        conn_chan.set_event_handler(new EventHandler(std::move(conn_socket)));
+        hub.add_channel(std::move(conn_chan));
+      } else {
+        std::error_code ec = acceptor_socket_.error();
+        if (ec == std::errc::operation_would_block ||
+            ec == std::errc::resource_unavailable_try_again) {
+          // All incoming connections handled
+          break;
+        } else {
+          // Acceptor error
+          handle_accept_error(acceptor_socket_);
+          break;
+        }
+      }
+    }
+  }
+
+  // Dispatcher requirement
   void dispatch(Channel& chan, ChannelHub& hub)
   {
-    return ku::net::accept_dispatch<Acceptor<EventHandler>, EventHandler>(chan, hub);
+    return ku::net::dispatch<Acceptor<EventHandler>, EventHandler>(chan, hub);
   }
 
   bool get_quit() const { return quit_; }
 
   bool initialize(ChannelHub& hub)
   {
-    AcceptorSocket socket(address_);
-    if (socket.error()) {
-      std::cout << "Listener error: " << socket.error().message() << std::endl;
+    if (acceptor_socket_.error()) {
+      std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
       exit(0);
     }
-    Channel chan;
-    chan.adopt(std::move(socket));
+    Channel chan(acceptor_socket_.raw_handle(), Channel::Acceptor);
     chan.set_event_type(Channel::In);
-    chan.set_event_handler(std::make_shared<EventHandler>());
-    hub.adopt_channel(std::move(chan));
+    chan.set_event_handler(this);
+    hub.add_channel(std::move(chan));
     return true;
   }
 
@@ -56,6 +82,7 @@ public:
 private:
   Address address_;
   bool quit_;
+  AcceptorSocket acceptor_socket_;
 };
 
 } } // namespace ku::net

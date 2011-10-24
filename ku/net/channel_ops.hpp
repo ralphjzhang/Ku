@@ -5,7 +5,7 @@
 
 namespace ku { namespace net {
 
-inline Channel::Type channel_type(Socket const& sock)
+inline Channel::Type channel_type(StreamSocket const& sock)
 {
   return Channel::Connection;
 }
@@ -25,8 +25,6 @@ inline Channel::Type channel_type(Handle const&)
 {
   return Channel::None;
 }
-
-Channel accept(Channel& chan, Address& addr);
 
 } } // namespace ku::net
 

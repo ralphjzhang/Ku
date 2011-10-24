@@ -15,22 +15,19 @@ class Events : public ChannelHub
              , private util::noncopyable
 {
   friend class Poller;
-
-  // Mapping (file descriptor) -> Channel
-  typedef std::map<int, Channel> ChannelMap;
+  typedef std::map<ChannelId, Channel> ChannelMap;
 
 public:
   Events(Poller& poller, size_t capacity = 16);
-  Events(Events&& e);
   virtual ~Events() { }
 
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  virtual bool adopt_channel(Channel&& chan);
+  virtual bool add_channel(Channel&& chan);
   virtual bool remove_channel(Channel const& chan);
   virtual bool modify_channel(Channel const& chan);
-  Channel* find_channel(int fd);
+  Channel* find_channel(ChannelId id);
   Channel* find_channel(epoll_event const& ev);
 
 private:
@@ -54,17 +51,13 @@ private:
  **/
 class Poller : private util::noncopyable
 {
-private:
-  template <typename Err>
-  Poller(int raw_handle, Err err) : raw_handle_(raw_handle)
-  { set_error(err); }
+  friend class Events;
 
 public:
   Poller(Poller&& h);
   ~Poller() { close(); }
 
-  static Poller create(int flags = EPOLL_CLOEXEC);
-  int raw_handle() const { return raw_handle_; }
+  explicit Poller(int flags);
 
   Events& poll(Events& evts,
       std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
@@ -72,12 +65,12 @@ public:
   std::error_code error() const { return error_; }
   void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
   void set_error(std::errc err) { error_ = std::make_error_code(err); }
-  void set_error(std::error_code const& ec) { error_ = ec; }
   void clear_error() { error_.clear(); }
 
   void close();
 
 private:
+  int raw_handle() const { return raw_handle_; }
   void clear() { raw_handle_ = 0; error_.clear(); }
 
   int raw_handle_;
@@ -90,10 +83,13 @@ template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,
     std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
 {
-  Poller poller = Poller::create();
+  Poller poller(EPOLL_CLOEXEC);
+  if (poller.error())
+    return poller.error();
+
   Events events(poller);
   if (!dispatcher.initialize(events))
-    return std::error_code();
+    return std::error_code(); //TODO how to populate this error?
 
   while (!dispatcher.get_quit()) {
     poller.poll(events, timeout);
