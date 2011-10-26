@@ -14,10 +14,17 @@ namespace ku { namespace net {
 /// AcceptorSocket ///
 
 AcceptorSocket::AcceptorSocket(Address const& address)
-  : handle_(ku::net::socket(AddrInfo()))
+  : handle_(ku::net::socket_non_block(AddrInfo(AddrInfo::Passive)))
 {
-  if (ku::net::set_non_block(handle_) && ku::net::set_close_exec(handle_))
+  if (handle_)
     listen(address);
+}
+
+/// ConnectorSocket ///
+
+ConnectorSocket::ConnectorSocket()
+  : StreamSocket(ku::net::socket_block(AddrInfo())) // TODO let user choose
+{
 }
 
 } } // namespace ku::net

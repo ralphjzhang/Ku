@@ -12,6 +12,8 @@ public:
   Address() = default;
   Address(uint16_t port);
   Address(std::string const& ip, uint16_t port);
+  Address(Address const&) = default;
+  ~Address() = default;
 
   sockaddr_in const& sockaddr() const { return sockaddr_; }
   sockaddr_in& sockaddr() { return sockaddr_; }

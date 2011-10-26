@@ -1,10 +1,14 @@
 import os
 
-env = Environment()
-env.Append(HOME = os.environ['HOME'])
-KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
+HOME = os.environ['HOME']
+KUDIR = HOME + '/Dropbox/Code/Ku/'
 
-Program('dan', Glob('*.cpp') + [KUDIR + 'gtest/gtest_main.a'], 
+env = Environment(
+    CPPPATH = KUDIR,
     LIBS = ['pthread'],
-    CCFLAGS = '-Wall --std=c++0x -g -fPIC -I' + KUDIR
+    CCFLAGS = '-Wall --std=c++0x -g -fPIC'
     )
+
+#env.Program('dan', Glob('*.cpp') + [KUDIR + 'gtest/gtest_main.a'])
+env.Library('kunet', Glob('*.cpp'))
+

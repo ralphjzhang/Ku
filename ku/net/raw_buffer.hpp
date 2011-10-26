@@ -14,6 +14,8 @@ namespace ku { namespace net {
 
 inline void* raw_buffer(void *buf) { return buf; }
 
+inline void const* raw_buffer(std::string const& buf) { return buf.c_str(); }
+
 template <typename T>
 inline void* raw_buffer(std::vector<T>& buf) { return &*buf.begin(); }
 

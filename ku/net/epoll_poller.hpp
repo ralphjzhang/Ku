@@ -116,6 +116,16 @@ std::error_code poll_loop(Dispatcher& dispatcher,
   return std::error_code();
 }
 
-} } } // namespace ku::net::epoll
+} // namespace ku::net::epoll
+
+struct EpollLoop
+{
+  template <typename Dispatcher>
+  std::error_code operator () (Dispatcher& dispatcher,
+      std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
+  { return epoll::poll_loop<Dispatcher>(dispatcher, timeout); }
+};
+
+} } // namespace ku::net
 
 

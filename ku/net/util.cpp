@@ -10,7 +10,7 @@ std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& addr)
   addr.sin_family = AF_INET;
   addr.sin_port = ::htons(port);
   if (::inet_pton(AF_INET, ip, &addr.sin_addr) <= 0)
-    return util::errno_code();
+    return std::make_error_code(static_cast<std::errc>(errno));
   return std::error_code();
 }
 

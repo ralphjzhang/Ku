@@ -14,10 +14,10 @@ class AddrInfo : private util::noncopyable
 public:
   enum Family { IPv4 = AF_INET, IPv6 = AF_INET6, Both = AF_UNSPEC };
   enum Protocol { Auto = 0, TCP = IPPROTO_TCP, UDP = IPPROTO_UDP };
-  enum Flag { Passive = AI_PASSIVE, CanonName = AI_CANONNAME };
+  enum Flag { None = 0, Passive = AI_PASSIVE, CanonName = AI_CANONNAME };
 
-  AddrInfo();
-  AddrInfo(Address const& addr, Family fml = Both, Protocol proto = TCP, Flag flag = Passive);
+  AddrInfo(Flag flag = None);
+  AddrInfo(Address const& addr, Family fml = Both, Protocol proto = TCP, Flag flag = None);
   AddrInfo(AddrInfo&& ai) : addrinfo_(ai.addrinfo_), error_(ai.error_)
   { ai.addrinfo_ = nullptr; ai.error_ = 0; }
 

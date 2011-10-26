@@ -16,13 +16,24 @@
 
 namespace ku { namespace net {
 
-inline Handle socket(addrinfo const& ai)
+inline Handle socket_non_block(addrinfo const& ai)
 {
-  Handle socket_handle(::socket(ai.ai_family, ai.ai_socktype, ai.ai_protocol), true);
+  Handle socket_handle(
+      ::socket(ai.ai_family, ai.ai_socktype | SOCK_NONBLOCK | SOCK_CLOEXEC, ai.ai_protocol), true);
   if (!socket_handle)
     socket_handle.set_error(errno);
   return std::move(socket_handle);
 }
+
+inline Handle socket_block(addrinfo const& ai)
+{
+  Handle socket_handle(
+      ::socket(ai.ai_family, ai.ai_socktype, ai.ai_protocol), true);
+  if (!socket_handle)
+    socket_handle.set_error(errno);
+  return std::move(socket_handle);
+}
+
 
 inline bool bind(Handle& h, Address const& addr)
 {
@@ -38,24 +49,6 @@ inline bool listen(Handle& h)
   return !h.error();
 }
 
-inline bool set_non_block(Handle& h)
-{
-  int flags = ::fcntl(h.raw_handle(), F_GETFL, 0);
-  h.set_error(flags == -1 ? errno : 0);
-  if (!h.error())
-    h.set_error(::fcntl(h.raw_handle(), F_SETFL, flags | O_NONBLOCK) == -1 ? errno : 0);
-  return !h.error();
-}
-
-inline bool set_close_exec(Handle& h)
-{
-  int flags = ::fcntl(h.raw_handle(), F_GETFL, 0);
-  h.set_error(flags == -1 ? errno : 0);
-  if (!h.error())
-    h.set_error(::fcntl(h.raw_handle(), F_SETFD, flags | FD_CLOEXEC) == -1 ? errno : 0);
-  return !h.error();
-}
-
 inline Handle accept(Handle& h, Address& addr)
 {
   socklen_t addr_len = sizeof(sockaddr_in);
@@ -67,6 +60,13 @@ inline Handle accept(Handle& h, Address& addr)
   return socket_handle;
 }
 
+inline bool connect(Handle& h, Address const& addr)
+{
+  h.set_error(
+      ::connect(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1 ?
+      errno : 0);
+  return !h.error();
+}
 
 template <typename Buffer>
 inline ssize_t read(Handle& h, Buffer&& buf, size_t count)
@@ -77,7 +77,7 @@ inline ssize_t read(Handle& h, Buffer&& buf, size_t count)
 }
 
 template <typename Buffer>
-inline ssize_t write(Handle& h, Buffer& buf, size_t count)
+inline ssize_t write(Handle& h, Buffer const& buf, size_t count)
 {
   ssize_t ret = ::write(h.raw_handle(), raw_buffer(buf), count);
   if (ret == -1) h.set_error(errno);

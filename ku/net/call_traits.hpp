@@ -11,13 +11,13 @@ auto if_handle_accept(T& t, Args&... args)
 template <typename... T> bool if_handle_accept(T&...)
 { return true; }
 
-// if_handle_timer
+// if_handle_timer_tick
 template <typename T, typename... Args>
-auto if_handle_timer(T& t, Args&... args)
-  -> decltype(std::declval<T>().handle_timer(args...))
-{ return t.handle_timer(args...); }
+auto if_handle_timer_tick(T& t, Args&... args)
+  -> decltype(std::declval<T>().handle_timer_tick(args...))
+{ return t.handle_timer_tick(args...); }
 
-template <typename... T> void if_handle_timer(T&...)
+template <typename... T> void if_handle_timer_tick(T&...)
 { }
 
 // if_handle_read

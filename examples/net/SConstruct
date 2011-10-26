@@ -7,8 +7,11 @@ KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
 env = Environment(
     CCFLAGS = '-Wall --std=c++0x -fPIC',
     CPPPATH = [KUDIR],
-    LIBS = ['pthread'],
+    LIBPATH = [KUDIR + 'ku/net/'],
+    LIBS = ['pthread', 'kunet'],
     )
 
-env.Program('echo_server', Glob('*.cpp')
-    )
+env.Program('timer', 'timer.cpp')
+env.Program('echo_server', 'echo_server.cpp')
+env.Program('echo_client', 'echo_client.cpp')
+

@@ -42,48 +42,47 @@ void accept_connections(Acceptor& acceptor, Channel& chan, ChannelHub& hub)
   */
 }
 
-template <typename Acceptor, typename ConnectionHandler>
+template <typename Acceptor, typename Connection>
 void dispatch(Channel& chan, ChannelHub& hub)
 {
-  ConnectionHandler& handler = chan.event_handler<ConnectionHandler>();
+  Connection& connection = chan.event_handler<Connection>();
 
   // Read
   if (chan.has_event(Channel::Read)) {
     if (chan.type() == Channel::Acceptor) {
       // Accept
       chan.event_handler<Acceptor>().handle_accept(hub);
-    } else {
+    } else if (chan.type() == Channel::Connection) {
       // Data read
-      assert(chan.type() == Channel::Connection);
-      util::if_handle_read(handler);
+      util::if_handle_read(connection);
     }
   }
   // Write
   if (chan.has_event(Channel::Write))
-    util::if_handle_write(handler, chan);
+    util::if_handle_write(connection);
   // Error
   if (chan.has_event(Channel::Error))
-    if (!util::if_handle_error(handler))
+    if (!util::if_handle_error(connection))
       hub.remove_channel(chan);
   // Close
   if (chan.has_event(Channel::Close)) {
-    util::if_handle_close(handler);
+    util::if_handle_close(connection);
     hub.remove_channel(chan);
   }
 }
 
-template <typename Acceptor, typename ConnectionHandler, typename TimeHandler>
+template <typename Acceptor, typename Connection, typename TimerHandler>
 void dispatch(Channel& chan, ChannelHub& hub)
 {
   // Timer
   if (chan.type() == Channel::Timer && chan.has_event(Channel::Read)) {
-    //int64_t tick;
-    //read(chan.handle(), &tick, sizeof(tick));
-    TimeHandler& time_handler = chan.event_handler<TimeHandler>();
-    if (!util::if_handle_timer(time_handler))
+    int64_t tick;
+    ::read(chan.raw_handle(), &tick, sizeof(tick));
+    TimerHandler& timer_handler = chan.event_handler<TimerHandler>();
+    if (!util::if_handle_timer_tick(timer_handler))
       hub.remove_channel(chan);
   }
-  dispatch<Acceptor, ConnectionHandler>(chan, hub);
+  dispatch<Acceptor, Connection>(chan, hub);
 }
 
 

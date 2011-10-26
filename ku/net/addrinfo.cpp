@@ -6,7 +6,7 @@
 
 namespace ku { namespace net {
 
-AddrInfo::AddrInfo() : error_(0)
+AddrInfo::AddrInfo(Flag flag) : error_(0)
 {
   addrinfo_ = static_cast<addrinfo*>(malloc(sizeof(addrinfo)));
   ::bzero(addrinfo_, sizeof(addrinfo));
