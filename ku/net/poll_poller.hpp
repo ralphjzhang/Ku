@@ -4,20 +4,20 @@
 #include <system_error>
 #include <chrono>
 #include <unordered_map>
-#include "channel.hpp"
-#include "channel_hub.hpp"
+#include "notice.hpp"
+#include "notice_board.hpp"
 
 namespace ku { namespace net { namespace poll {
 
-class Events : public ChannelHub
+class Events : public NoticeBoard
              , private util::noncopyable
 {
   friend class Poller;
   static const size_t InitialCapacity = 16;
 
   typedef std::vector<pollfd> EventList;
-  // Mapping ChannelId --> (Channel, index in events_)
-  typedef std::unordered_map<ChannelId, std::pair<Channel, size_t> > ChannelMap;
+  // Mapping NoticeId --> (Notice, index in events_)
+  typedef std::unordered_map<NoticeId, std::pair<Notice, size_t> > NoticeMap;
 
 public:
   Events() : events_(Events::InitialCapacity) { clear(); }
@@ -27,17 +27,17 @@ public:
 
   pollfd const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
-  unsigned events_count() const { return channels_.size(); }
+  unsigned events_count() const { return notices_.size(); }
 
-  virtual bool add_channel(Channel&& chan);
-  virtual bool remove_channel(Channel const& chan);
-  virtual bool modify_channel(Channel const& chan);
-  Channel* find_channel(int fd);
+  virtual bool add_notice(Notice&& notice);
+  virtual bool remove_notice(Notice const& notice);
+  virtual bool modify_notice(Notice const& notice);
+  Notice* find_notice(int fd);
 
   void apply_removal(); // TODO open this or not?
 
 private:
-  bool remove_channel_internal(int fd);
+  bool remove_notice_internal(int fd);
 
   pollfd* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
@@ -48,7 +48,7 @@ private:
 
   unsigned active_count_;
   EventList events_;
-  ChannelMap channels_;
+  NoticeMap notices_;
   std::vector<int> removal_;
 };
 
@@ -84,7 +84,7 @@ private:
   std::error_code error_;
 };
 
-void translate_events(pollfd const& ev, Channel& ch);
+void translate_events(pollfd const& ev, Notice& ch);
 
 template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,
@@ -107,7 +107,7 @@ std::error_code poll_loop(Dispatcher& dispatcher,
       pollfd const& ev = events.raw_event(i);
       if (ev.revents == 0)
         continue;
-      Channel* ch = events.find_channel(ev.fd);
+      Notice* ch = events.find_notice(ev.fd);
       translate_events(ev, *ch);
       dispatcher.dispatch(*ch, events);
     }

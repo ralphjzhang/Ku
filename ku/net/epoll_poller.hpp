@@ -4,18 +4,18 @@
 #include <map>
 #include <vector>
 #include <chrono>
-#include "channel.hpp"
-#include "channel_hub.hpp"
+#include "notice.hpp"
+#include "notice_board.hpp"
 
 namespace ku { namespace net { namespace epoll {
 
 class Poller;
 
-class Events : public ChannelHub
+class Events : public NoticeBoard
              , private util::noncopyable
 {
   friend class Poller;
-  typedef std::map<ChannelId, Channel> ChannelMap;
+  typedef std::map<NoticeId, Notice> NoticeMap;
 
 public:
   Events(Poller& poller, size_t capacity = 16);
@@ -24,11 +24,11 @@ public:
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  virtual bool add_channel(Channel&& chan);
-  virtual bool remove_channel(Channel const& chan);
-  virtual bool modify_channel(Channel const& chan);
-  Channel* find_channel(ChannelId id);
-  Channel* find_channel(epoll_event const& ev);
+  virtual bool add_notice(Notice&& notice);
+  virtual bool remove_notice(Notice const& notice);
+  virtual bool modify_notice(Notice const& notice);
+  Notice* find_notice(NoticeId id);
+  Notice* find_notice(epoll_event const& ev);
 
 private:
   epoll_event* raw_events() { return &*events_.begin(); }
@@ -40,7 +40,7 @@ private:
   Poller& poller_;
   std::vector<epoll_event> events_;
   unsigned active_count_;
-  ChannelMap channels_;
+  NoticeMap notices_;
 };
 
 
@@ -77,7 +77,7 @@ private:
   std::error_code error_;
 };
 
-void translate_events(epoll_event const& ev, Channel& ch);
+void translate_events(epoll_event const& ev, Notice& ch);
 
 template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,
@@ -102,11 +102,11 @@ std::error_code poll_loop(Dispatcher& dispatcher,
 
     for (unsigned i = 0; i < events.active_count(); ++i) {
       epoll_event const& ev = events.raw_event(i);
-      Channel* ch = events.find_channel(ev);
+      Notice* ch = events.find_notice(ev);
       translate_events(ev, *ch);
       dispatcher.dispatch(*ch, events);
       if (poller.error()) {
-        if (dispatcher.on_error(poller.error())) // channel operation may have error
+        if (dispatcher.on_error(poller.error())) // notice operation may have error
           poller.clear_error();
         else
           return poller.error();

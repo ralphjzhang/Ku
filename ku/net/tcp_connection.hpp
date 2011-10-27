@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstring>
-#include "address.hpp"
+#include "endpoint.hpp"
 #include "socket.hpp"
 
 namespace ku { namespace net {
@@ -9,13 +9,13 @@ namespace ku { namespace net {
 class TCPConnection
 {
 public:
-  TCPConnection(StreamSocket&& socket, Address const& peer_address) 
-    : socket_(std::move(socket)), peer_address_(peer_address)
+  TCPConnection(StreamSocket&& socket, Endpoint const& peer_endpoint) 
+    : socket_(std::move(socket)), peer_endpoint_(peer_endpoint)
   { }
   virtual ~TCPConnection() { }
 
   StreamSocket& socket() { return socket_; }
-  Address const& peer_address() const { return peer_address_; }
+  Endpoint const& peer_endpoint() const { return peer_endpoint_; }
 
   bool handle_timer()
   {
@@ -25,13 +25,13 @@ public:
 
   virtual void handle_close()
   {
-    std::cout << "Connection closed, removing channel " << std::endl;
+    std::cout << "Connection closed, removing notice " << std::endl;
     delete this;
   }
 
 private:
   StreamSocket socket_;
-  Address peer_address_;
+  Endpoint peer_endpoint_;
 };
 
 } } // namespace ku::net

@@ -1,30 +1,30 @@
 #include <cstdio>
-#include "address.hpp"
+#include "endpoint.hpp"
 #include "util.hpp"
 
 namespace ku { namespace net {
 
-Address::Address(std::string const& ip, uint16_t port)
+Endpoint::Endpoint(std::string const& ip, uint16_t port)
 {
   util::make_sockaddr(ip.c_str(), port, sockaddr_);
 }
 
-Address::Address(uint16_t port)
+Endpoint::Endpoint(uint16_t port)
 {
   util::make_sockaddr(port, sockaddr_);
 }
 
-std::string Address::ip() const
+std::string Endpoint::ip() const
 {
   return util::ip_str(sockaddr_);
 }
 
-uint16_t Address::port() const
+uint16_t Endpoint::port() const
 {
   return ::ntohs(sockaddr_.sin_addr.s_addr);
 }
 
-std::string to_str(Address const& addr)
+std::string to_str(Endpoint const& addr)
 {
   std::string ip = addr.ip();
   char port[8];

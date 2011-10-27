@@ -8,8 +8,8 @@ using namespace ku::net;
 class EchoHandler : public TCPConnection
 {
 public:
-  EchoHandler(StreamSocket&& socket, Address const& peer_address) 
-    : TCPConnection(std::move(socket), peer_address)
+  EchoHandler(StreamSocket&& socket, Endpoint const& peer_endpoint) 
+    : TCPConnection(std::move(socket), peer_endpoint)
   { }
 
   bool handle_read()
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     exit(0);
   }
 
-  Address addr("127.0.0.1", 8888);
+  Endpoint addr("127.0.0.1", 8888);
   Acceptor<EchoHandler> acceptor(addr);
   TCPServer<decltype(acceptor)> server(acceptor);
   server.start();

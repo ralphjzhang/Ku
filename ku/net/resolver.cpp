@@ -2,11 +2,11 @@
 #include <strings.h>
 #include <netdb.h>
 #include <cstdio>
-#include "addrinfo.hpp"
+#include "resolver.hpp"
 
 namespace ku { namespace net {
 
-AddrInfo::AddrInfo(Flag flag) : error_(0)
+Resolver::Resolver(Flag flag) : error_(0)
 {
   addrinfo_ = static_cast<addrinfo*>(malloc(sizeof(addrinfo)));
   ::bzero(addrinfo_, sizeof(addrinfo));
@@ -16,18 +16,18 @@ AddrInfo::AddrInfo(Flag flag) : error_(0)
   addrinfo_->ai_flags = Passive;
 }
 
-AddrInfo::AddrInfo(Address const& addr, Family fml, Protocol proto, Flag flag)
+Resolver::Resolver(Endpoint const& endpoint, Family fml, Protocol proto, Flag flag)
   : addrinfo_(nullptr)
 {
   char buf[8];
-  sprintf(buf, ":%u", addr.port());
+  sprintf(buf, ":%u", endpoint.port());
 
   addrinfo hints;
   hints.ai_family = fml;
   hints.ai_protocol = proto;
   hints.ai_flags = flag;
   hints.ai_socktype = proto == UDP ? Datagram : Stream;
-  error_ = ::getaddrinfo(addr.ip().c_str(), buf, &hints, &addrinfo_);
+  error_ = ::getaddrinfo(endpoint.ip().c_str(), buf, &hints, &addrinfo_);
 }
 
 } } // namespace ku::net

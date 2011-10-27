@@ -21,21 +21,21 @@ struct noncopyable
   noncopyable& operator=(noncopyable const&) = delete;
 };
 
-inline sockaddr const* sockaddr_cast(sockaddr_in const* addr)
+inline sockaddr const* sockaddr_cast(sockaddr_in const* endpoint)
 {
-  return static_cast<sockaddr const*>(implicit_cast<void const*>(addr));
+  return static_cast<sockaddr const*>(implicit_cast<void const*>(endpoint));
 }
 
-inline sockaddr* sockaddr_cast(sockaddr_in* addr)
+inline sockaddr* sockaddr_cast(sockaddr_in* endpoint)
 {
-  return static_cast<sockaddr*>(implicit_cast<void*>(addr));
+  return static_cast<sockaddr*>(implicit_cast<void*>(endpoint));
 }
 
-std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& addr);
+std::error_code make_sockaddr(char const* ip, uint16_t port, sockaddr_in& endpoint);
 
-void make_sockaddr(uint16_t port, sockaddr_in& addr);
+void make_sockaddr(uint16_t port, sockaddr_in& endpoint);
 
-std::string ip_str(sockaddr_in const& addr);
+std::string ip_str(sockaddr_in const& endpoint);
 
 
 timespec to_timespec(std::chrono::nanoseconds ns);

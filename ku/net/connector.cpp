@@ -2,10 +2,10 @@
 
 namespace ku { namespace net {
 
-bool Connector::connect(Address const& addr)
+bool Connector::connect(Endpoint const& endpoint)
 {
-  if (socket().connect(addr))
-    address_ = addr;
+  if (socket().connect(endpoint))
+    endpoint_ = endpoint;
 }
 
 } } // namespace ku::net

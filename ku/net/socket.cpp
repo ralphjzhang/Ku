@@ -1,8 +1,8 @@
 #include <strings.h>
 #include <sys/epoll.h>
 #include <cerrno>
-#include "address.hpp"
-#include "addrinfo.hpp"
+#include "endpoint.hpp"
+#include "resolver.hpp"
 #include "util.hpp"
 #include "socket.hpp"
 
@@ -13,17 +13,17 @@ namespace ku { namespace net {
 
 /// AcceptorSocket ///
 
-AcceptorSocket::AcceptorSocket(Address const& address)
-  : handle_(ku::net::socket_non_block(AddrInfo(AddrInfo::Passive)))
+AcceptorSocket::AcceptorSocket(Endpoint const& endpoint)
+  : handle_(ku::net::socket_non_block(Resolver(Resolver::Passive)))
 {
   if (handle_)
-    listen(address);
+    listen(endpoint);
 }
 
 /// ConnectorSocket ///
 
 ConnectorSocket::ConnectorSocket()
-  : StreamSocket(ku::net::socket_block(AddrInfo())) // TODO let user choose
+  : StreamSocket(ku::net::socket_block(Resolver())) // TODO let user choose
 {
 }
 

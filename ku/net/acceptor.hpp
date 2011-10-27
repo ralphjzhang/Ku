@@ -2,11 +2,11 @@
 #include <system_error>
 #include <memory>
 #include <iostream>
-#include "addrinfo.hpp"
-#include "address.hpp"
+#include "resolver.hpp"
+#include "endpoint.hpp"
 #include "socket.hpp"
-#include "channel.hpp"
-#include "channel_hub.hpp"
+#include "notice.hpp"
+#include "notice_board.hpp"
 #include "dispatcher.hpp"
 
 namespace ku { namespace net {
@@ -15,8 +15,8 @@ template <typename EventHandler>
 class Acceptor
 {
 public:
-  Acceptor(Address const& addr)
-    : address_(addr), quit_(false), acceptor_socket_(addr) { }
+  Acceptor(Endpoint const& endpoint)
+    : endpoint_(endpoint), quit_(false), acceptor_socket_(endpoint) { }
 
   bool handle_accept_error(AcceptorSocket const& sock)
   {
@@ -26,17 +26,17 @@ public:
   void quit() { quit_ = true; }
 
   // Acceptor requirement
-  void handle_accept(ChannelHub& hub)
+  void handle_accept(NoticeBoard& hub)
   {
     while (true) {
-      Address peer_addr;
-      StreamSocket conn_socket = acceptor_socket_.accept(peer_addr);
+      Endpoint peer_endpoint;
+      StreamSocket conn_socket = acceptor_socket_.accept(peer_endpoint);
       if (!acceptor_socket_.error()) {
-        std::cout << "Connection from: " << to_str(peer_addr) << std::endl;
-        Channel conn_chan(conn_socket.raw_handle(), Channel::Connection);
-        conn_chan.set_event_type(Channel::In);
-        conn_chan.set_event_handler(new EventHandler(std::move(conn_socket), peer_addr));
-        hub.add_channel(std::move(conn_chan));
+        std::cout << "Connection from: " << to_str(peer_endpoint) << std::endl;
+        Notice conn_notice(conn_socket.raw_handle(), Notice::Connection);
+        conn_notice.set_event_type(Notice::In);
+        conn_notice.set_event_handler(new EventHandler(std::move(conn_socket), peer_endpoint));
+        hub.add_notice(std::move(conn_notice));
       } else {
         std::error_code ec = acceptor_socket_.error();
         if (ec == std::errc::operation_would_block ||
@@ -53,23 +53,23 @@ public:
   }
 
   // Dispatcher requirement
-  void dispatch(Channel& chan, ChannelHub& hub)
+  void dispatch(Notice& notice, NoticeBoard& hub)
   {
-    return ku::net::dispatch<Acceptor<EventHandler>, EventHandler>(chan, hub);
+    return ku::net::dispatch<Acceptor<EventHandler>, EventHandler>(notice, hub);
   }
 
   bool get_quit() const { return quit_; }
 
-  bool initialize(ChannelHub& hub)
+  bool initialize(NoticeBoard& hub)
   {
     if (acceptor_socket_.error()) {
       std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
       exit(0);
     }
-    Channel chan(acceptor_socket_.raw_handle(), Channel::Acceptor);
-    chan.set_event_type(Channel::In);
-    chan.set_event_handler(this);
-    hub.add_channel(std::move(chan));
+    Notice notice(acceptor_socket_.raw_handle(), Notice::Acceptor);
+    notice.set_event_type(Notice::In);
+    notice.set_event_handler(this);
+    hub.add_notice(std::move(notice));
     return true;
   }
 
@@ -80,7 +80,7 @@ public:
   }
 
 private:
-  Address address_;
+  Endpoint endpoint_;
   bool quit_;
   AcceptorSocket acceptor_socket_;
 };

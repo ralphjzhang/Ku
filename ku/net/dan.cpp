@@ -1,13 +1,13 @@
 #include <functional>
 #include <thread>
 #include <ku/dan/dan.hpp>
-#include "address.hpp"
-#include "addrinfo.hpp"
+#include "endpoint.hpp"
+#include "resolver.hpp"
 #include "handle_ops.hpp"
 #include "socket.hpp"
 #include "timer.hpp"
-#include "channel_ops.hpp"
-#include "channel.hpp"
+#include "notice_ops.hpp"
+#include "notice.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
 #include "tcp_connection.hpp"
@@ -47,7 +47,7 @@ TEST(Socket, handle)
 
 TEST(AcceptorSocket, listen)
 {
-  AcceptorSocket sock(Address("127.0.0.1", 8888));
+  AcceptorSocket sock(Endpoint("127.0.0.1", 8888));
   EXPECT_TRUE(!sock.error());
 }
 
@@ -73,22 +73,22 @@ TEST(Timer, interval)
   EXPECT_EQ(tmr.raw_handle(), 0);
 }
 
-TEST(Channel, handle)
+TEST(Notice, handle)
 {
-  AcceptorSocket sock(Address("127.0.0.1", 8888));
+  AcceptorSocket sock(Endpoint("127.0.0.1", 8888));
   int sock_fd = sock.raw_handle();
-  Channel chan;
-  chan.adopt(std::move(sock));
-  EXPECT_EQ(chan.type(), Channel::Acceptor);
-  EXPECT_TRUE(chan.owner()); EXPECT_FALSE(sock.owner());
-  EXPECT_EQ(chan.raw_handle(), sock_fd);
+  Notice notice;
+  notice.adopt(std::move(sock));
+  EXPECT_EQ(notice.type(), Notice::Acceptor);
+  EXPECT_TRUE(notice.owner()); EXPECT_FALSE(sock.owner());
+  EXPECT_EQ(notice.raw_handle(), sock_fd);
   EXPECT_EQ(sock.raw_handle(), 0);
 }
 
 TEST(epoll, handle)
 {
-  Channel chan;
-  chan.adopt(Socket(AddrInfo()));
+  Notice notice;
+  notice.adopt(Socket(AddrInfo()));
   auto poller = epoll::Poller::create(); 
   poller.close();
 }
@@ -97,45 +97,45 @@ TEST(epoll, handle)
 struct Handler
 {
   ~Handler() { std::cout << "~Handler" << std::endl; }
-  bool handle_read(Channel& chan)
+  bool handle_read(Notice& notice)
   {
     char buf[10];
-    //read(chan.handle(), buf, 10);
+    //read(notice.handle(), buf, 10);
     std::cout << "We have some data to read: " << buf << std::endl;
     strcpy(buf, "World");
-    //write(chan, buf, 6);
+    //write(notice, buf, 6);
   }
-  bool handle_timer(Channel& chan)
+  bool handle_timer(Notice& notice)
   {
     std::cout << "Timer ticks" << std::endl;
     return true;
   }
-  void handle_close(Channel const& chan)
+  void handle_close(Notice const& notice)
   {
-    std::cout << "Connection closed, removing channel " << std::endl;
+    std::cout << "Connection closed, removing notice " << std::endl;
     delete this;
   }
 };
 
-bool setup_channels(ChannelHub& hub, Address const& addr)
+bool setup_notices(NoticeBoard& hub, Endpoint const& endpoint)
 {
-  Channel tchan;
-  tchan.set_event_type(Channel::In);
+  Notice tnotice;
+  tnotice.set_event_type(Notice::In);
   {
     Timer timer;
     timer.set_interval(std::chrono::seconds(2));
-    tchan.set_event_handler(new Handler);
+    tnotice.set_event_handler(new Handler);
   }
 
-  hub.add_channel(std::move(tchan));
+  hub.add_notice(std::move(tnotice));
   return true;
 }
 
 
 void epoll_test()
 {
-  Address addr("127.0.0.1", 8888);
-  Acceptor<TCPConnection> acceptor(addr);
+  Endpoint endpoint("127.0.0.1", 8888);
+  Acceptor<TCPConnection> acceptor(endpoint);
   TCPServer<decltype(acceptor)> server(acceptor);
   server.start();
   std::getchar();
@@ -145,7 +145,7 @@ void epoll_test()
 void poll_test()
 {
   /*
-  Address addr("127.0.0.1", 8888);
+  Endpoint endpoint("127.0.0.1", 8888);
   Dispatcher<Handler> dispatcher;
   std::error_code err = poll::poll_loop(dispatcher);
   if (err)

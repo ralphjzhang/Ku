@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sstream>
-#include <ku/net/address.hpp>
+#include <ku/net/endpoint.hpp>
 #include <ku/net/socket.hpp>
 
 using namespace ku::net;
@@ -8,11 +8,11 @@ using namespace ku::net;
 int main(int argc, char* argv[])
 {
   if (argc < 2) {
-    std::cout << "Usage: echo_server port address" << std::endl;
+    std::cout << "Usage: echo_server port endpoint" << std::endl;
     exit(0);
   }
   uint16_t port = atoi(argv[1]);
-  Address addr = argc > 2 ? Address(argv[2], port) : Address(port);
+  Endpoint addr = argc > 2 ? Endpoint(argv[2], port) : Endpoint(port);
 
   ConnectorSocket socket;
   if (!socket.connect(addr)) {

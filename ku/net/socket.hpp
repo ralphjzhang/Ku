@@ -1,12 +1,12 @@
 #pragma once
 #include <system_error>
-#include "addrinfo.hpp"
+#include "resolver.hpp"
 #include "handle.hpp"
 #include "handle_ops.hpp"
 
 namespace ku { namespace net {
   
-class Address;
+class Endpoint;
  
 class StreamSocket
 {
@@ -36,20 +36,20 @@ protected:
 class AcceptorSocket
 {
 public:
-  explicit AcceptorSocket(Address const& address);
+  explicit AcceptorSocket(Endpoint const& endpoint);
   explicit AcceptorSocket(Handle const& handle) : handle_(handle.raw_handle(), false) { }
   explicit AcceptorSocket(Handle&& handle) : handle_(std::move(handle)) { }
   AcceptorSocket(AcceptorSocket&&) = default;
   ~AcceptorSocket() = default;
 
-  StreamSocket accept(Address& addr) { return StreamSocket(ku::net::accept(handle_, addr)); }
+  StreamSocket accept(Endpoint& endpoint) { return StreamSocket(ku::net::accept(handle_, endpoint)); }
   int raw_handle() const { return handle_.raw_handle(); }
   Handle release_handle() { return std::move(handle_); }
   std::error_code const& error() const { return handle_.error(); }
 
 private:
-  bool listen(Address const& addr)
-  { return ku::net::bind(handle_, addr) && ku::net::listen(handle_); }
+  bool listen(Endpoint const& endpoint)
+  { return ku::net::bind(handle_, endpoint) && ku::net::listen(handle_); }
 
   Handle handle_;
 };
@@ -63,7 +63,7 @@ public:
   ConnectorSocket(ConnectorSocket&&) = default;
   ~ConnectorSocket() = default;
 
-  bool connect(Address const& addr) { return ku::net::connect(handle_, addr); }
+  bool connect(Endpoint const& endpoint) { return ku::net::connect(handle_, endpoint); }
 };
 
 } } // namespace ku::net

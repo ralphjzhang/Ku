@@ -4,16 +4,16 @@
 
 namespace ku { namespace net {
 
-class Address
+class Endpoint
 {
-  friend std::string to_str(Address const&);
+  friend std::string to_str(Endpoint const&);
 
 public:
-  Address() = default;
-  Address(uint16_t port);
-  Address(std::string const& ip, uint16_t port);
-  Address(Address const&) = default;
-  ~Address() = default;
+  Endpoint() = default;
+  Endpoint(uint16_t port);
+  Endpoint(std::string const& ip, uint16_t port);
+  Endpoint(Endpoint const&) = default;
+  ~Endpoint() = default;
 
   sockaddr_in const& sockaddr() const { return sockaddr_; }
   sockaddr_in& sockaddr() { return sockaddr_; }
@@ -26,7 +26,7 @@ private:
   sockaddr_in sockaddr_;
 };
 
-std::string to_str(Address const& addr);
+std::string to_str(Endpoint const& addr);
 
 } } // namespace ku::net
 

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include <ku/net/channel.hpp>
-#include <ku/net/channel_hub.hpp>
+#include <ku/net/notice.hpp>
+#include <ku/net/notice_board.hpp>
 #include <ku/net/timer.hpp>
 #include <ku/net/dispatcher.hpp>
 #include <ku/net/epoll_poller.hpp>
@@ -15,14 +15,14 @@ struct TimerDispatcher
   bool quit;
   unsigned count;
 
-  bool initialize(ChannelHub& hub)
+  bool initialize(NoticeBoard& hub)
   {
     count = 0;
     auto add_timer = [&](Timer const& timer) {
-      Channel chan(timer.raw_handle(), Channel::Timer);
-      chan.set_event_type(Channel::In);
-      chan.set_event_handler(this);
-      hub.add_channel(std::move(chan));
+      Notice notice(timer.raw_handle(), Notice::Timer);
+      notice.set_event_type(Notice::In);
+      notice.set_event_handler(this);
+      hub.add_notice(std::move(notice));
     };
     periodic_timer.set_interval(std::chrono::seconds(1));
     deadline_timer.set_expires_in(std::chrono::seconds(5));
@@ -36,14 +36,14 @@ struct TimerDispatcher
     return false;
   }
 
-  void dispatch(Channel& chan, ChannelHub& hub)
+  void dispatch(Notice& notice, NoticeBoard& hub)
   {
-    ku::net::dispatch<TimerDispatcher, TimerDispatcher, TimerDispatcher>(chan, hub);
+    ku::net::dispatch<TimerDispatcher, TimerDispatcher, TimerDispatcher>(notice, hub);
   }
 
   bool get_quit() const { return quit; }
 
-  bool handle_accept(ChannelHub&) { return true; }
+  bool handle_accept(NoticeBoard&) { return true; }
 
   bool handle_timer_tick()
   {

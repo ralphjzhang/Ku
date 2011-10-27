@@ -10,7 +10,7 @@
 #include <sys/uio.h>
 #include <errno.h>
 #include <netdb.h>
-#include "address.hpp"
+#include "endpoint.hpp"
 #include "raw_buffer.hpp"
 #include "handle.hpp"
 
@@ -35,10 +35,10 @@ inline Handle socket_block(addrinfo const& ai)
 }
 
 
-inline bool bind(Handle& h, Address const& addr)
+inline bool bind(Handle& h, Endpoint const& endpoint)
 {
   h.set_error(
-      ::bind(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1 ? 
+      ::bind(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1 ? 
       errno : 0);         
   return !h.error();
 }
@@ -49,21 +49,21 @@ inline bool listen(Handle& h)
   return !h.error();
 }
 
-inline Handle accept(Handle& h, Address& addr)
+inline Handle accept(Handle& h, Endpoint& endpoint)
 {
   socklen_t addr_len = sizeof(sockaddr_in);
   Handle socket_handle(
-      ::accept4(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), &addr_len,
+      ::accept4(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), &addr_len,
                 SOCK_NONBLOCK | SOCK_CLOEXEC), true);
   if (!socket_handle)
     h.set_error(errno);
   return socket_handle;
 }
 
-inline bool connect(Handle& h, Address const& addr)
+inline bool connect(Handle& h, Endpoint const& endpoint)
 {
   h.set_error(
-      ::connect(h.raw_handle(), util::sockaddr_cast(&addr.sockaddr()), sizeof(sockaddr)) == -1 ?
+      ::connect(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1 ?
       errno : 0);
   return !h.error();
 }

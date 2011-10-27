@@ -29,7 +29,7 @@ namespace ku { namespace net {
  **/
 class Handle : private util::noncopyable
 {
-  friend class Channel;
+  friend class Notice;
 
 public:
   explicit Handle(int raw_handle, bool owner)
