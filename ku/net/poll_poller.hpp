@@ -84,7 +84,7 @@ private:
   std::error_code error_;
 };
 
-void translate_events(pollfd const& ev, Notice& ch);
+void translate_events(pollfd const& ev, Notice& notice);
 
 template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,
@@ -107,9 +107,9 @@ std::error_code poll_loop(Dispatcher& dispatcher,
       pollfd const& ev = events.raw_event(i);
       if (ev.revents == 0)
         continue;
-      Notice* ch = events.find_notice(ev.fd);
-      translate_events(ev, *ch);
-      dispatcher.dispatch(*ch, events);
+      Notice* notice = events.find_notice(ev.fd);
+      translate_events(ev, *notice);
+      dispatcher.dispatch(*notice, events);
     }
     events.apply_removal();
   }

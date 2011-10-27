@@ -47,11 +47,11 @@ bool Events::add_notice(Notice&& notice)
   assert(notice.any_event_type());
   auto res = notices_.insert(std::make_pair(notice.id(), std::move(notice)));
   if (res.second) {
-    Notice *ch_ptr = &(res.first->second);
+    Notice *notice_ptr = &(res.first->second);
     epoll_event ev;
-    ev.data.ptr = ch_ptr;
-    ev.events = translate_event_types(*ch_ptr);
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, ch_ptr->raw_handle(), &ev) == 0)
+    ev.data.ptr = notice_ptr;
+    ev.events = translate_event_types(*notice_ptr);
+    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, notice_ptr->raw_handle(), &ev) == 0)
       return true;
     poller_.set_error(errno);
     notices_.erase(res.first);

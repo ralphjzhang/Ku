@@ -11,7 +11,7 @@ namespace ku { namespace net {
 class NoticeBoard;
 
 template <typename EventHandler, typename Acceptor>
-void accept_connections(Acceptor& acceptor, Notice& notice, NoticeBoard& hub)
+void accept_connections(Acceptor& acceptor, Notice& notice, NoticeBoard& notice_board)
 {
   /*
   while (true) {
@@ -26,7 +26,7 @@ void accept_connections(Acceptor& acceptor, Notice& notice, NoticeBoard& hub)
       } else {
         // Acceptor error
         if (!util::if_handle_error(acceptor, acceptor_socket))
-          hub.remove_notice(notice);
+          notice_board.remove_notice(notice);
         break;
       }
     } else {
@@ -35,7 +35,7 @@ void accept_connections(Acceptor& acceptor, Notice& notice, NoticeBoard& hub)
         conn_notice.adopt(std::move(conn_socket));
         conn_notice.set_event_type(Notice::In);
         conn_notice.set_event_handler(std::make_shared<EventHandler>());
-        hub.adopt_notice(std::move(conn_notice));
+        notice_board.adopt_notice(std::move(conn_notice));
       }
     }
   }
@@ -43,7 +43,7 @@ void accept_connections(Acceptor& acceptor, Notice& notice, NoticeBoard& hub)
 }
 
 template <typename Acceptor, typename Connection>
-void dispatch(Notice& notice, NoticeBoard& hub)
+void dispatch(Notice& notice, NoticeBoard& notice_board)
 {
   Connection& connection = notice.event_handler<Connection>();
 
@@ -51,7 +51,7 @@ void dispatch(Notice& notice, NoticeBoard& hub)
   if (notice.has_event(Notice::Read)) {
     if (notice.type() == Notice::Acceptor) {
       // Accept
-      notice.event_handler<Acceptor>().handle_accept(hub);
+      notice.event_handler<Acceptor>().handle_accept(notice_board);
     } else if (notice.type() == Notice::Connection) {
       // Data read
       util::if_handle_read(connection);
@@ -63,16 +63,16 @@ void dispatch(Notice& notice, NoticeBoard& hub)
   // Error
   if (notice.has_event(Notice::Error))
     if (!util::if_handle_error(connection))
-      hub.remove_notice(notice);
+      notice_board.remove_notice(notice);
   // Close
   if (notice.has_event(Notice::Close)) {
     util::if_handle_close(connection);
-    hub.remove_notice(notice);
+    notice_board.remove_notice(notice);
   }
 }
 
 template <typename Acceptor, typename Connection, typename TimerHandler>
-void dispatch(Notice& notice, NoticeBoard& hub)
+void dispatch(Notice& notice, NoticeBoard& notice_board)
 {
   // Timer
   if (notice.type() == Notice::Timer && notice.has_event(Notice::Read)) {
@@ -80,9 +80,9 @@ void dispatch(Notice& notice, NoticeBoard& hub)
     ::read(notice.raw_handle(), &tick, sizeof(tick));
     TimerHandler& timer_handler = notice.event_handler<TimerHandler>();
     if (!util::if_handle_timer_tick(timer_handler))
-      hub.remove_notice(notice);
+      notice_board.remove_notice(notice);
   }
-  dispatch<Acceptor, Connection>(notice, hub);
+  dispatch<Acceptor, Connection>(notice, notice_board);
 }
 
 
@@ -90,10 +90,10 @@ void dispatch(Notice& notice, NoticeBoard& hub)
  * A default dispatcher does nothing. Client code can choose to inherit from this class, or
  * provide a complete implementation from scratch. A dispatcher must have following operations:
  * 
- *   bool initialize(NoticeHub&);
+ *   bool initialize(Noticenotice_board&);
  *   bool on_error(std::error_code);
  *   bool get_quit() const;
- *   void dispatch(Notice&, NoticeHub&);
+ *   void dispatch(Notice&, Noticenotice_board&);
  *
  * It is advised that dispatch calls the template methods dispatch<>, but client can
  * also choose to implement his own dispatching merchanism.
@@ -108,7 +108,7 @@ public:
   bool initialize(NoticeBoard&) { return true; }
   bool on_error(std::error_code) { return false; }
   bool get_quit() const { return quit_; }
-  void dispatch(Notice& notice, NoticeBoard& hub) { }
+  void dispatch(Notice& notice, NoticeBoard& notice_board) { }
 
   void quit() { quit_ = true; }
 

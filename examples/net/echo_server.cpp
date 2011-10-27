@@ -14,10 +14,12 @@ public:
 
   bool handle_read()
   {
-    char buf[10];
-    if (socket().read(buf, 10) > 0) {
-      std::cout << "Get data from client: " << buf << std::endl;
-      socket().write(buf, 6);
+    char buf[1024];
+    ssize_t size = socket().read(buf, sizeof(buf));
+    if (size > 0) {
+      buf[size] = '\0';
+      std::cout << "Client (" << to_str(peer_endpoint()) << ") sends message: " << buf << '\n';
+      socket().write(buf, size); // TODO this is tricky, connection should handle this
     }
     return true;
   }
@@ -30,8 +32,8 @@ int main(int argc, char* argv[])
     exit(0);
   }
 
-  Endpoint addr("127.0.0.1", 8888);
-  Acceptor<EchoHandler> acceptor(addr);
+  Endpoint endpoint("127.0.0.1", 8888);
+  Acceptor<EchoHandler> acceptor(endpoint);
   TCPServer<decltype(acceptor)> server(acceptor);
   server.start();
   std::cout << "Server running, press enter to exit." << std::endl;

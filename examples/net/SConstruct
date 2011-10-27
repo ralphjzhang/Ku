@@ -5,13 +5,13 @@ env.Append(HOME = os.environ['HOME'])
 KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
 
 env = Environment(
-    CCFLAGS = '-Wall --std=c++0x -fPIC',
+    CCFLAGS = '-Wall --std=c++0x -fPIC -g -O0',
     CPPPATH = [KUDIR],
     LIBPATH = [KUDIR + 'ku/net/'],
     LIBS = ['pthread', 'kunet'],
     )
 
 env.Program('timer', 'timer.cpp')
-env.Program('echo_server', 'echo_server.cpp')
+env.Program('echo_server', ['echo_server.cpp'] + Glob(KUDIR + 'ku/net/*.cpp'))
 env.Program('echo_client', 'echo_client.cpp')
 

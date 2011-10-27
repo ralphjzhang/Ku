@@ -77,7 +77,7 @@ private:
   std::error_code error_;
 };
 
-void translate_events(epoll_event const& ev, Notice& ch);
+void translate_events(epoll_event const& ev, Notice& notice);
 
 template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,
@@ -102,9 +102,9 @@ std::error_code poll_loop(Dispatcher& dispatcher,
 
     for (unsigned i = 0; i < events.active_count(); ++i) {
       epoll_event const& ev = events.raw_event(i);
-      Notice* ch = events.find_notice(ev);
-      translate_events(ev, *ch);
-      dispatcher.dispatch(*ch, events);
+      Notice* notice = events.find_notice(ev);
+      translate_events(ev, *notice);
+      dispatcher.dispatch(*notice, events);
       if (poller.error()) {
         if (dispatcher.on_error(poller.error())) // notice operation may have error
           poller.clear_error();

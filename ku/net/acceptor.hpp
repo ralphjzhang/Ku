@@ -26,7 +26,7 @@ public:
   void quit() { quit_ = true; }
 
   // Acceptor requirement
-  void handle_accept(NoticeBoard& hub)
+  void handle_accept(NoticeBoard& notice_board)
   {
     while (true) {
       Endpoint peer_endpoint;
@@ -36,7 +36,7 @@ public:
         Notice conn_notice(conn_socket.raw_handle(), Notice::Connection);
         conn_notice.set_event_type(Notice::In);
         conn_notice.set_event_handler(new EventHandler(std::move(conn_socket), peer_endpoint));
-        hub.add_notice(std::move(conn_notice));
+        notice_board.add_notice(std::move(conn_notice));
       } else {
         std::error_code ec = acceptor_socket_.error();
         if (ec == std::errc::operation_would_block ||
@@ -53,14 +53,14 @@ public:
   }
 
   // Dispatcher requirement
-  void dispatch(Notice& notice, NoticeBoard& hub)
+  void dispatch(Notice& notice, NoticeBoard& notice_board)
   {
-    return ku::net::dispatch<Acceptor<EventHandler>, EventHandler>(notice, hub);
+    return ku::net::dispatch<Acceptor<EventHandler>, EventHandler>(notice, notice_board);
   }
 
   bool get_quit() const { return quit_; }
 
-  bool initialize(NoticeBoard& hub)
+  bool initialize(NoticeBoard& notice_board)
   {
     if (acceptor_socket_.error()) {
       std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
@@ -69,7 +69,7 @@ public:
     Notice notice(acceptor_socket_.raw_handle(), Notice::Acceptor);
     notice.set_event_type(Notice::In);
     notice.set_event_handler(this);
-    hub.add_notice(std::move(notice));
+    notice_board.add_notice(std::move(notice));
     return true;
   }
 
