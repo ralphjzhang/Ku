@@ -85,19 +85,18 @@ void dispatch(Notice& notice, NoticeBoard& notice_board)
   dispatch<Acceptor, Connection>(notice, notice_board);
 }
 
-
-/**
- * A default dispatcher does nothing. Client code can choose to inherit from this class, or
- * provide a complete implementation from scratch. A dispatcher must have following operations:
- * 
- *   bool initialize(Noticenotice_board&);
- *   bool on_error(std::error_code);
- *   bool get_quit() const;
- *   void dispatch(Notice&, Noticenotice_board&);
- *
- * It is advised that dispatch calls the template methods dispatch<>, but client can
- * also choose to implement his own dispatching merchanism.
- **/
+// =======================================================================================
+// A default dispatcher does nothing. Client code can choose to inherit from this class, or
+// provide a complete implementation from scratch. A dispatcher must have following operations:
+//
+//   bool initialize(Noticenotice_board&);
+//   bool on_error(std::error_code);
+//   bool get_quit() const;
+//   void dispatch(Notice&, Noticenotice_board&);
+//
+// It is advised that dispatch calls the template methods dispatch<>, but client can
+// also choose to implement his own dispatching merchanism.
+// =======================================================================================
 template <typename EventHandler>
 class Dispatcher
 {

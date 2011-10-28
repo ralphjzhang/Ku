@@ -15,14 +15,14 @@ struct TimerDispatcher
   bool quit;
   unsigned count;
 
-  bool initialize(NoticeBoard& hub)
+  bool initialize(NoticeBoard& notice_board)
   {
     count = 0;
     auto add_timer = [&](Timer const& timer) {
       Notice notice(timer.raw_handle(), Notice::Timer);
       notice.set_event_type(Notice::In);
       notice.set_event_handler(this);
-      hub.add_notice(std::move(notice));
+      notice_board.add_notice(std::move(notice));
     };
     periodic_timer.set_interval(std::chrono::seconds(1));
     deadline_timer.set_expires_in(std::chrono::seconds(5));
@@ -31,14 +31,11 @@ struct TimerDispatcher
     return true;
   }
 
-  bool on_error(std::error_code)
-  {
-    return false;
-  }
+  bool on_error(std::error_code) { return false; }
 
-  void dispatch(Notice& notice, NoticeBoard& hub)
+  void dispatch(Notice& notice, NoticeBoard& notice_board)
   {
-    ku::net::dispatch<TimerDispatcher, TimerDispatcher, TimerDispatcher>(notice, hub);
+    ku::net::dispatch<TimerDispatcher, TimerDispatcher, TimerDispatcher>(notice, notice_board);
   }
 
   bool get_quit() const { return quit; }

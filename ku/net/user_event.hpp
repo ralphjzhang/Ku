@@ -8,6 +8,7 @@ class UserEvent
 {
 public:
   UserEvent(unsigned init_value);
+  int raw_handle() const { return handle_.raw_handle(); }
 
 private:
   Handle handle_;

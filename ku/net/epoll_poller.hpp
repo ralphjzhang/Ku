@@ -43,12 +43,11 @@ private:
   NoticeMap notices_;
 };
 
-
-/**
- * epoll::Poller manages epoll file descriptor and associated operation, namely, 
- * epoll_create, epoll_wait
- * It is supposed to be used with epoll::Events
- **/
+// =======================================================================================
+// epoll::Poller manages epoll file descriptor and associated operation, namely, 
+// epoll_create, epoll_wait
+// It is supposed to be used with epoll::Events
+// =======================================================================================
 class Poller : private util::noncopyable
 {
   friend class Events;

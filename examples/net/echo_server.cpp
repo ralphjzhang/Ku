@@ -5,6 +5,10 @@
 
 using namespace ku::net;
 
+// ======================================================================================
+// It's not really necessary to inherit from TCPConnection, as long as the handle provides
+// the handle methods
+// ======================================================================================
 class EchoHandler : public TCPConnection
 {
 public:
@@ -19,7 +23,7 @@ public:
     if (size > 0) {
       buf[size] = '\0';
       std::cout << "Client (" << to_str(peer_endpoint()) << ") sends message: " << buf << '\n';
-      socket().write(buf, size); // TODO this is tricky, connection should handle this
+      socket().write(buf, size);
     }
     return true;
   }

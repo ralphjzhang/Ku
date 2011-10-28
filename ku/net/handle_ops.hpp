@@ -55,8 +55,7 @@ inline Handle accept(Handle& h, Endpoint& endpoint)
   Handle socket_handle(
       ::accept4(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), &addr_len,
                 SOCK_NONBLOCK | SOCK_CLOEXEC), true);
-  if (!socket_handle)
-    h.set_error(errno);
+  h.set_error(socket_handle ? 0 : errno);
   return socket_handle;
 }
 
