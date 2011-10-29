@@ -3,15 +3,22 @@
 
 namespace ku { namespace net {
 
+namespace ops {
+struct UserEvent;
+} // namespace ku::net::ops
+
 // Wrapper for eventfd
 class UserEvent
 {
+  typedef Handle<ops::UserEvent> HandleType;
+
 public:
   UserEvent(unsigned init_value);
-  int raw_handle() const { return handle_.raw_handle(); }
+
+  HandleType const& handle() const { return handle_; }
 
 private:
-  Handle handle_;
+  HandleType handle_;
 };
 
 } } // namespace ku::net

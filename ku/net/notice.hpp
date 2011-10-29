@@ -14,10 +14,10 @@ class Endpoint;
 
 typedef uint32_t NoticeId;
 
-/**
- * Notice is the link among handle, events and event handlers.
- * A Notice is movable but not copyable, its life cycle is in general managed by Events
- **/
+// =======================================================================================
+// Notice is the link among handle, events and event handlers.
+// A Notice is movable but not copyable, its life cycle is managed by a NoticeBoard
+// =======================================================================================
 class Notice : util::noncopyable
 {
   struct Events : public std::bitset<4> { };
@@ -28,8 +28,8 @@ class Notice : util::noncopyable
   static std::atomic<NoticeId> next_notice_id;
 
 public:
-  enum Type : uint8_t { None, Acceptor, Connection, Timer };
-  enum EventType : uint8_t { In, Out };
+  enum Type : uint8_t { None, Acceptor, Connection };
+  enum EventType : uint8_t { Inbound, Outbound };
   enum Event : uint8_t { Close, Read, Write, Error };
 
   Notice() : event_handler_(nullptr), raw_handle_(0), id_(0), type_(Type::None) { }
@@ -57,7 +57,7 @@ public:
   void set_event_handler(void* event_handler)
   { event_handler_ = event_handler; }
 
-  // Notice: it's the upper level to manage event_handler's life cycle
+  // It's the upper level to manage event_handler's life cycle and use the right type
   template <typename EventHandler>
   EventHandler& event_handler()
   {

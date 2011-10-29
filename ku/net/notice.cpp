@@ -47,10 +47,10 @@ std::string to_str(Notice::Events evts)
 std::string to_str(Notice::EventTypes et)
 {
   std::string s;
-  if (et.test(Notice::In))
-    s.append("In");
-  if (et.test(Notice::Out))
-    s.empty() ? s.append("Out") : s.append("|Out");
+  if (et.test(Notice::Inbound))
+    s.append("Inbound");
+  if (et.test(Notice::Outbound))
+    s.empty() ? s.append("Outbound") : s.append("|Outbound");
   return s;
 }
 

@@ -10,19 +10,19 @@ class TCPServer
 public:
   TCPServer(Dispatcher& dispatcher) : dispatcher_(dispatcher) { }
 
-  template <typename Loop = EpollLoop>
   void start()
   {
-    std::thread([this]() { epoll::poll_loop(dispatcher_); }).swap(thread_);
+    std::thread([this]() { loop_(dispatcher_); }).swap(thread_);
   }
 
   void stop()
   {
-    dispatcher_.quit();
+    loop_.quit();
     thread_.join();
   }
 
 private:
+  epoll::PollLoop<Dispatcher> loop_;
   Dispatcher& dispatcher_;
   std::thread thread_;
 };

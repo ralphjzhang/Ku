@@ -12,22 +12,14 @@ using namespace ku::net;
 struct TimerDispatcher
 {
   Timer periodic_timer, deadline_timer;
-  bool quit;
   unsigned count;
 
   bool initialize(NoticeBoard& notice_board)
   {
     count = 0;
-    auto add_timer = [&](Timer const& timer) {
-      Notice notice(timer.raw_handle(), Notice::Timer);
-      notice.set_event_type(Notice::In);
-      notice.set_event_handler(this);
-      notice_board.add_notice(std::move(notice));
-    };
     periodic_timer.set_interval(std::chrono::seconds(1));
-    deadline_timer.set_expires_in(std::chrono::seconds(5));
-    add_timer(periodic_timer);
-    add_timer(deadline_timer);
+    notice_board.add_notice(periodic_timer.handle(), this, Notice::Connection, Notice::Inbound);
+    notice_board.add_notice(deadline_timer.handle(), this, Notice::Connection, Notice::Inbound);
     return true;
   }
 
@@ -35,18 +27,18 @@ struct TimerDispatcher
 
   void dispatch(Notice& notice, NoticeBoard& notice_board)
   {
-    ku::net::dispatch<TimerDispatcher, TimerDispatcher, TimerDispatcher>(notice, notice_board);
+    ku::net::dispatch<TimerDispatcher, TimerDispatcher>(notice, notice_board);
   }
-
-  bool get_quit() const { return quit; }
 
   bool handle_accept(NoticeBoard&) { return true; }
 
-  bool handle_timer_tick()
+  bool handle_read()
   {
+    uint64_t u;
+    periodic_timer.read(u, 0);
     std::cout << "Timer ticked " << ++count << " times." << std::endl;
-    if (count == 4)
-      quit = true;
+    //if (count == 4)
+    //  quit = true;
     return true;
   }
 
@@ -57,8 +49,9 @@ int main()
 {
   std::cout << "Starting event loop." << std::endl;
   TimerDispatcher timer_dispatcher;
-  if (std::error_code ec = epoll::poll_loop(timer_dispatcher))
-    std::cout << ec.message() << std::endl;
+  epoll::PollLoop<TimerDispatcher> loop;
+  if (!loop(timer_dispatcher))
+    std::cout << loop.error().message() << std::endl;
   std::cout << "Event loop exited." << std::endl;
 }
 

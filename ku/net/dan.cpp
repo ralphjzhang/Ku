@@ -3,10 +3,8 @@
 #include <ku/dan/dan.hpp>
 #include "endpoint.hpp"
 #include "resolver.hpp"
-#include "handle_ops.hpp"
 #include "socket.hpp"
 #include "timer.hpp"
-#include "notice_ops.hpp"
 #include "notice.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
@@ -94,6 +92,7 @@ TEST(epoll, handle)
 }
 */
 
+/*
 struct Handler
 {
   ~Handler() { std::cout << "~Handler" << std::endl; }
@@ -142,6 +141,7 @@ void epoll_test()
   server.stop();
 }
 
+*/
 void poll_test()
 {
   /*

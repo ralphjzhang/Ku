@@ -29,14 +29,15 @@ public:
   unsigned active_count() const { return active_count_; }
   unsigned events_count() const { return notices_.size(); }
 
-  virtual bool add_notice(Notice&& notice);
-  virtual bool remove_notice(Notice const& notice);
-  virtual bool modify_notice(Notice const& notice);
   Notice* find_notice(int fd);
 
   void apply_removal(); // TODO open this or not?
 
 private:
+  virtual bool add_notice_internal(Notice&& notice);
+  virtual bool remove_notice_internal(Notice const& notice);
+  virtual bool modify_notice_internal(Notice const& notice);
+
   bool remove_notice_internal(int fd);
 
   pollfd* raw_events() { return &*events_.begin(); }

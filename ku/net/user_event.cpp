@@ -1,13 +1,11 @@
-#include <sys/eventfd.h>
 #include "user_event.hpp"
+#include "user_event_ops.hpp"
 
 namespace ku { namespace net {
 
 UserEvent::UserEvent(unsigned init_value)
-  : handle_(::eventfd(init_value, EFD_NONBLOCK | EFD_CLOEXEC), true)
+  : handle_(ops::UserEvent::create(init_value))
 {
-  if (!handle_)
-    handle_.set_error(errno);
 }
 
 } } // namespace ku::net

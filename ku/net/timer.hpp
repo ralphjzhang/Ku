@@ -3,15 +3,18 @@
 #include <chrono>
 #include <string>
 #include "handle.hpp"
+#include "common_ops.hpp"
 
 namespace ku { namespace net {
 
-/**
- * A Timer object owns a timer_fd file descriptor upon creation.
- * Ownership can be transferred.
- **/
+namespace ops {
+struct Timer;
+} // namespace ku::net::ops
+
 class Timer
 {
+  typedef Handle<ops::Timer> HandleType;
+
 public:
   enum Clock { Monotonic = CLOCK_MONOTONIC, Realtime = CLOCK_REALTIME };
   enum Mode { None, Periodic, Deadline };
@@ -21,8 +24,14 @@ public:
   Timer(Timer&& t) : handle_(std::move(t.release_handle())) { }
   ~Timer() = default;
 
-  int raw_handle() const { return handle_.raw_handle(); }
+  HandleType const& handle() const { return handle_; }
   Mode mode() const { return mode_; }
+
+  ssize_t read(uint64_t& val, size_t)
+  { return ops::Common::read(handle_, &val, sizeof(val)); }
+
+  ssize_t write(uint64_t val, size_t)
+  { return ops::Common::write(handle_, &val, sizeof(val)); }
 
   bool set_interval(std::chrono::nanoseconds interval) { return set_timespec(Periodic, interval); }
   bool clear_interval() { return set_interval(std::chrono::nanoseconds(0)); }
@@ -43,14 +52,14 @@ public:
 
   bool set_expires_in(std::chrono::nanoseconds duration) { return set_timespec(Deadline, duration); }
 
-  Handle release_handle() { return std::move(handle_); }
+  HandleType release_handle() { return std::move(handle_); }
   std::error_code error() const { return handle_.error(); }
 
 private:
   std::chrono::nanoseconds get_interval_internal();
   bool set_timespec(Mode mode, std::chrono::nanoseconds duration);
 
-  Handle handle_;
+  HandleType handle_;
   Mode mode_;
 };
 

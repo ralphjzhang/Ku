@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   uint16_t port = atoi(argv[1]);
   Endpoint endpoint = argc > 2 ? Endpoint(argv[2], port) : Endpoint(port);
 
-  ConnectorSocket socket;
+  ConnectorSocket socket(false);
   if (!socket.connect(endpoint)) {
     std::cout << "Connect error: " << socket.error().message() << std::endl;
     exit(1);

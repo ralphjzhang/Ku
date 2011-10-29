@@ -24,13 +24,14 @@ public:
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  virtual bool add_notice(Notice&& notice);
-  virtual bool remove_notice(Notice const& notice);
-  virtual bool modify_notice(Notice const& notice);
   Notice* find_notice(NoticeId id);
   Notice* find_notice(epoll_event const& ev);
 
 private:
+  virtual bool add_notice_internal(Notice&& notice);
+  virtual bool remove_notice_internal(Notice const& notice);
+  virtual bool modify_notice_internal(Notice const& notice);
+
   epoll_event* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
 
@@ -77,6 +78,55 @@ private:
 };
 
 void translate_events(epoll_event const& ev, Notice& notice);
+
+template <typename Dispatcher>
+class PollLoop
+{
+public:
+  PollLoop() : quit_(false) { }
+  PollLoop(PollLoop const&) = default;
+
+  void quit() { quit_ = true; }
+  std::error_code error() const { return error_; }
+
+  bool operator () (Dispatcher& dispatcher,
+      std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
+  {
+    Poller poller(EPOLL_CLOEXEC);
+    if (poller.error()) {
+      error_ = poller.error();
+      return false;
+    }
+
+    Events events(poller);
+    if (!dispatcher.initialize(events))
+      return false;
+
+    while (!quit_) {
+      poller.poll(events, timeout);
+      if (poller.error()) {
+        error_ = poller.error();
+        return false;
+      }
+
+      for (unsigned i = 0; i < events.active_count(); ++i) {
+        epoll_event const& ev = events.raw_event(i);
+        Notice* notice = events.find_notice(ev);
+        translate_events(ev, *notice);
+        dispatcher.dispatch(*notice, events);
+        if (poller.error()) {
+          error_ = poller.error(); // TODO this error might be ignorable, like remove_notice..
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+private:
+  bool quit_;
+  std::error_code error_;
+};
 
 template <typename Dispatcher>
 std::error_code poll_loop(Dispatcher& dispatcher,

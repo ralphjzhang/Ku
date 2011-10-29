@@ -17,14 +17,7 @@ struct UserEventDispatcher
 
   bool initialize(NoticeBoard& notice_board)
   {
-    auto add_user_event = [&](UserEvent const& user_event) {
-      Notice notice(user_event.raw_handle(), Notice::Connection);
-      notice.set_event_type(Notice::In);
-      notice.set_event_handler(this);
-      notice_board.add_notice(std::move(notice));
-    };
-    add_user_event(user_event);
-    std::cout << "User event created, fd: " << user_event.raw_handle() << std::endl;
+    notice_board.add_notice(user_event.handle(), this, Notice::Connection, Notice::Inbound);
     return true;
   }
 
@@ -42,9 +35,8 @@ struct UserEventDispatcher
   {
     if (value++ < 10) {
       uint64_t u = 0;
-      ::read(user_event.raw_handle(), &u, sizeof(u));
-      std::cout << "User event happen: " << u << std::endl;
-      ::write(user_event.raw_handle(), &value, sizeof(value));
+      //::read(user_event.raw_handle(), &u, sizeof(u));
+      //::write(user_event.raw_handle(), &value, sizeof(value));
     } else {
       quit = true;
     }

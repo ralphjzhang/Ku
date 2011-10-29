@@ -5,13 +5,13 @@
 
 namespace ku { namespace net { namespace epoll {
 
-// Helper function
+// Helper functions
 int translate_event_types(Notice const& notice)
 {
   int event_types = 0;
-  if (notice.has_event_type(Notice::In))
+  if (notice.has_event_type(Notice::Inbound))
     event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP);
-  if (notice.has_event_type(Notice::Out))
+  if (notice.has_event_type(Notice::Outbound))
     event_types |= EPOLLOUT;
   return event_types;
 }
@@ -42,7 +42,7 @@ void Events::clear()
   notices_.clear();
 }
 
-bool Events::add_notice(Notice&& notice)
+bool Events::add_notice_internal(Notice&& notice)
 {
   assert(notice.any_event_type());
   auto res = notices_.insert(std::make_pair(notice.id(), std::move(notice)));
@@ -72,7 +72,7 @@ Notice* Events::find_notice(epoll_event const& ev)
   return notice;
 }
 
-bool Events::remove_notice(Notice const& notice)
+bool Events::remove_notice_internal(Notice const& notice)
 {
   int raw_handle = notice.raw_handle();
   if (notices_.erase(notice.id())) {
@@ -86,7 +86,7 @@ bool Events::remove_notice(Notice const& notice)
   return false;
 }
 
-bool Events::modify_notice(Notice const& notice)
+bool Events::modify_notice_internal(Notice const& notice)
 {
   auto find = notices_.find(notice.id());
   if (notices_.end() != find) {
