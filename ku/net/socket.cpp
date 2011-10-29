@@ -1,3 +1,9 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #include <strings.h>
 #include <sys/epoll.h>
 #include <cerrno>
@@ -17,7 +23,7 @@ namespace ku { namespace net {
 AcceptorSocket::AcceptorSocket(Endpoint const& endpoint)
   : handle_(ops::Socket::create(Resolver(Resolver::Passive)))
 {
-  // TODO maybe let user do this
+  // TODO maybe let user do this ?
   if (handle_)
     if (bind(endpoint))
       listen();

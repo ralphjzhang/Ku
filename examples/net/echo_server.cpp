@@ -16,7 +16,7 @@ public:
     : TCPConnection(std::move(socket), peer_endpoint)
   { }
 
-  bool handle_read()
+  bool handle_inbound()
   {
     char buf[1024];
     ssize_t size = socket().read(buf, sizeof(buf));

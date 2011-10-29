@@ -1,39 +1,34 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <system_error>
 #include <functional>
-#include "call_traits.hpp"
 #include "socket.hpp"
 
 namespace ku { namespace net {
 
 class NoticeBoard;
 
-template <typename Connection, typename Acceptor>
 void dispatch(Notice& notice, NoticeBoard& notice_board)
 {
-  // Accept
-  if (notice.type() == Notice::Acceptor && notice.has_event(Notice::Read))
-      notice.event_handler<Acceptor>().handle_accept(notice_board);
-  dispatch<Connection>(notice, notice_board);
-}
-
-template <typename Connection>
-void dispatch(Notice& notice, NoticeBoard& notice_board)
-{
-  Connection& connection = notice.event_handler<Connection>();
+  auto& event_handler = notice.event_handler();
   // Read
   if (notice.has_event(Notice::Read))
-    util::if_handle_read(connection);
+    event_handler(Notice::Read);
   // Write
   if (notice.has_event(Notice::Write))
-    util::if_handle_write(connection);
+    event_handler(Notice::Write);
   // Error
   if (notice.has_event(Notice::Error))
-    if (!util::if_handle_error(connection))
+    if (!event_handler(Notice::Error))
       notice_board.remove_notice(notice);
   // Close
   if (notice.has_event(Notice::Close)) {
-    util::if_handle_close(connection);
+    event_handler(Notice::Close);
     notice_board.remove_notice(notice);
   }
 }

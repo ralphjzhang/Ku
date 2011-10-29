@@ -1,7 +1,14 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <cassert>
 #include <type_traits>
 #include <system_error>
+#include <functional>
 #include <vector>
 #include <string>
 #include <bitset>
@@ -28,13 +35,13 @@ class Notice : util::noncopyable
   static std::atomic<NoticeId> next_notice_id;
 
 public:
-  enum Type : uint8_t { None, Acceptor, Connection };
   enum EventType : uint8_t { Inbound, Outbound };
   enum Event : uint8_t { Close, Read, Write, Error };
+  typedef std::function<bool(Event)> EventHandler;
 
-  Notice() : event_handler_(nullptr), raw_handle_(0), id_(0), type_(Type::None) { }
-  Notice(int raw_handle, Type type)
-    : event_handler_(nullptr), raw_handle_(raw_handle), id_(++next_notice_id), type_(type) { }
+  Notice() : raw_handle_(0), id_(0) { }
+  Notice(int raw_handle, EventHandler event_handler)
+    : raw_handle_(raw_handle), id_(++next_notice_id), event_handler_(event_handler) { }
 
   Notice& operator = (Notice&& notice);
   Notice(Notice&& notice) { *this = std::move(notice); }
@@ -42,7 +49,6 @@ public:
   NoticeId id() const { return id_; }
   int raw_handle() const { return raw_handle_; }
 
-  Type type() const { return type_; }
   EventTypes const& event_types() const { return event_types_; }
   void set_event_types(EventTypes const& evts) { event_types_ = evts; }
   void set_event_type(EventType et) { event_types_.set(et); }
@@ -54,26 +60,18 @@ public:
   bool has_event(Event ev) const { return events_.test(ev); }
   bool any_event() const { return events_.any(); }
 
-  void set_event_handler(void* event_handler)
+  void set_event_handler(EventHandler const& event_handler)
   { event_handler_ = event_handler; }
-
-  // It's the upper level to manage event_handler's life cycle and use the right type
-  template <typename EventHandler>
-  EventHandler& event_handler()
-  {
-    assert(event_handler_);
-    return *static_cast<EventHandler*>(event_handler_);
-  }
+  EventHandler& event_handler() { return event_handler_; }
 
 private:
   void clear();
 
-  void* event_handler_;
   int raw_handle_;
   NoticeId id_;
-  Type type_;
   EventTypes event_types_;
   Events events_;
+  EventHandler event_handler_;
 };
 
 std::string to_str(Notice::Events evts);

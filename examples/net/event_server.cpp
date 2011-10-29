@@ -10,10 +10,9 @@ using namespace ku::net;
 
 struct UserEventDispatcher
 {
-  UserEventDispatcher() : user_event(42), quit(false), value(0) { }
+  UserEventDispatcher() : user_event(42), value(0) { }
 
   UserEvent user_event;
-  bool quit;
 
   bool initialize(NoticeBoard& notice_board)
   {
@@ -28,17 +27,16 @@ struct UserEventDispatcher
     ku::net::dispatch<UserEventDispatcher, UserEventDispatcher>(notice, notice_board);
   }
 
-  bool get_quit() const { return quit; }
   bool handle_accept(NoticeBoard&) { return true; }
 
-  bool handle_read()
+  bool handle_inbound()
   {
     if (value++ < 10) {
       uint64_t u = 0;
       //::read(user_event.raw_handle(), &u, sizeof(u));
       //::write(user_event.raw_handle(), &value, sizeof(value));
     } else {
-      quit = true;
+      //quit = true;
     }
     return true;
   }

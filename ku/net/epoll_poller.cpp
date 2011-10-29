@@ -1,6 +1,10 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #include <cassert>
-#include <sys/epoll.h>
-#include "notice.hpp"
 #include "epoll_poller.hpp"
 
 namespace ku { namespace net { namespace epoll {

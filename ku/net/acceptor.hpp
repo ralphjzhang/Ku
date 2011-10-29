@@ -1,6 +1,11 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <system_error>
-#include <memory>
 #include <iostream>
 #include "resolver.hpp"
 #include "endpoint.hpp"
@@ -32,9 +37,11 @@ public:
       if (!acceptor_socket_.error()) {
         std::cout << "Connection from: " << to_str(peer_endpoint) << std::endl;
         WeakHandle weak_handle(conn_socket.handle());
+        /*
         notice_board.add_notice(
             weak_handle, new EventHandler(std::move(conn_socket), peer_endpoint),
-            Notice::Connection, Notice::Inbound); // TODO also need outbound
+            Notice::Inbound); // TODO also need outbound
+            */
       } else {
         std::error_code ec = acceptor_socket_.error();
         if (ec == std::errc::operation_would_block ||
@@ -53,7 +60,7 @@ public:
   // Dispatcher requirement
   void dispatch(Notice& notice, NoticeBoard& notice_board)
   {
-    return ku::net::dispatch<EventHandler, Acceptor<EventHandler>>(notice, notice_board);
+    return ku::net::dispatch(notice, notice_board);
   }
 
   bool initialize(NoticeBoard& notice_board)
@@ -62,7 +69,9 @@ public:
       std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
       exit(0);
     }
-    notice_board.add_notice(acceptor_socket_.handle(), this, Notice::Acceptor, Notice::Inbound);
+    using namespace std::placeholders;
+    notice_board.add_notice(acceptor_socket_.handle(),
+        std::bind(&Acceptor<EventHandler>::handle_accept, this, _1), { Notice::Inbound });
     return true;
   }
 

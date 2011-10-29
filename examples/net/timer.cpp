@@ -11,34 +11,42 @@ using namespace ku::net;
 
 struct TimerDispatcher
 {
+  epoll::PollLoop<TimerDispatcher> loop;
   Timer periodic_timer, deadline_timer;
   unsigned count;
 
   bool initialize(NoticeBoard& notice_board)
   {
     count = 0;
+    deadline_timer.set_expires_in(std::chrono::seconds(5));
     periodic_timer.set_interval(std::chrono::seconds(1));
-    notice_board.add_notice(periodic_timer.handle(), this, Notice::Connection, Notice::Inbound);
-    notice_board.add_notice(deadline_timer.handle(), this, Notice::Connection, Notice::Inbound);
+
+    notice_board.add_notice(deadline_timer.handle(),
+        [this](Notice::Event) { return handle_deadline_timer(); }, { Notice::Inbound });
+    notice_board.add_notice(periodic_timer.handle(), 
+        [this](Notice::Event e) { return handle_periodic_timer(e); }, { Notice::Inbound });
     return true;
   }
 
-  bool on_error(std::error_code) { return false; }
-
   void dispatch(Notice& notice, NoticeBoard& notice_board)
   {
-    ku::net::dispatch<TimerDispatcher, TimerDispatcher>(notice, notice_board);
+    ku::net::dispatch(notice, notice_board);
   }
 
-  bool handle_accept(NoticeBoard&) { return true; }
-
-  bool handle_read()
+  bool handle_periodic_timer(Notice::Event)
   {
     uint64_t u;
     periodic_timer.read(u, 0);
-    std::cout << "Timer ticked " << ++count << " times." << std::endl;
-    //if (count == 4)
-    //  quit = true;
+    std::cout << "Periodic timer ticked " << ++count << " times." << std::endl;
+    return true;
+  }
+
+  bool handle_deadline_timer()
+  {
+    uint64_t u;
+    deadline_timer.read(u, 0);
+    std::cout << "Deadline timer ticks, exit." << std::endl;
+    loop.quit();
     return true;
   }
 
@@ -49,9 +57,8 @@ int main()
 {
   std::cout << "Starting event loop." << std::endl;
   TimerDispatcher timer_dispatcher;
-  epoll::PollLoop<TimerDispatcher> loop;
-  if (!loop(timer_dispatcher))
-    std::cout << loop.error().message() << std::endl;
+  if (!timer_dispatcher.loop(timer_dispatcher))
+    std::cout << timer_dispatcher.loop.error().message() << std::endl;
   std::cout << "Event loop exited." << std::endl;
 }
 

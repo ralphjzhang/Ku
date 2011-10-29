@@ -1,4 +1,11 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
+#include <initializer_list>
 #include "notice.hpp"
 
 namespace ku { namespace net {
@@ -7,12 +14,12 @@ class NoticeBoard
 {
 public:
   template <typename Handle>
-  bool add_notice(Handle const& h, void* event_handler, Notice::Type type,
-                  Notice::EventType event_type) // TODO this can be multiple
+  bool add_notice(Handle const& h, Notice::EventHandler const& event_handler,
+      std::initializer_list<Notice::EventType> event_types)
   {
-    Notice notice(h.raw_handle(), type);
-    notice.set_event_type(event_type);
-    notice.set_event_handler(event_handler);
+    Notice notice(h.raw_handle(), event_handler);
+    for (auto event_type : event_types)
+      notice.set_event_type(event_type);
     return add_notice_internal(std::move(notice));
   }
 

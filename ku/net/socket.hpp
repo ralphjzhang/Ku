@@ -1,3 +1,9 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <system_error>
 #include "resolver.hpp"
@@ -17,7 +23,6 @@ class StreamSocket
   typedef Handle<ops::Socket> HandleType;
 
 public:
-  //explicit StreamSocket(HandleType const& handle) : handle_(handle.raw_handle(), false) { }
   explicit StreamSocket(HandleType&& handle) : handle_(std::move(handle)) { }
   StreamSocket(StreamSocket&&) = default;
   ~StreamSocket() = default;
@@ -44,7 +49,6 @@ class AcceptorSocket
 
 public:
   explicit AcceptorSocket(Endpoint const& endpoint);
-  //explicit AcceptorSocket(HandleType const& handle) : handle_(handle.raw_handle(), false) { }
   explicit AcceptorSocket(HandleType&& handle) : handle_(std::move(handle)) { }
   AcceptorSocket(AcceptorSocket&&) = default;
   ~AcceptorSocket() = default;
@@ -67,7 +71,6 @@ class ConnectorSocket : public StreamSocket
 
 public:
   ConnectorSocket(bool non_block = true);
-  //explicit ConnectorSocket(HandleType const& handle) : StreamSocket(handle) { }
   explicit ConnectorSocket(HandleType&& handle) : StreamSocket(std::move(handle)) { }
   ConnectorSocket(ConnectorSocket&&) = default;
   ~ConnectorSocket() = default;

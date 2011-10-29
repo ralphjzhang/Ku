@@ -1,3 +1,9 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #include "endpoint.hpp"
 #include "notice.hpp"
 
@@ -12,7 +18,6 @@ Notice& Notice::operator = (Notice&& notice)
     event_handler_ = notice.event_handler_;
     raw_handle_ = notice.raw_handle_;
     id_ = notice.id_;
-    type_ = notice.type_;
     event_types_ = notice.event_types_;
     events_ = notice.events_;
     notice.clear();
@@ -25,7 +30,6 @@ void Notice::clear()
   event_handler_ = nullptr;
   raw_handle_ = 0;
   id_ = 0;
-  type_ = Type::None;
   events_.reset();
   event_types_.reset();
 }

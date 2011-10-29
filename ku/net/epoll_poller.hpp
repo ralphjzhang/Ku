@@ -1,3 +1,9 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <sys/epoll.h>
 #include <system_error>
@@ -165,16 +171,6 @@ std::error_code poll_loop(Dispatcher& dispatcher,
   return std::error_code();
 }
 
-} // namespace ku::net::epoll
-
-struct EpollLoop
-{
-  template <typename Dispatcher>
-  std::error_code operator () (Dispatcher& dispatcher,
-      std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
-  { return epoll::poll_loop<Dispatcher>(dispatcher, timeout); }
-};
-
-} } // namespace ku::net
+} } } // namespace ku::net::epoll
 
 
