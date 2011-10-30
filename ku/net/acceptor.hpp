@@ -19,8 +19,8 @@ template <typename EventHandler>
 class Acceptor
 {
 public:
-  Acceptor(Endpoint const& endpoint)
-    : endpoint_(endpoint), acceptor_socket_(endpoint)
+  Acceptor(Endpoint const& endpoint, NoticeBoard& notices)
+    : endpoint_(endpoint), acceptor_socket_(endpoint), notices_(notices)
   {
   }
 
@@ -31,7 +31,7 @@ public:
       return false;
     }
     using namespace std::placeholders;
-    notice_board.add_notice(acceptor_socket_.handle(),
+    notices_.add_notice(acceptor_socket_.handle(),
         std::bind(std::ref(*this), _1, _2), { Notice::Inbound });
     return true;
   }
@@ -51,11 +51,9 @@ public:
       if (!acceptor_socket_.error()) {
         std::cout << "Connection from: " << to_str(peer_endpoint) << std::endl;
         WeakHandle weak_handle(conn_socket.handle());
-        /*
-        notice_board.add_notice(
+        notices_.add_notice(
             weak_handle, new EventHandler(std::move(conn_socket), peer_endpoint),
-            Notice::Inbound); // TODO also need outbound
-            */
+            { Notice::Inbound, Notice::Outbound });
       } else {
         std::error_code ec = acceptor_socket_.error();
         if (ec == std::errc::operation_would_block ||
@@ -71,15 +69,10 @@ public:
     }
   }
 
-  bool on_error(std::error_code ec)
-  {
-    std::cout << "Poller error: " << ec.message() << std::endl;
-    return false;
-  }
-
 private:
   Endpoint endpoint_;
   AcceptorSocket acceptor_socket_;
+  NoticeBoard& notices_;
 };
 
 } } // namespace ku::net

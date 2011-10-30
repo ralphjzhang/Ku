@@ -55,6 +55,8 @@ std::string to_str(Notice::EventTypes et)
     s.append("Inbound");
   if (et.test(Notice::Outbound))
     s.empty() ? s.append("Outbound") : s.append("|Outbound");
+  if (et.test(Notice::Edge))
+    s.empty() ? s.append("Edge") : s.append("|Edge");
   return s;
 }
 

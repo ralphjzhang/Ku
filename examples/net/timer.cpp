@@ -21,13 +21,12 @@ struct TimerHandler
     deadline_timer.set_expires_in(std::chrono::seconds(5));
     periodic_timer.set_interval(std::chrono::seconds(1));
 
-    loop.set_on_initialize([this](NoticeBoard& notice_board) {
-        notice_board.add_notice(deadline_timer.handle(),
-            [this](Notice::Event, NoticeId) { return handle_deadline_timer(); }, { Notice::Inbound });
-        notice_board.add_notice(periodic_timer.handle(), 
-            [this](Notice::Event, NoticeId id) { return handle_periodic_timer(id); }, { Notice::Inbound });
-        return true;
-        });
+    loop.notices().add_notice(deadline_timer.handle(),
+        [this](Notice::Event, NoticeId) { return handle_deadline_timer(); },
+        { Notice::Inbound });
+    loop.notices().add_notice(periodic_timer.handle(), 
+        [this](Notice::Event, NoticeId id) { return handle_periodic_timer(id); },
+        { Notice::Inbound });
 
     // This is optional
     loop.set_on_error([](std::error_code ec) {

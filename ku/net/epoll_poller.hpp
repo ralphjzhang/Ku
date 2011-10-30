@@ -25,19 +25,24 @@ class Events : public NoticeBoard
   typedef std::map<NoticeId, Notice> NoticeMap;
 
 public:
-  Events(Poller& poller, size_t capacity = 16);
+  Events(size_t capacity = 16);
   virtual ~Events() { }
 
+  void set_poller(Poller* poller) { poller_ = poller; }
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
   Notice* find_notice(NoticeId id);
   Notice* find_notice(epoll_event const& ev);
 
+  using NoticeBoard::apply_updates;
+
 private:
-  virtual bool add_notice_internal(Notice&& notice);
-  virtual bool remove_notice_internal(Notice const& notice);
-  virtual bool modify_notice_internal(Notice const& notice);
+  Poller& poller() { return *poller_; }
+
+  virtual bool add_notice(Notice&& notice);
+  virtual bool remove_notice(Notice const& notice);
+  virtual bool modify_notice(Notice const& notice);
 
   epoll_event* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
@@ -45,7 +50,7 @@ private:
   void clear();
   void resize(size_t size) { events_.resize(size); }
 
-  Poller& poller_;
+  Poller* poller_;
   std::vector<epoll_event> events_;
   unsigned active_count_;
   NoticeMap notices_;
@@ -98,7 +103,6 @@ public:
   void quit() { quit_ = true; }
   std::error_code const& error() const { return error_; }
 
-  void set_on_initialize(OnInitialize const& on_initialize) { on_initialize_ = on_initialize; }
   void set_on_error(OnError const& on_error) { on_error_ = on_error; }
 
   void dispatch(Notice& notice, NoticeBoard& notice_board);
@@ -106,9 +110,12 @@ public:
   bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
   { return loop(timeout); }
 
+  NoticeBoard& notices() { return events_; }
+
 private:
   bool quit_;
   std::error_code error_;
+  Events events_;
   OnInitialize on_initialize_;
   OnError on_error_;
 };

@@ -14,9 +14,11 @@ int translate_event_types(Notice const& notice)
 {
   int event_types = 0;
   if (notice.has_event_type(Notice::Inbound))
-    event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP | EPOLLET);
+    event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP);
   if (notice.has_event_type(Notice::Outbound))
-    event_types |= (EPOLLOUT | EPOLLET);
+    event_types |= EPOLLOUT;
+  if (notice.has_event_type(Notice::Edge))
+    event_types |= EPOLLET;
   return event_types;
 }
 
@@ -34,8 +36,8 @@ void translate_events(epoll_event const& ev, Notice& notice)
 
 /// Events ///
 
-Events::Events(Poller& poller, size_t capacity)
-  : poller_(poller), events_(capacity), active_count_(0)
+Events::Events(size_t capacity)
+  : poller_(nullptr), events_(capacity), active_count_(0)
 {
 }
 
@@ -46,7 +48,7 @@ void Events::clear()
   notices_.clear();
 }
 
-bool Events::add_notice_internal(Notice&& notice)
+bool Events::add_notice(Notice&& notice)
 {
   assert(notice.any_event_type());
   auto res = notices_.insert(std::make_pair(notice.id(), std::move(notice)));
@@ -55,9 +57,9 @@ bool Events::add_notice_internal(Notice&& notice)
     epoll_event ev;
     ev.data.ptr = notice_ptr;
     ev.events = translate_event_types(*notice_ptr);
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_ADD, notice_ptr->raw_handle(), &ev) == 0)
+    if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_ADD, notice_ptr->raw_handle(), &ev) == 0)
       return true;
-    poller_.set_error(errno);
+    poller().set_error(errno);
     notices_.erase(res.first);
   }
   return false;
@@ -76,21 +78,21 @@ Notice* Events::find_notice(epoll_event const& ev)
   return notice;
 }
 
-bool Events::remove_notice_internal(Notice const& notice)
+bool Events::remove_notice(Notice const& notice)
 {
   int raw_handle = notice.raw_handle();
   if (notices_.erase(notice.id())) {
-    int ret = ::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr);
+    int ret = ::epoll_ctl(poller().raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr);
     // If owner closes the file descriptor, epoll_ctl returns EBADF, which can be ignored
     // If EBADF is because of poller not valid, we will see the error next round anyway
     if (ret == 0 || errno == EBADF)
       return true;
-    poller_.set_error(errno);
+    poller().set_error(errno);
   }
   return false;
 }
 
-bool Events::modify_notice_internal(Notice const& notice)
+bool Events::modify_notice(Notice const& notice)
 {
   auto find = notices_.find(notice.id());
   if (notices_.end() != find) {
@@ -98,11 +100,11 @@ bool Events::modify_notice_internal(Notice const& notice)
     assert(notice_find.raw_handle() == notice.raw_handle());
     epoll_event ev;
     ev.events = translate_event_types(notice);
-    if (::epoll_ctl(poller_.raw_handle(), EPOLL_CTL_MOD, notice.raw_handle(), &ev) == 0) {
+    if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_MOD, notice.raw_handle(), &ev) == 0) {
       notice_find.set_event_types(notice.event_types());
       return true;
     }
-    poller_.set_error(errno);
+    poller().set_error(errno);
   }
   return false;
 }
@@ -161,11 +163,11 @@ void PollLoop::dispatch(Notice& notice, NoticeBoard& notice_board)
   // Error
   if (notice.has_event(Notice::Error))
     if (!event_handler(Notice::Error, notice.id()))
-      notice_board.remove_notice(notice);
+      notice_board.remove_notice(notice.id());
   // Close
   if (notice.has_event(Notice::Close)) {
     event_handler(Notice::Close, notice.id());
-    notice_board.remove_notice(notice);
+    notice_board.remove_notice(notice.id());
   }
 }
 
@@ -174,21 +176,19 @@ bool PollLoop::loop(std::chrono::milliseconds timeout)
   Poller poller(EPOLL_CLOEXEC);
   if (poller.error())
     return on_error_ && on_error_(poller.error());
-
-  Events events(poller);
-  if (on_initialize_ && !on_initialize_(events))
-    return false;
+  events_.set_poller(&poller);
 
   while (!quit_) {
-    poller.poll(events, timeout);
+    events_.apply_updates();
+    poller.poll(events_, timeout);
     if (poller.error())
       return on_error_ && on_error_(poller.error());
 
-    for (unsigned i = 0; i < events.active_count(); ++i) {
-      epoll_event const& ev = events.raw_event(i);
-      Notice* notice = events.find_notice(ev);
+    for (unsigned i = 0; i < events_.active_count(); ++i) {
+      epoll_event const& ev = events_.raw_event(i);
+      Notice* notice = events_.find_notice(ev);
       translate_events(ev, *notice);
-      dispatch(*notice, events);
+      dispatch(*notice, events_);
       // These errors are from add/remove/modify events, can be ignored
       // So unlike polling error, if user doesn't register error handler, these are ignored
       if (poller.error()) {

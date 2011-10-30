@@ -16,6 +16,19 @@ bool print_error(std::error_code ec)
   return false;
 }
 
+void print_timing(bool reader)
+{
+  using namespace std::chrono;
+  static time_point<system_clock> write, read;
+  if (reader) {
+    read = system_clock::now();
+    std::cout << "Write/Read pair takes: " << duration_cast<microseconds>(read - write).count()
+      << " microseconds." << std::endl;
+  } else {
+    write = system_clock::now();
+  }
+}
+
 struct Reader
 {
   UserEvent& event;
@@ -23,19 +36,17 @@ struct Reader
 
   Reader(UserEvent& event) : event(event)
   {
-    loop.set_on_initialize([this](NoticeBoard& notice_board) {
-        using namespace std::placeholders;
-        notice_board.add_notice(this->event.handle(),
-          std::bind(std::ref(*this), _1, _2), { Notice::Inbound });
-        return true;
-        });
+    using namespace std::placeholders;
+    loop.notices().add_notice(event.handle(), std::bind(std::ref(*this), _1, _2),
+        { Notice::Inbound, Notice::Edge });
     loop.set_on_error(&print_error);
   }
 
   bool operator()(Notice::Event e, NoticeId id)
   {
     uint64_t value;
-    event.read(value, sizeof(value));
+    event.read(value);
+    print_timing(true);
     if (value == 42) {
       std::cout << "Writer quits, exiting reader." << std::endl;
       loop.quit();
@@ -54,12 +65,9 @@ struct Writer
 
   Writer(UserEvent& event, uint64_t value) : event(event), value(value)
   {
-    loop.set_on_initialize([this](NoticeBoard& notice_board) {
-        using namespace std::placeholders;
-        notice_board.add_notice(this->event.handle(),
-          std::bind(std::ref(*this), _1, _2), { Notice::Outbound });
-        return true;
-        });
+    using namespace std::placeholders;
+    loop.notices().add_notice(event.handle(), std::bind(std::ref(*this), _1, _2),
+        { Notice::Outbound, Notice::Edge });
     loop.set_on_error(&print_error);
   }
 
@@ -67,7 +75,8 @@ struct Writer
   {
     if (value < 10) {
       std::cout << "Writing user event : " << value << std::endl;
-      event.write(value++, sizeof(value));
+      print_timing(false);
+      event.write(value++);
     } else {
       event.write(42, sizeof(value));
       loop.quit();

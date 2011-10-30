@@ -24,10 +24,10 @@ public:
 
   HandleType const& handle() const { return handle_; }
 
-  ssize_t read(uint64_t& val, size_t)
+  ssize_t read(uint64_t& val, size_t = 0)
   { return ops::Common::read(handle_, &val, sizeof(val)); }
 
-  ssize_t write(uint64_t val, size_t)
+  ssize_t write(uint64_t val, size_t = 0)
   { return ops::Common::write(handle_, &val, sizeof(val)); }
 
   bool close() { return handle_.close(); }
