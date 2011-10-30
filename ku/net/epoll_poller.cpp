@@ -14,9 +14,9 @@ int translate_event_types(Notice const& notice)
 {
   int event_types = 0;
   if (notice.has_event_type(Notice::Inbound))
-    event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP);
+    event_types |= (EPOLLIN | EPOLLPRI | EPOLLRDHUP | EPOLLET);
   if (notice.has_event_type(Notice::Outbound))
-    event_types |= EPOLLOUT;
+    event_types |= (EPOLLOUT | EPOLLET);
   return event_types;
 }
 
@@ -147,6 +147,60 @@ void Poller::close()
   }
 }
 
+/// PollLoop ///
+
+void PollLoop::dispatch(Notice& notice, NoticeBoard& notice_board)
+{
+  Notice::EventHandler& event_handler = notice.event_handler();
+  // Read
+  if (notice.has_event(Notice::Read))
+    event_handler(Notice::Read, notice.id());
+  // Write
+  if (notice.has_event(Notice::Write))
+    event_handler(Notice::Write, notice.id());
+  // Error
+  if (notice.has_event(Notice::Error))
+    if (!event_handler(Notice::Error, notice.id()))
+      notice_board.remove_notice(notice);
+  // Close
+  if (notice.has_event(Notice::Close)) {
+    event_handler(Notice::Close, notice.id());
+    notice_board.remove_notice(notice);
+  }
+}
+
+bool PollLoop::loop(std::chrono::milliseconds timeout)
+{
+  Poller poller(EPOLL_CLOEXEC);
+  if (poller.error())
+    return on_error_ && on_error_(poller.error());
+
+  Events events(poller);
+  if (on_initialize_ && !on_initialize_(events))
+    return false;
+
+  while (!quit_) {
+    poller.poll(events, timeout);
+    if (poller.error())
+      return on_error_ && on_error_(poller.error());
+
+    for (unsigned i = 0; i < events.active_count(); ++i) {
+      epoll_event const& ev = events.raw_event(i);
+      Notice* notice = events.find_notice(ev);
+      translate_events(ev, *notice);
+      dispatch(*notice, events);
+      // These errors are from add/remove/modify events, can be ignored
+      // So unlike polling error, if user doesn't register error handler, these are ignored
+      if (poller.error()) {
+        if (on_error_ && !on_error_(poller.error())) 
+          return false;
+        else
+          poller.clear_error();
+      }
+    }
+  }
+  return true;
+}
 
 } } } // namespace ku::net::poller
 

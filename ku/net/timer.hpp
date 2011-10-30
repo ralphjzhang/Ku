@@ -40,7 +40,7 @@ public:
   { return ops::Common::write(handle_, &val, sizeof(val)); }
 
   bool set_interval(std::chrono::nanoseconds interval) { return set_timespec(Periodic, interval); }
-  bool clear_interval() { return set_interval(std::chrono::nanoseconds(0)); }
+  bool clear();
 
   template <typename Duration = std::chrono::nanoseconds>
   Duration interval() { return std::chrono::duration_cast<Duration>(get_interval_internal()); }

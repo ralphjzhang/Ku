@@ -4,40 +4,43 @@
 #include <ku/net/notice.hpp>
 #include <ku/net/notice_board.hpp>
 #include <ku/net/timer.hpp>
-#include <ku/net/dispatcher.hpp>
 #include <ku/net/epoll_poller.hpp>
 
 using namespace ku::net;
 
-struct TimerDispatcher
+struct TimerHandler
 {
-  epoll::PollLoop<TimerDispatcher> loop;
+  epoll::PollLoop& loop;
   Timer periodic_timer, deadline_timer;
   unsigned count;
 
-  bool initialize(NoticeBoard& notice_board)
+  TimerHandler(epoll::PollLoop& loop)
+    : loop(loop)
   {
     count = 0;
     deadline_timer.set_expires_in(std::chrono::seconds(5));
     periodic_timer.set_interval(std::chrono::seconds(1));
 
-    notice_board.add_notice(deadline_timer.handle(),
-        [this](Notice::Event) { return handle_deadline_timer(); }, { Notice::Inbound });
-    notice_board.add_notice(periodic_timer.handle(), 
-        [this](Notice::Event e) { return handle_periodic_timer(e); }, { Notice::Inbound });
-    return true;
+    loop.set_on_initialize([this](NoticeBoard& notice_board) {
+        notice_board.add_notice(deadline_timer.handle(),
+            [this](Notice::Event, NoticeId) { return handle_deadline_timer(); }, { Notice::Inbound });
+        notice_board.add_notice(periodic_timer.handle(), 
+            [this](Notice::Event, NoticeId id) { return handle_periodic_timer(id); }, { Notice::Inbound });
+        return true;
+        });
+
+    // This is optional
+    loop.set_on_error([](std::error_code ec) {
+        std::cout << "Poller error: " << ec.message() << std::endl;
+        return false;
+        });
   }
 
-  void dispatch(Notice& notice, NoticeBoard& notice_board)
-  {
-    ku::net::dispatch(notice, notice_board);
-  }
-
-  bool handle_periodic_timer(Notice::Event)
+  bool handle_periodic_timer(NoticeId id)
   {
     uint64_t u;
     periodic_timer.read(u, 0);
-    std::cout << "Periodic timer ticked " << ++count << " times." << std::endl;
+    std::cout << "Notice " << id << ": Periodic timer ticked " << ++count << " times." << std::endl;
     return true;
   }
 
@@ -50,15 +53,15 @@ struct TimerDispatcher
     return true;
   }
 
-  ~TimerDispatcher() { std::cout << "TimerDispatcher destroyed." << std::endl; }
+  ~TimerHandler() { std::cout << "TimerHandler destroyed." << std::endl; }
 };
 
 int main()
 {
   std::cout << "Starting event loop." << std::endl;
-  TimerDispatcher timer_dispatcher;
-  if (!timer_dispatcher.loop(timer_dispatcher))
-    std::cout << timer_dispatcher.loop.error().message() << std::endl;
+  epoll::PollLoop loop;
+  TimerHandler timer_handler(loop);
+  loop();
   std::cout << "Event loop exited." << std::endl;
 }
 

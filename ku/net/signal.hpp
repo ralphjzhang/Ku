@@ -6,31 +6,30 @@
  ***************************************************************/ 
 #pragma once
 #include "handle.hpp"
-#include "common_ops.hpp"
 
 namespace ku { namespace net {
 
 namespace ops {
-struct UserEvent;
+struct Signal;
 } // namespace ku::net::ops
 
-// Wrapper for eventfd
-class UserEvent
+// Wrapper for signalfd
+class Signal
 {
-  typedef Handle<ops::UserEvent> HandleType;
+  typedef Handle<ops::Signal> HandleType;
 
 public:
-  UserEvent(unsigned init_value, bool non_block = true);
+  Signal(); // TODO parameters
 
   HandleType const& handle() const { return handle_; }
 
+  /*
   ssize_t read(uint64_t& val, size_t)
   { return ops::Common::read(handle_, &val, sizeof(val)); }
 
   ssize_t write(uint64_t val, size_t)
   { return ops::Common::write(handle_, &val, sizeof(val)); }
-
-  bool close() { return handle_.close(); }
+  */
 
 private:
   HandleType handle_;

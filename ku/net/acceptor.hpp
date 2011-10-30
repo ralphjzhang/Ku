@@ -12,7 +12,6 @@
 #include "socket.hpp"
 #include "notice.hpp"
 #include "notice_board.hpp"
-#include "dispatcher.hpp"
 
 namespace ku { namespace net {
 
@@ -21,7 +20,22 @@ class Acceptor
 {
 public:
   Acceptor(Endpoint const& endpoint)
-    : endpoint_(endpoint), acceptor_socket_(endpoint) { }
+    : endpoint_(endpoint), acceptor_socket_(endpoint)
+  {
+  }
+
+  bool initialize(NoticeBoard& notice_board)
+  {
+    if (acceptor_socket_.error()) {
+      std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
+      return false;
+    }
+    using namespace std::placeholders;
+    notice_board.add_notice(acceptor_socket_.handle(),
+        std::bind(std::ref(*this), _1, _2), { Notice::Inbound });
+    return true;
+  }
+
 
   bool handle_accept_error(AcceptorSocket const& sock)
   {
@@ -29,7 +43,7 @@ public:
   }
 
   // Acceptor requirement
-  void handle_accept(NoticeBoard& notice_board)
+  bool operator () (Notice::Event, NoticeId id)
   {
     while (true) {
       Endpoint peer_endpoint;
@@ -55,24 +69,6 @@ public:
         }
       }
     }
-  }
-
-  // Dispatcher requirement
-  void dispatch(Notice& notice, NoticeBoard& notice_board)
-  {
-    return ku::net::dispatch(notice, notice_board);
-  }
-
-  bool initialize(NoticeBoard& notice_board)
-  {
-    if (acceptor_socket_.error()) {
-      std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
-      exit(0);
-    }
-    using namespace std::placeholders;
-    notice_board.add_notice(acceptor_socket_.handle(),
-        std::bind(&Acceptor<EventHandler>::handle_accept, this, _1), { Notice::Inbound });
-    return true;
   }
 
   bool on_error(std::error_code ec)

@@ -10,6 +10,7 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include <functional>
 #include "notice.hpp"
 #include "notice_board.hpp"
 
@@ -85,91 +86,32 @@ private:
 
 void translate_events(epoll_event const& ev, Notice& notice);
 
-template <typename Dispatcher>
 class PollLoop
 {
 public:
+  typedef std::function<bool(NoticeBoard&)> OnInitialize;
+  typedef std::function<bool(std::error_code)> OnError;
+
   PollLoop() : quit_(false) { }
   PollLoop(PollLoop const&) = default;
 
   void quit() { quit_ = true; }
-  std::error_code error() const { return error_; }
+  std::error_code const& error() const { return error_; }
 
-  bool operator () (Dispatcher& dispatcher,
-      std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
-  {
-    Poller poller(EPOLL_CLOEXEC);
-    if (poller.error()) {
-      error_ = poller.error();
-      return false;
-    }
+  void set_on_initialize(OnInitialize const& on_initialize) { on_initialize_ = on_initialize; }
+  void set_on_error(OnError const& on_error) { on_error_ = on_error; }
 
-    Events events(poller);
-    if (!dispatcher.initialize(events))
-      return false;
-
-    while (!quit_) {
-      poller.poll(events, timeout);
-      if (poller.error()) {
-        error_ = poller.error();
-        return false;
-      }
-
-      for (unsigned i = 0; i < events.active_count(); ++i) {
-        epoll_event const& ev = events.raw_event(i);
-        Notice* notice = events.find_notice(ev);
-        translate_events(ev, *notice);
-        dispatcher.dispatch(*notice, events);
-        if (poller.error()) {
-          error_ = poller.error(); // TODO this error might be ignorable, like remove_notice..
-          return false;
-        }
-      }
-    }
-    return true;
-  }
+  void dispatch(Notice& notice, NoticeBoard& notice_board);
+  bool loop(std::chrono::milliseconds timeout);
+  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
+  { return loop(timeout); }
 
 private:
   bool quit_;
   std::error_code error_;
+  OnInitialize on_initialize_;
+  OnError on_error_;
 };
-
-template <typename Dispatcher>
-std::error_code poll_loop(Dispatcher& dispatcher,
-    std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
-{
-  Poller poller(EPOLL_CLOEXEC);
-  if (poller.error())
-    return poller.error();
-
-  Events events(poller);
-  if (!dispatcher.initialize(events))
-    return std::error_code(); //TODO how to populate this error?
-
-  while (!dispatcher.get_quit()) {
-    poller.poll(events, timeout);
-    if (poller.error()) {
-      if (dispatcher.on_error(poller.error()))
-        poller.clear_error();
-      else
-        return poller.error();
-    }
-
-    for (unsigned i = 0; i < events.active_count(); ++i) {
-      epoll_event const& ev = events.raw_event(i);
-      Notice* notice = events.find_notice(ev);
-      translate_events(ev, *notice);
-      dispatcher.dispatch(*notice, events);
-      if (poller.error()) {
-        if (dispatcher.on_error(poller.error())) // notice operation may have error
-          poller.clear_error();
-        else
-          return poller.error();
-      }
-    }
-  }
-  return std::error_code();
-}
 
 } } } // namespace ku::net::epoll
 

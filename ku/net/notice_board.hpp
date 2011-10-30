@@ -14,13 +14,14 @@ class NoticeBoard
 {
 public:
   template <typename Handle>
-  bool add_notice(Handle const& h, Notice::EventHandler const& event_handler,
+  NoticeId add_notice(Handle const& h, Notice::EventHandler const& event_handler,
       std::initializer_list<Notice::EventType> event_types)
   {
     Notice notice(h.raw_handle(), event_handler);
     for (auto event_type : event_types)
       notice.set_event_type(event_type);
-    return add_notice_internal(std::move(notice));
+    NoticeId notice_id = notice.id();
+    return add_notice_internal(std::move(notice)) ? notice_id : 0;
   }
 
   bool remove_notice(Notice const& notice) { return remove_notice_internal(notice); }

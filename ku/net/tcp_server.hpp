@@ -6,19 +6,19 @@
  ***************************************************************/ 
 #pragma once
 #include <thread>
+#include <utility>
 #include "epoll_poller.hpp" 
 
 namespace ku { namespace net {
 
-template <typename Dispatcher>
 class TCPServer
 {
 public:
-  TCPServer(Dispatcher& dispatcher) : dispatcher_(dispatcher) { }
+  TCPServer() { }
 
   void start()
   {
-    std::thread([this]() { loop_(dispatcher_); }).swap(thread_);
+    std::thread(std::ref(loop_)).swap(thread_);
   }
 
   void stop()
@@ -28,8 +28,7 @@ public:
   }
 
 private:
-  epoll::PollLoop<Dispatcher> loop_;
-  Dispatcher& dispatcher_;
+  epoll::PollLoop loop_;
   std::thread thread_;
 };
 

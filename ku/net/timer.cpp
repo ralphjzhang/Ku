@@ -42,5 +42,13 @@ bool Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
   return !handle_.error();
 }
 
+bool Timer::clear()
+{
+  if (mode() == Timer::None)
+    return false;
+  else
+    return set_timespec(mode(), std::chrono::nanoseconds(0));
+}
+
 } } // namespace ku::net
 

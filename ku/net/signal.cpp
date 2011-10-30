@@ -4,15 +4,16 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#include "user_event.hpp"
-#include "user_event_ops.hpp"
+#include "signal.hpp"
+#include "signal_ops.hpp"
 
 namespace ku { namespace net {
 
-UserEvent::UserEvent(unsigned init_value, bool non_block)
-  : handle_(ops::UserEvent::create(init_value, non_block))
+Signal::Signal()
+  : handle_(ops::Signal::create({ SIGINT })) //TODO parameterize signal set
 {
 }
+
 
 } } // namespace ku::net
 

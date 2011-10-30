@@ -37,7 +37,7 @@ class Notice : util::noncopyable
 public:
   enum EventType : uint8_t { Inbound, Outbound };
   enum Event : uint8_t { Close, Read, Write, Error };
-  typedef std::function<bool(Event)> EventHandler;
+  typedef std::function<bool(Event, NoticeId)> EventHandler;
 
   Notice() : raw_handle_(0), id_(0) { }
   Notice(int raw_handle, EventHandler event_handler)

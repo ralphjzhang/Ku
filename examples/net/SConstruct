@@ -12,7 +12,7 @@ env = Environment(
     )
 
 env.Program('timer', 'timer.cpp')
-#env.Program('echo_server', ['echo_server.cpp'] + Glob(KUDIR + 'ku/net/*.cpp'))
-#env.Program('echo_client', 'echo_client.cpp')
-#env.Program('event_server', 'event_server.cpp')
+env.Program('echo_server', ['echo_server.cpp'] + Glob(KUDIR + 'ku/net/*.cpp'))
+env.Program('echo_client', 'echo_client.cpp')
+env.Program('event_server', 'event_server.cpp')
 

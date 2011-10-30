@@ -1,53 +1,89 @@
 #include <iostream>
 #include <chrono>
+#include <functional>
+#include <thread>
+#include <limits>
 #include <ku/net/notice.hpp>
 #include <ku/net/notice_board.hpp>
 #include <ku/net/user_event.hpp>
-#include <ku/net/dispatcher.hpp>
 #include <ku/net/epoll_poller.hpp>
 
 using namespace ku::net;
 
-struct UserEventDispatcher
+bool print_error(std::error_code ec)
 {
-  UserEventDispatcher() : user_event(42), value(0) { }
+  std::cout << "Poller error: " << ec.message() << std::endl;
+  return false;
+}
 
-  UserEvent user_event;
+struct Reader
+{
+  UserEvent& event;
+  epoll::PollLoop loop;
 
-  bool initialize(NoticeBoard& notice_board)
+  Reader(UserEvent& event) : event(event)
   {
-    notice_board.add_notice(user_event.handle(), this, Notice::Connection, Notice::Inbound);
+    loop.set_on_initialize([this](NoticeBoard& notice_board) {
+        using namespace std::placeholders;
+        notice_board.add_notice(this->event.handle(),
+          std::bind(std::ref(*this), _1, _2), { Notice::Inbound });
+        return true;
+        });
+    loop.set_on_error(&print_error);
+  }
+
+  bool operator()(Notice::Event e, NoticeId id)
+  {
+    uint64_t value;
+    event.read(value, sizeof(value));
+    if (value == 42) {
+      std::cout << "Writer quits, exiting reader." << std::endl;
+      loop.quit();
+      return true;
+    }
+    std::cout << "User event read: " << value << std::endl;
     return true;
   }
+};
 
-  bool on_error(std::error_code) { return false; }
+struct Writer
+{
+  UserEvent& event;
+  uint64_t value;
+  epoll::PollLoop loop;
 
-  void dispatch(Notice& notice, NoticeBoard& notice_board)
+  Writer(UserEvent& event, uint64_t value) : event(event), value(value)
   {
-    ku::net::dispatch<UserEventDispatcher, UserEventDispatcher>(notice, notice_board);
+    loop.set_on_initialize([this](NoticeBoard& notice_board) {
+        using namespace std::placeholders;
+        notice_board.add_notice(this->event.handle(),
+          std::bind(std::ref(*this), _1, _2), { Notice::Outbound });
+        return true;
+        });
+    loop.set_on_error(&print_error);
   }
 
-  bool handle_accept(NoticeBoard&) { return true; }
-
-  bool handle_inbound()
+  bool operator()(Notice::Event e, NoticeId id)
   {
-    if (value++ < 10) {
-      uint64_t u = 0;
-      //::read(user_event.raw_handle(), &u, sizeof(u));
-      //::write(user_event.raw_handle(), &value, sizeof(value));
+    if (value < 10) {
+      std::cout << "Writing user event : " << value << std::endl;
+      event.write(value++, sizeof(value));
     } else {
-      //quit = true;
+      event.write(42, sizeof(value));
+      loop.quit();
     }
     return true;
   }
-  uint64_t value;
 };
 
 int main()
 {
-  UserEventDispatcher dispatcher;
-  if (std::error_code ec = epoll::poll_loop(dispatcher))
-    std::cout << ec.message() << std::endl;
+  UserEvent event(0);
+  Reader reader(event);
+  Writer writer(event, 1);
+  std::thread t1(std::ref(reader.loop)), t2(std::ref(writer.loop));
+  t1.join();
+  t2.join();
   std::cout << "Event loop exited." << std::endl;
 }
 

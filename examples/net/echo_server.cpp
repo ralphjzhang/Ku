@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
   Endpoint endpoint("127.0.0.1", 8888);
   Acceptor<EchoHandler> acceptor(endpoint);
-  TCPServer<decltype(acceptor)> server(acceptor);
+  TCPServer server;
   server.start();
   std::cout << "Server running, press enter to exit." << std::endl;
   std::getchar();
