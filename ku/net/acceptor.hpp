@@ -15,63 +15,48 @@
 
 namespace ku { namespace net {
 
-template <typename EventHandler>
+// =======================================================================================
+// Free function accept_connections captures the common procedure of accepting incoming
+// connections.
+// The 3rd argument, handler_creator, is supposed to be a function returning function, its
+// return value will be the event handler of the accepted connection.
+// =======================================================================================
+size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
+    std::function<Notice::EventHandler(StreamSocket&&, Endpoint const&)> handler_creator);
+
+
+template <typename Connection>
 class Acceptor
 {
 public:
   Acceptor(Endpoint const& endpoint, NoticeBoard& notices)
-    : endpoint_(endpoint), acceptor_socket_(endpoint), notices_(notices)
+    : endpoint_(endpoint), socket_(endpoint), notices_(notices)
   {
-  }
-
-  bool initialize(NoticeBoard& notice_board)
-  {
-    if (acceptor_socket_.error()) {
-      std::cout << "Listener error: " << acceptor_socket_.error().message() << std::endl;
-      return false;
-    }
-    using namespace std::placeholders;
-    notices_.add_notice(acceptor_socket_.handle(),
-        std::bind(std::ref(*this), _1, _2), { Notice::Inbound });
-    return true;
-  }
-
-
-  bool handle_accept_error(AcceptorSocket const& sock)
-  {
-    return true;
-  }
-
-  // Acceptor requirement
-  bool operator () (Notice::Event, NoticeId id)
-  {
-    while (true) {
-      Endpoint peer_endpoint;
-      StreamSocket conn_socket = acceptor_socket_.accept(peer_endpoint);
-      if (!acceptor_socket_.error()) {
-        std::cout << "Connection from: " << to_str(peer_endpoint) << std::endl;
-        WeakHandle weak_handle(conn_socket.handle());
-        notices_.add_notice(
-            weak_handle, new EventHandler(std::move(conn_socket), peer_endpoint),
-            { Notice::Inbound, Notice::Outbound });
-      } else {
-        std::error_code ec = acceptor_socket_.error();
-        if (ec == std::errc::operation_would_block ||
-            ec == std::errc::resource_unavailable_try_again) {
-          // All incoming connections handled
-          break;
-        } else {
-          // Acceptor error
-          handle_accept_error(acceptor_socket_);
-          break;
-        }
-      }
+    if (!socket_.error()) {
+      using namespace std::placeholders;
+      notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { (*this)(); },
+          { Notice::Inbound });
     }
   }
+
+  bool operator ()()
+  {
+    accept_connections(socket_, notices_, 
+        [](StreamSocket&& socket, Endpoint const& peer_endpoint) {
+          // TODO exception safe
+          Connection* conn_ptr = new Connection(std::move(socket), peer_endpoint);
+          return Notice::EventHandler([conn_ptr](Notice::Event event, NoticeId id) {
+            *conn_ptr(event, id);
+            });
+        });
+    return !socket_.error();
+  }
+
+  AcceptorSocket& socket() { return socket_; }
 
 private:
   Endpoint endpoint_;
-  AcceptorSocket acceptor_socket_;
+  AcceptorSocket socket_;
   NoticeBoard& notices_;
 };
 

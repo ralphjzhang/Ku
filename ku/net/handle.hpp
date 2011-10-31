@@ -51,6 +51,7 @@ public:
   explicit operator bool () { return valid(); }
 
   std::error_code const& error() const { return error_; }
+  void clear_error() { error_.clear(); }
   bool close();
 
 private:

@@ -56,7 +56,9 @@ public:
   HandleType const& handle() const { return handle_; }
   HandleType release_handle() { return std::move(handle_); }
   StreamSocket accept(Endpoint& endpoint);
+
   std::error_code const& error() const { return handle_.error(); }
+  void clear_error() { handle_.clear_error(); }
 
 private:
   bool bind(Endpoint const& endpoint);
@@ -65,7 +67,7 @@ private:
   HandleType handle_;
 };
 
-class ConnectorSocket : public StreamSocket
+class ConnectorSocket : public StreamSocket // TODO no inheritance is better?
 {
   typedef Handle<ops::Socket> HandleType;
 
