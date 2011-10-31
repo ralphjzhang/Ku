@@ -25,7 +25,7 @@ typedef uint32_t NoticeId;
 // Notice is the link among handle, events and event handlers.
 // NoticeBoard manages the lifecycle of a notice
 // =======================================================================================
-class Notice
+class Notice : private util::noncopyable
 {
   struct Events : public std::bitset<4> { };
   struct EventTypes : public std::bitset<3> { };
@@ -44,7 +44,6 @@ public:
     : raw_handle_(raw_handle), id_(++next_notice_id), event_handler_(event_handler) { }
 
   Notice& operator = (Notice&& notice);
-  Notice(Notice const&) = default;
   Notice(Notice&& notice) { *this = std::move(notice); }
 
   NoticeId id() const { return id_; }

@@ -10,6 +10,7 @@
 #include <initializer_list>
 #include <functional>
 #include <vector>
+#include <memory>
 #include "notice.hpp"
 
 namespace ku { namespace net {
@@ -36,7 +37,10 @@ protected:
   void apply_updates();
 
 private:
-  bool add_notice_internal(Notice&& notice);
+  NoticeId add_notice(int raw_handle, Notice::EventHandler const& event_handler,
+      std::initializer_list<Notice::EventType> event_types);
+
+  bool add_notice_internal(std::shared_ptr<Notice> notice_ptr);
   bool remove_notice_internal(NoticeId notice_id);
   bool modify_notice_internal(NoticeId notice_id, Notice::EventHandler const& event_handler,
       std::initializer_list<Notice::EventType> event_types);
@@ -58,22 +62,7 @@ template <typename Handle>
 NoticeId NoticeBoard::add_notice(Handle const& h, Notice::EventHandler const& event_handler,
     std::initializer_list<Notice::EventType> event_types)
 {
-  struct Func {
-    Func(int raw_handle, Notice::EventHandler const& event_handler, NoticeBoard* notice_board)
-      : notice(raw_handle, event_handler), notice_board(notice_board) { }
-    Func(Func const&) = default;
-    bool operator()() { return notice_board->add_notice(std::move(notice)); }
-    Notice notice;
-    NoticeBoard* notice_board;
-  };
-  Func add_func(h.raw_handle(), event_handler, this);
-  for (auto event_type : event_types)
-    add_func.notice.set_event_type(event_type);
-  NoticeId notice_id = add_func.notice.id();
-  std::lock_guard<std::mutex> lock(mutex_);
-  notice_update_list_.push_back(add_func);
-  pending_updates_ = true;
-  return notice_id;
+  return add_notice(h.raw_handle(), event_handler, event_types);
 }
 
 

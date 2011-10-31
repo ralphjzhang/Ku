@@ -29,9 +29,21 @@ bool NoticeBoard::modify_notice(NoticeId notice_id, Notice::EventHandler const& 
   return true;
 }
 
-bool NoticeBoard::add_notice_internal(Notice&& notice)
+NoticeId NoticeBoard::add_notice(int raw_handle, Notice::EventHandler const& event_handler,
+    std::initializer_list<Notice::EventType> event_types)
 {
-  return add_notice(std::move(notice));
+  pending_updates_ = true;
+  auto notice_ptr = std::make_shared<Notice>(raw_handle, event_handler);
+  for (auto event_type : event_types)
+    notice_ptr->set_event_type(event_type);
+  std::lock_guard<std::mutex> lock(mutex_);
+  notice_update_list_.push_back([this, notice_ptr]() { return add_notice_internal(notice_ptr); });
+  return notice_ptr->id();
+}
+
+bool NoticeBoard::add_notice_internal(std::shared_ptr<Notice> notice_ptr)
+{
+  return add_notice(std::move(*notice_ptr));
 }
 
 
