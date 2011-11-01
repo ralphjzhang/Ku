@@ -8,13 +8,18 @@
 #include <thread>
 #include <utility>
 #include "epoll_poller.hpp" 
+#include "socket_acceptor.hpp"
 
 namespace ku { namespace net {
 
+template <typename EventHandler>
 class TCPServer
 {
+  typedef ServerConnection<EventHandler> Connection;
+
 public:
-  TCPServer() { }
+  TCPServer(Endpoint const& local_endpoint)
+    : acceptor_(local_endpoint, loop_.notices()) { }
 
   void start()
   {
@@ -28,9 +33,10 @@ public:
   }
 
 private:
-  epoll::PollLoop loop_;
   std::thread thread_;
+  epoll::PollLoop loop_;
+  SocketAcceptor<Connection> acceptor_;
 };
 
-} }
+} } // namespace ku::net
 

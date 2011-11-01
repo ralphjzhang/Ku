@@ -5,9 +5,6 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
-#include <system_error>
-#include <iostream>
-#include "resolver.hpp"
 #include "endpoint.hpp"
 #include "socket.hpp"
 #include "notice.hpp"
@@ -26,17 +23,15 @@ size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
 
 
 template <typename Connection>
-class Acceptor
+class SocketAcceptor
 {
 public:
-  Acceptor(Endpoint const& endpoint, NoticeBoard& notices)
-    : endpoint_(endpoint), socket_(endpoint), notices_(notices)
+  SocketAcceptor(Endpoint const& local_endpoint, NoticeBoard& notices)
+    : local_endpoint_(local_endpoint), socket_(local_endpoint), notices_(notices)
   {
-    if (!socket_.error()) {
-      using namespace std::placeholders;
-      notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { (*this)(); },
+    if (!socket_.error())
+      notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { return (*this)(); },
           { Notice::Inbound });
-    }
   }
 
   bool operator ()()
@@ -46,16 +41,17 @@ public:
           // TODO exception safe
           Connection* conn_ptr = new Connection(std::move(socket), peer_endpoint);
           return Notice::EventHandler([conn_ptr](Notice::Event event, NoticeId id) {
-            *conn_ptr(event, id);
+            return (*conn_ptr)(event, id);
             });
         });
     return !socket_.error();
   }
 
   AcceptorSocket& socket() { return socket_; }
+  Endpoint const& local_endpoint() { return local_endpoint; }
 
 private:
-  Endpoint endpoint_;
+  Endpoint local_endpoint_;
   AcceptorSocket socket_;
   NoticeBoard& notices_;
 };

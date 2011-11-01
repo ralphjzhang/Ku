@@ -8,9 +8,9 @@
 #include "notice.hpp"
 #include "epoll_poller.hpp"
 #include "poll_poller.hpp"
-#include "tcp_connection.hpp"
+#include "server_connection.hpp"
 #include "tcp_server.hpp"
-#include "acceptor.hpp"
+#include "socket_acceptor.hpp"
 
 using namespace ku;
 using namespace ku::net;

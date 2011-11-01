@@ -94,7 +94,6 @@ void translate_events(epoll_event const& ev, Notice& notice);
 class PollLoop
 {
 public:
-  typedef std::function<bool(NoticeBoard&)> OnInitialize;
   typedef std::function<bool(std::error_code)> OnError;
 
   PollLoop() : quit_(false) { }
@@ -116,7 +115,6 @@ private:
   bool quit_;
   std::error_code error_;
   Events events_;
-  OnInitialize on_initialize_;
   OnError on_error_;
 };
 

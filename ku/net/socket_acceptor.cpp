@@ -1,7 +1,18 @@
-#include "acceptor.hpp"
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
+#include "notice_board.hpp"
+#include "socket_acceptor.hpp"
 
 namespace ku { namespace net {
 
+// TODO by customizing this, we can suppose multiple models:
+//      reactor (this one is)
+//      thread per connection
+//      many threads / many connections
 size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
     std::function<Notice::EventHandler(StreamSocket&&, Endpoint const&)> handler_creator)
 {

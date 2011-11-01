@@ -5,7 +5,10 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
+#include <sys/signalfd.h>
 #include "handle.hpp"
+#include "common_ops.hpp"
+
 
 namespace ku { namespace net {
 
@@ -23,10 +26,10 @@ public:
 
   HandleType const& handle() const { return handle_; }
 
-  /*
-  ssize_t read(uint64_t& val, size_t)
+  ssize_t read(signalfd_siginfo& val, size_t = 0)
   { return ops::Common::read(handle_, &val, sizeof(val)); }
 
+  /*
   ssize_t write(uint64_t val, size_t)
   { return ops::Common::write(handle_, &val, sizeof(val)); }
   */
