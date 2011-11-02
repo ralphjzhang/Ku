@@ -1,3 +1,9 @@
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
 #pragma once
 #include <array>
 #include <cstring>
@@ -10,6 +16,11 @@ public:
   Collector()
     : end_(buffer_.begin()), count_(1)
   { buffer_[0] = '\n'; }
+
+  ~Collector()
+  {
+    // submit buffer
+  }
 
   void append(std::string const& s)
   {
