@@ -48,6 +48,7 @@ void NoticeBoard::apply_updates()
   if (!pending_updates_)
     return;
   UpdateList list;
+  list.reserve(update_list_.size());
   {
     std::lock_guard<std::mutex> lock(mutex_);
     list.swap(update_list_);
