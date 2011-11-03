@@ -63,6 +63,7 @@ public:
   void set_event_handler(EventHandler const& event_handler)
   { event_handler_ = event_handler; }
   EventHandler& event_handler() { return event_handler_; }
+  EventHandler const& event_handler() const { return event_handler_; }
 
 private:
   void clear();

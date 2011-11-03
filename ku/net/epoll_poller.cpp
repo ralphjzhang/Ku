@@ -48,7 +48,7 @@ void Events::clear()
   notices_.clear();
 }
 
-bool Events::add_notice(Notice&& notice)
+bool Events::add_notice_internal(Notice&& notice)
 {
   assert(notice.any_event_type());
   auto res = notices_.insert(std::make_pair(notice.id(), std::move(notice)));
@@ -78,30 +78,30 @@ Notice* Events::find_notice(epoll_event const& ev)
   return notice;
 }
 
-bool Events::remove_notice(Notice const& notice)
+bool Events::remove_notice_internal(NoticeId id)
 {
-  int raw_handle = notice.raw_handle();
-  if (notices_.erase(notice.id())) {
-    int ret = ::epoll_ctl(poller().raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr);
-    // If owner closes the file descriptor, epoll_ctl returns EBADF, which can be ignored
-    // If EBADF is because of poller not valid, we will see the error next round anyway
-    if (ret == 0 || errno == EBADF)
-      return true;
-    poller().set_error(errno);
+  if (Notice* notice_ptr = find_notice(id)) {
+    int raw_handle = notice_ptr->raw_handle();
+    if (notices_.erase(id)) {
+      int ret = ::epoll_ctl(poller().raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr);
+      // If owner closes the file descriptor, epoll_ctl returns EBADF, which can be ignored
+      // If EBADF is because of poller not valid, we will see the error next round anyway
+      if (ret == 0 || errno == EBADF)
+        return true;
+      poller().set_error(errno);
+    }
   }
   return false;
 }
 
-bool Events::modify_notice(Notice const& notice)
+bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
 {
-  auto find = notices_.find(notice.id());
-  if (notices_.end() != find) {
-    Notice& notice_find = find->second;
-    assert(notice_find.raw_handle() == notice.raw_handle());
+  if (Notice* notice_ptr = find_notice(id)) {
     epoll_event ev;
     ev.events = translate_event_types(notice);
-    if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_MOD, notice.raw_handle(), &ev) == 0) {
-      notice_find.set_event_types(notice.event_types());
+    if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_MOD, notice_ptr->raw_handle(), &ev) == 0) {
+      notice_ptr->set_event_handler(notice.event_handler());
+      notice_ptr->set_event_types(notice.event_types());
       return true;
     }
     poller().set_error(errno);

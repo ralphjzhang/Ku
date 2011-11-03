@@ -40,9 +40,9 @@ public:
 private:
   Poller& poller() { return *poller_; }
 
-  virtual bool add_notice(Notice&& notice);
-  virtual bool remove_notice(Notice const& notice);
-  virtual bool modify_notice(Notice const& notice);
+  virtual bool add_notice_internal(Notice&& notice);
+  virtual bool remove_notice_internal(NoticeId id);
+  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);
 
   epoll_event* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }

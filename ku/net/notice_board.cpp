@@ -57,17 +57,14 @@ void NoticeBoard::apply_updates()
     if (update.id) {
       if (update.notice.raw_handle()) {
         // Modify
-        if (Notice* notice_ptr = find_notice(update.id)) {
-          notice_ptr->set_event_handler(update.notice.event_handler());
-          notice_ptr->set_event_types(update.notice.event_types());
-        }
+        modify_notice_internal(update.id, update.notice);
       } else {
         // Remove
-        remove_notice(update.id);
+        remove_notice_internal(update.id);
       }
     } else {
       // Add
-      add_notice(std::move(update.notice));
+      add_notice_internal(std::move(update.notice));
     }
   }
 }

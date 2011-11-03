@@ -47,9 +47,9 @@ private:
   NoticeId add_notice(int raw_handle, Notice::EventHandler const& event_handler,
       std::initializer_list<Notice::EventType> const& event_types);
 
-  virtual bool add_notice(Notice&&) = 0;
-  virtual bool remove_notice(Notice const&) = 0;
-  virtual bool modify_notice(Notice const&) = 0;
+  virtual bool add_notice_internal(Notice&&) = 0;
+  virtual bool remove_notice_internal(NoticeId) = 0;
+  virtual bool modify_notice_internal(NoticeId, Notice const&) = 0;
   virtual Notice* find_notice(NoticeId notice_id) = 0;
 
 private:
