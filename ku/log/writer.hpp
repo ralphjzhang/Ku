@@ -5,30 +5,28 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
-#include <memory>
-#include "log_level.hpp"
+#include <forward_list>
+#include "sink.hpp"
 #include "util.hpp"
 
 namespace ku { namespace log {
 
 class Buffer;
 
-class Sink;
-typedef std::unique_ptr<Sink> Sink_ptr;
-
-class Sink : private util::noncopyable
+class Writer : private util::noncopyable
 {
+  typedef std::forward_list<Sink_ptr> SinkList;
+
 public:
-  virtual ~Sink() { }
+  Writer() = default;
 
-  virtual void write(Buffer& buf) = 0;
-
-  LogLevel log_level() { return log_level_; }
-  void set_log_level(LogLevel log_level) { log_level_ = log_level; }
+  void add_sink(Sink_ptr sink) { sink_list_.push_front(std::move(sink)); }
+  void write(Buffer& buf);
 
 private:
-  LogLevel log_level_;
+  SinkList sink_list_;
 };
 
 } } // namespace ku::log
+
 

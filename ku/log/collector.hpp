@@ -5,8 +5,10 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
-#include <array>
-#include <cstring>
+#include <string>
+#include "util.hpp"
+#include "log_level.hpp"
+#include "buffer.hpp"
 
 namespace ku { namespace log {
 
@@ -14,24 +16,17 @@ namespace ku { namespace log {
 // Collector is the logger front end.
 // It collects log data to a buffer, and submit for further processing.
 // =======================================================================================
-class Collector
+class Collector : private util::noncopyable
 {
 public:
-  Collector() : end_(buffer_.begin()), count_(1) { buffer_[0] = '\n'; }
+  Collector() = default;
+  Collector(LogLevel log_level);
+
   ~Collector() { submit(); }
 
-  Collector(Collector const&) = delete;
-  Collector(Collector&& col) : buffer_(std::move(col.buffer_)), end_(col.end_), count_(col.count_)
-  { }
+  Collector(Collector&& col) { buffer_.swap(col.buffer_); }
 
-  void append(std::string const& s)
-  {
-    count_ += s.size();
-    if (count_ >= 1024)
-      ; // TODO resize
-    end_ = strcpy(end_, s.c_str());
-    *end_ = '\n';
-  }
+  void append(std::string const& s) { buffer_.append(s.c_str(), s.size()); }
 
   template <typename Int>
   void append(Int i)
@@ -43,9 +38,7 @@ private:
   void submit();
 
 private:
-  std::array<char, 1024> buffer_;
-  char *end_;
-  size_t count_;
+  Buffer buffer_;
 };
 
 template <typename T>
@@ -69,7 +62,7 @@ Collector& operator , (Collector& c, T const& t)
   return c;
 }
 
-inline Collector get_collector()
+inline Collector collector()
 {
   return Collector();
 }
