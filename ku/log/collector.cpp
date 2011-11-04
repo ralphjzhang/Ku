@@ -11,8 +11,10 @@ namespace ku { namespace log {
 
 Collector::Collector(LogLevel log_level)
 {
+  std::string now(util::now());
+  buffer_.append(now.c_str(), now.size());
   buffer_.set_log_level(log_level);
-  unsigned long line_no = util::next_seq<util::LineNo>();
+  uint32_t line_no = util::next_seq<util::LineNo>();
 }
 
 void Collector::submit()

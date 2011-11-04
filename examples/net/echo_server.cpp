@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
   TCPServer<EchoHandler> server(local_endpoint);
   server.start();
   std::cout << "Server running, press enter to exit." << std::endl;
-  std::getchar();
+  std::cin.ignore();
   server.stop();
   std::cout << "Server stopped, exiting program." << std::endl;
 }

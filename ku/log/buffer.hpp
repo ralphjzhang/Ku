@@ -7,6 +7,7 @@
 #pragma once
 #include <cstdlib>
 #include <utility>
+#include <string>
 #include "log_level.hpp"
 
 struct iovec;
@@ -46,12 +47,15 @@ private:
     }
 
     Node& operator[](size_t n) { return nodes_[n]; }
+    Node const& operator[](size_t n) const { return nodes_[n]; }
 
   private:
     const static size_t InitialCapacity = 4;
     size_t capacity_, size_;
     Node* nodes_;
   };
+
+  friend std::string to_str(Buffer const& buf);
 
 public:
   Buffer() : base_(7), size_(0) { }
@@ -90,6 +94,8 @@ private:
   NodeList nodes_;
   LogLevel log_level_;
 };
+
+std::string to_str(Buffer const& buf);
 
 } } // namespace ku::log
 

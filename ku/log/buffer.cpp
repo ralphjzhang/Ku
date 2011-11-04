@@ -46,11 +46,11 @@ void Buffer::append(char const* str, size_t count)
   reserve(size() + count);
   assert(count <= capacity() - size());
   while (count) {
-    Node& end_nd = end_node();
-    char *end = end_nd.data + end_nd.used;
-    size_t cp_size = std::max(count, base_size() - end_nd.used);
-    memcpy(end, str, cp_size);
-    end_nd.used += cp_size;
+    Node& node = end_node();
+    char *end = node.data + node.used;
+    size_t cp_size = std::max(count, base_size() - node.used);
+    std::memcpy(end, str, cp_size);
+    node.used += cp_size;
     size_ += cp_size;
     count -= cp_size;
   }
@@ -61,7 +61,7 @@ void Buffer::reserve(size_t n)
   if (n > capacity()) {
     size_t over_size = n - capacity();
     size_t div = over_size >> base_;
-    size_t new_nodes = div + (over_size - div == 0);
+    size_t new_nodes = div + (over_size - (div << base_) != 0);
     nodes_.reserve(nodes_.size() + new_nodes);
     for (size_t i = 0; i < new_nodes; ++i)
       nodes_.emplace_back(new char[base_size()], 0);
@@ -73,6 +73,18 @@ void Buffer::reclaim()
   for (size_t i = 0; i < size(); ++i)
     nodes_[i].used = 0;
   size_ = 0;
+}
+
+std::string to_str(Buffer const& buf)
+{
+  std::string str;
+  size_t count = buf.size();
+  while (count) {
+    Buffer::Node const& node = buf.nodes_[(buf.size() - count) >> buf.base_];
+    str.append(node.data, node.used);
+    count -= node.used;
+  }
+  return str;
 }
 
 } } // namespace ku::log

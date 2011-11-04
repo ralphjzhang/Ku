@@ -5,7 +5,9 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
+#include <cstring>
 #include <string>
+#include <type_traits>
 #include "util.hpp"
 #include "log_level.hpp"
 #include "buffer.hpp"
@@ -27,31 +29,82 @@ public:
   Collector(Collector&& col) { buffer_.swap(col.buffer_); }
 
   void append(std::string const& s) { buffer_.append(s.c_str(), s.size()); }
+  void append(char const* s, size_t size) { buffer_.append(s, size); }
 
-  template <typename Int>
-  void append(Int i)
-  {
-    // TODO
-  }
+  void set_format(char const* fmt) { format_ = fmt; }
 
 private:
   void submit();
 
 private:
   Buffer buffer_;
+  char const* format_;
 };
 
+// =======================================================================================
+// C++ stream style collecting support.
+// User can support custome type collecting by providing to_str() function for the type,
+// or if doing so being more efficient, provide custom opeartor <<
+// =======================================================================================
 template <typename T>
 Collector& operator << (Collector& c, T const& t)
 {
-  c.append(t);
+  c.append(to_str(t));
+  return c;
+}
+
+Collector& operator << (Collector& c, char const* s)
+{
+  c.append(s, std::strlen(s));
+  return c;
+}
+
+Collector& operator << (Collector& c, std::string const& s)
+{
+  c.append(s);
   return c;
 }
 
 template <typename T>
-Collector& operator << (Collector& c, T&& t)
+auto operator << (Collector& c, T t)
+  -> typename std::enable_if<std::is_unsigned<T>::value, Collector&>::type
 {
-  // TODO optimize for rvalue?
+  char buf[32];
+  size_t len = sprintf(buf, "%llu", util::implicit_cast<unsigned long long>(t));
+  c.append(buf, len);
+  return c;
+}
+
+template <typename T>
+auto operator << (Collector& c, T t)
+  -> typename std::enable_if<std::is_signed<T>::value, Collector&>::type
+{
+  char buf[32];
+  size_t len = sprintf(buf, "%lld", util::implicit_cast<unsigned long long>(t));
+  c.append(buf, len);
+  return c;
+}
+
+template <typename T>
+auto operator << (Collector& c, T t)
+  -> typename std::enable_if<std::is_floating_point<T>::value, Collector&>::type
+{
+  char buf[32];
+  size_t len = sprintf(buf, "%f", util::implicit_cast<unsigned long long>(t));
+  c.append(buf, len);
+  return c;
+}
+
+// =======================================================================================
+// C printf style collecting support
+// Usage like:
+//   collector % "format string: answer to life, %s and everything: %d", "universe", 42; 
+// User support custom type collecting by providing to_str() function for the type
+// =======================================================================================
+Collector& operator % (Collector& c, char const* fmt)
+{
+  // For logging, it's fine to just store the pointer, collector won't live over the line.
+  c.set_format(fmt);
   return c;
 }
 
@@ -62,9 +115,9 @@ Collector& operator , (Collector& c, T const& t)
   return c;
 }
 
-inline Collector collector()
+inline Collector collector(LogLevel log_level)
 {
-  return Collector();
+  return Collector(log_level);
 }
 
 } } // namespace ku::log

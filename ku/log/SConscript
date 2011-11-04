@@ -1,0 +1,7 @@
+import os
+
+Import('env')
+env = env.Clone()
+
+env.Library('kulog', Glob('*.cpp'))
+

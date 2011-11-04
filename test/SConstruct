@@ -1,0 +1,19 @@
+import os
+
+env = Environment(
+    CPPPATH = ['..', '../..'],
+    LIBPATH = ['../../gtest'],
+    LIBS = ['pthread', 'gtest_main'],
+    CCFLAGS = '-Wall --std=c++0x -g -fPIC'
+    )
+
+Export('env')
+#SConscript('net/SConscript')
+SConscript('log/SConscript')
+
+"""
+program = env.Program('test', 'TestMain.cpp')
+test_alias = Alias('test', [program], program[0].path)
+AlwaysBuild(test_alias)
+"""
+

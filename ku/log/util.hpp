@@ -6,7 +6,6 @@
  ***************************************************************/ 
 #pragma once
 #include <atomic>
-#include <chrono>
 #include <string>
 
 namespace ku { namespace log { namespace util {
@@ -25,17 +24,14 @@ struct noncopyable
   noncopyable& operator=(noncopyable const&) = delete;
 };
 
-inline std::string now(bool date = true)
-{
-  auto tm = std::chrono::system_clock::now();
-}
+inline std::string now();
 
-enum SeqType { LineNo };
+struct LineNo { typedef uint32_t type; };
 
-template <SeqType S>
-unsigned long next_seq()
+template <typename T>
+typename T::type next_seq()
 {
-  static std::atomic<unsigned long> seq(0);
+  static std::atomic<typename T::type> seq(0);
   return ++seq;
 }
 
