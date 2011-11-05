@@ -11,6 +11,7 @@
 #include "util.hpp"
 #include "log_level.hpp"
 #include "buffer.hpp"
+#include "logger.hpp"
 
 namespace ku { namespace log {
 
@@ -26,14 +27,22 @@ public:
 
   ~Collector() { submit(); }
 
-  Collector(Collector&& col) { buffer_.swap(col.buffer_); }
+  Collector(Collector&& col) { }//{ buffer_.swap(col.buffer_); }
 
-  void append(std::string const& s) { buffer_.append(s.c_str(), s.size()); }
-  void append(char const* s, size_t size) { buffer_.append(s, size); }
+  void append(char c) { buffer().append(c); }
+  void append(std::string const& s) { buffer().append(s.c_str(), s.size()); }
+  void append(char const* s, size_t size) { buffer().append(s, size); }
 
   void set_format(char const* fmt) { format_ = fmt; }
 
+  // C printf style collecting support
+  template <typename... Args>
+  Collector& operator () (char const* fmt, Args... args);
+
+  Collector& self() { return *this; }
+
 private:
+  Buffer& buffer() { return buffer_; }
   void submit();
 
 private:
@@ -49,17 +58,23 @@ private:
 template <typename T>
 Collector& operator << (Collector& c, T const& t)
 {
-  c.append(to_str(t));
+  c.append(to_log(t));
   return c;
 }
 
-Collector& operator << (Collector& c, char const* s)
+inline Collector& operator << (Collector& c, char ch)
+{
+  c.append(ch);
+  return c;
+}
+
+inline Collector& operator << (Collector& c, char const* s)
 {
   c.append(s, std::strlen(s));
   return c;
 }
 
-Collector& operator << (Collector& c, std::string const& s)
+inline Collector& operator << (Collector& c, std::string const& s)
 {
   c.append(s);
   return c;
@@ -98,21 +113,16 @@ auto operator << (Collector& c, T t)
 // =======================================================================================
 // C printf style collecting support
 // Usage like:
-//   collector % "format string: answer to life, %s and everything: %d", "universe", 42; 
-// User support custom type collecting by providing to_str() function for the type
+//   collector("format string: answer to life, %s and everything: %d", "universe", 42); 
+// User support custom type collecting by providing to_log() function for the type
 // =======================================================================================
-Collector& operator % (Collector& c, char const* fmt)
+template <typename... Args>
+Collector& Collector::operator () (char const* fmt, Args... args)
 {
   // For logging, it's fine to just store the pointer, collector won't live over the line.
-  c.set_format(fmt);
-  return c;
-}
-
-template <typename T>
-Collector& operator , (Collector& c, T const& t)
-{
-  // TODO: printf style
-  return c;
+  set_format(fmt);
+  // TODO
+  return *this;
 }
 
 inline Collector collector(LogLevel log_level)

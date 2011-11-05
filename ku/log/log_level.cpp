@@ -14,19 +14,19 @@ LogLevel& g_log_level()
   return level;
 }
 
-char const* to_cstr(LogLevel level)
+char const* to_log(LogLevel level)
 {
   switch (level) {
   case LogLevel::Debug:
-    return "Debug ";
+    return " Debug ";
   case LogLevel::Info:
-    return "Info  ";
+    return " Info  ";
   case LogLevel::Warn:
-    return "Warn  ";
+    return " Warn  ";
   case LogLevel::Error:
-    return "Error ";
+    return " Error ";
   case LogLevel::Fatal:
-    return "Fatal ";
+    return " Fatal ";
   default:
     return "Unknown";
   }

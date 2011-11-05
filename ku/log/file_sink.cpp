@@ -9,14 +9,20 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
+#include <cassert>
 #include "buffer.hpp"
 #include "file_sink.hpp"
+
+#include <iostream>
 
 namespace ku { namespace log {
 
 FileSink::FileSink(char const* path)
 {
-  file_handle_ = ::open(path, O_CREAT | O_CLOEXEC);
+  file_handle_ = ::open(path, O_CREAT | O_CLOEXEC, 0777);
+  assert(file_handle_ > 0);
+  if (file_handle_ < 0)
+    file_handle_ = 0;
 }
 
 void FileSink::write(Buffer& buf)

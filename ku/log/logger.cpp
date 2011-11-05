@@ -11,7 +11,8 @@ namespace ku { namespace log {
 
 void Logger::submit(Buffer& buf)
 {
-  writer_.write(buf);
+  std::lock_guard<std::mutex> lock(mutex_);
+  buffer_.combine_buffer(buf);
 }
 
 Logger& logger()

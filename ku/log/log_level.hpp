@@ -15,7 +15,7 @@ enum class LogLevel
 
 LogLevel& g_log_level();
 
-char const* to_cstr(LogLevel level);
+char const* to_log(LogLevel level);
 
 } } // namespace ku::log
 

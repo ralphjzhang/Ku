@@ -12,14 +12,16 @@ namespace ku { namespace log {
 Collector::Collector(LogLevel log_level)
 {
   std::string now(util::now());
-  buffer_.append(now.c_str(), now.size());
-  buffer_.set_log_level(log_level);
-  uint32_t line_no = util::next_seq<util::LineNo>();
+  buffer().append(now.c_str(), now.size());
+  buffer().set_log_level(log_level);
+  char const* s_log_level = to_log(log_level);
+  buffer().append(s_log_level, std::strlen(s_log_level)); 
 }
 
 void Collector::submit()
 {
-  logger().submit(buffer_);
+  buffer().append('\n');
+  logger().submit(buffer());
 }
 
 } } // namespace ku::log

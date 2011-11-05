@@ -18,6 +18,9 @@ public:
 
   virtual void write(Buffer& buf);
 
+protected:
+  FileSink(int file_handle) : file_handle_(file_handle) { }
+
 private:
   void close();
 

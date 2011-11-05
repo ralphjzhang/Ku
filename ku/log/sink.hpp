@@ -19,6 +19,8 @@ typedef std::unique_ptr<Sink> Sink_ptr;
 class Sink : private util::noncopyable
 {
 public:
+  Sink() : log_level_(LogLevel::Debug) { }
+
   virtual ~Sink() { }
 
   virtual void write(Buffer& buf) = 0;

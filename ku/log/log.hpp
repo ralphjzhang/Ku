@@ -7,6 +7,6 @@
 #pragma once
 
 #define LOG(level) \
-  if (LogLevel::level > g_log_level()); else collector()
+  if (LogLevel::level > g_log_level()); else collector().self()
 
 
