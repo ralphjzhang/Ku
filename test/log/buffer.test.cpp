@@ -109,6 +109,36 @@ TEST(NodeList, append)
   ::free(s1); ::free(s2);
 }
 
+TEST(NodeList, mutating_ctor)
+{
+  Buffer::NodeList nodes;
+  char* s[] = {
+    static_cast<char*>(::malloc(32)), static_cast<char*>(::malloc(32)),
+    static_cast<char*>(::malloc(32)), static_cast<char*>(::malloc(32))
+  };
+  nodes.reserve(sizeof(s));
+  for (char* p : s) nodes.emplace_back(p, 0);
+
+  Buffer::NodeList nodes1(nodes);
+  EXPECT_EQ(3u, nodes1.size());
+  for (size_t n = 0; n < nodes1.size(); ++n)
+    EXPECT_EQ(s[n + 1], nodes1[n].data);
+  EXPECT_EQ(1u, nodes.size());
+  for (size_t n = 0; n < nodes.size(); ++n)
+    EXPECT_EQ(s[n], nodes[n].data);
+  Buffer::NodeList nodes2(nodes);
+  EXPECT_EQ(1u, nodes2.size());
+  EXPECT_EQ(s[0], nodes2[0].data);
+  EXPECT_EQ(0u, nodes.size());
+  Buffer::NodeList nodes3(nodes1);
+  EXPECT_EQ(3u, nodes3.size());
+  for (size_t n = 0; n < nodes3.size(); ++n)
+    EXPECT_EQ(s[n + 1], nodes3[n].data);
+  EXPECT_EQ(0u, nodes1.size());
+
+  for (char* p : s) ::free(p);
+}
+
 /// Buffer ///
 //
 TEST(Buffer, basic)
@@ -221,5 +251,18 @@ TEST(Buffer, combine_buffer)
 
   buf.combine_buffer(buf1);
   EXPECT_EQ(buf.base_size() + 1, buf.size());
+}
+
+TEST(Buffer, mutating_ctor)
+{
+  Buffer buf;
+  for (int i = 0; i < 3; ++i) {
+    std::string s1(buf.base_size() + 1, 'a');
+    buf.append(s1.c_str(), s1.size());
+  }
+  buf.reclaim(); // has to reclaim before giving space to others
+  Buffer buf1(buf);  // mutating buf
+  EXPECT_EQ(Buffer::NodeList::InitialCapacity * buf1.base_size(), buf1.capacity());
+  EXPECT_EQ(buf.base_size(), buf.capacity());
 }
 

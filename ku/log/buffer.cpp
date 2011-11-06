@@ -16,6 +16,16 @@ namespace ku { namespace log {
 
 /// Buffer::NodeList ///
 //
+Buffer::NodeList::NodeList(NodeList& list)
+  : nodes_(&data_[0]), capacity_(InitialCapacity)
+  , size_(std::min(list.size_, capacity_))
+{
+  if (size_) {
+    list.size_ -= size_;
+    std::memcpy(nodes_, list.nodes_ + list.size_, sizeof(Node) * size_);
+  }
+}
+
 void Buffer::NodeList::reserve(size_t n)
 {
   if (n > capacity()) {
@@ -134,6 +144,7 @@ void Buffer::combine_buffer(Buffer& buf)
 
 std::string to_str(Buffer const& buf)
 {
+  // This one is mostly for debugging, no need to optimize much
   std::string str;
   size_t count = buf.size();
   str.reserve(count + 1);

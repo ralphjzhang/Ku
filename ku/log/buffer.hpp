@@ -19,6 +19,7 @@ namespace ku { namespace log {
 
 class Buffer : private util::noncopyable
 {
+  friend class Collector;
   friend class Logger;
   friend std::string to_str(Buffer const& buf);
 
@@ -38,6 +39,7 @@ private:
     NodeList() : nodes_(&data_[0]), capacity_(InitialCapacity), size_(0)
     { ::bzero(&data_, sizeof(data_)); }
 
+    NodeList(NodeList& list);  // This is NOT copy ctor, it tries to recycle nodes from list
     ~NodeList() { if (capacity_ > InitialCapacity) ::free(nodes_); }
 
     Node const* raw_data() const { return nodes_; }
@@ -55,7 +57,7 @@ private:
     Node const& operator[](size_t n) const { return nodes_[n]; }
 
   private:
-    const static size_t InitialCapacity = 3; // Keeps NodeList in 64 bytes, fits cache line
+    const static uint32_t InitialCapacity = 3; // Keeps NodeList in 64 bytes, fits cache line
     Node* nodes_;
     uint32_t capacity_, size_; // logging buffer won't be too big, 4G nodes = 512G bytes
     std::array<Node, InitialCapacity> data_;
@@ -85,11 +87,15 @@ public:
   size_t base_size() const { return BaseSize; }
   size_t size() const { return size_; }
   size_t capacity() const { return nodes_.size() * BaseSize; }
+  bool empty() const { return size_ == 0; }
 
   LogLevel log_level() { return log_level_; }
   void set_log_level(LogLevel log_level) { log_level_ = log_level; }
 
 private:
+  // This is NOT copy ctor, it tries to recycle space from parameter
+  Buffer(Buffer& buf) : size_(0), nodes_(buf.nodes_) { }
+
   // Warning: after combine_buffer, the storage might not be continous, this function is 
   // supposed to be the last operation before calling ::writev
   void combine_buffer(Buffer& buf);

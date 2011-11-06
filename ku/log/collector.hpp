@@ -11,9 +11,10 @@
 #include "util.hpp"
 #include "log_level.hpp"
 #include "buffer.hpp"
-#include "logger.hpp"
 
 namespace ku { namespace log {
+
+class Logger;
 
 // =======================================================================================
 // Collector is the logger front end.
@@ -21,32 +22,37 @@ namespace ku { namespace log {
 // =======================================================================================
 class Collector : private util::noncopyable
 {
+  friend class Logger;
+
 public:
-  Collector() = default;
-  Collector(LogLevel log_level);
-
+  Collector() = delete;
   ~Collector() { submit(); }
-
-  Collector(Collector&& col) { }//{ buffer_.swap(col.buffer_); }
 
   void append(char c) { buffer().append(c); }
   void append(std::string const& s) { buffer().append(s.c_str(), s.size()); }
   void append(char const* s, size_t size) { buffer().append(s, size); }
 
+  Collector& initialize(LogLevel log_level);
   void set_format(char const* fmt) { format_ = fmt; }
 
   // C printf style collecting support
   template <typename... Args>
   Collector& operator () (char const* fmt, Args... args);
 
-  Collector& self() { return *this; }
-
 private:
+  Collector(Buffer& free_buffer, Logger& logger)
+    : buffer_(free_buffer), logger_(logger), format_(nullptr)
+  { }
+
+  Collector(Collector&& col) : logger_(col.logger_)
+  { buffer_.swap(col.buffer_); format_ = col.format_; col.format_ = nullptr; }
+
   Buffer& buffer() { return buffer_; }
   void submit();
 
 private:
   Buffer buffer_;
+  Logger& logger_;
   char const* format_;
 };
 
@@ -123,11 +129,6 @@ Collector& Collector::operator () (char const* fmt, Args... args)
   set_format(fmt);
   // TODO
   return *this;
-}
-
-inline Collector collector(LogLevel log_level)
-{
-  return Collector(log_level);
 }
 
 } } // namespace ku::log

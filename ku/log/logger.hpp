@@ -6,8 +6,10 @@
  ***************************************************************/ 
 #pragma once
 #include <mutex>
+#include <thread>
 #include "writer.hpp"
 #include "buffer.hpp"
+#include "collector.hpp"
 
 namespace ku { namespace log {
 
@@ -15,22 +17,30 @@ class Buffer;
 
 class Logger
 {
-  friend class Collector;
-
 public:
-  Logger() { buffer_.reserve(1024); }
-  ~Logger() { /*submit(buffer()); */ writer_.write(buffer_); }
+  Logger();
+  ~Logger();
 
-  Writer& writer() { return writer_; }
+  void add_sink(Sink_ptr sink) { writer_.add_sink(std::move(sink)); }
+
+  Collector create_collector()
+  {
+    std::lock_guard<std::mutex> lock(free_buffer_mutex_);
+    return Collector(free_buffer_, *this);
+  }
 
   void submit(Buffer& buf);
+  void give_back(Buffer& buf);
 
 private:
-  Buffer& buffer() { return buffer_; }
+  void flush();
 
+private:
+  const static size_t WriteBlock = 1024;//4096;
+
+  Buffer write_buffer_, free_buffer_;
+  std::mutex write_buffer_mutex_, free_buffer_mutex_;
   Writer writer_;
-  Buffer buffer_;
-  std::mutex mutex_;
 };
 
 Logger& logger();
