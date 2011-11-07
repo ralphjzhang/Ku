@@ -8,8 +8,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/uio.h>
-#include <errno.h>
 #include <netdb.h>
+#include <system_error>
+#include "util.hpp"
 #include "endpoint.hpp"
 #include "handle.hpp"
 
@@ -22,23 +23,23 @@ struct Socket
     int flag = ai.ai_socktype | SOCK_CLOEXEC;
     if (non_block)
       flag |= SOCK_NONBLOCK;
-    Handle<Socket> h(::socket(ai.ai_family, flag, ai.ai_protocol), true);
-    if (!h)
-      h.set_error(errno);
-    return std::move(h);
+    Handle<Socket> socket_handle(::socket(ai.ai_family, flag, ai.ai_protocol));
+    if (!socket_handle)
+      throw std::system_error(util::errc(), "ops::Socket::create");
+    else
+      return std::move(socket_handle);
   }
 
-  static inline bool bind(Handle<Socket>& h, Endpoint const& endpoint)
+  static inline void bind(Handle<Socket>& h, Endpoint const& endpoint)
   {
-    h.set_error(::bind(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()),
-          sizeof(sockaddr)) == -1 ?  errno : 0);         
-    return !h.error();
+    if (::bind(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1)
+      throw std::system_error(util::errc(), "ops::Socket::bind");
   }
 
-  static inline bool listen(Handle<Socket>& h)
+  static inline void listen(Handle<Socket>& h)
   {
-    h.set_error(::listen(h.raw_handle(), SOMAXCONN) == -1 ? errno : 0);
-    return !h.error();
+    if (::listen(h.raw_handle(), SOMAXCONN) == -1)
+      throw std::system_error(util::errc(), "ops::Socket::listen");
   }
 
   static inline Handle<Socket> accept(Handle<Socket>& h, Endpoint& endpoint, bool non_block = true)
@@ -46,16 +47,16 @@ struct Socket
     int flag = non_block ? (SOCK_NONBLOCK | SOCK_CLOEXEC) : SOCK_CLOEXEC;
     socklen_t addr_len = sizeof(sockaddr_in);
     Handle<Socket> socket_handle(
-        ::accept4(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), &addr_len, flag), true);
-    h.set_error(socket_handle ? 0 : errno);
+        ::accept4(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), &addr_len, flag));
+    if (!socket_handle && errno != EAGAIN && errno != EWOULDBLOCK)
+      throw std::system_error(util::errc(), "ops::Socket::accept");
     return socket_handle;
   }
 
-  static inline bool connect(Handle<Socket>& h, Endpoint const& endpoint)
+  static inline void connect(Handle<Socket>& h, Endpoint const& endpoint)
   {
-    h.set_error(::connect(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()),
-          sizeof(sockaddr)) == -1 ? errno : 0);
-    return !h.error();
+    if (::connect(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1)
+      throw std::system_error(util::errc(), "ops::Socket::connect");
   }
 };
 

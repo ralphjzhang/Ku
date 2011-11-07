@@ -35,9 +35,9 @@ public:
   inline ssize_t write(Buffer const& buf, size_t count)
   { return ops::Common::write(handle_, buf, count); }
 
+  explicit operator bool () const { return handle_.valid(); }
   HandleType const& handle() const { return handle_; }
   HandleType release_handle() { return std::move(handle_); }
-  std::error_code const& error() const { return handle_.error(); }
 
 protected:
   HandleType handle_;
@@ -57,12 +57,9 @@ public:
   HandleType release_handle() { return std::move(handle_); }
   StreamSocket accept(Endpoint& endpoint);
 
-  std::error_code const& error() const { return handle_.error(); }
-  void clear_error() { handle_.clear_error(); }
-
 private:
-  bool bind(Endpoint const& endpoint);
-  bool listen();
+  void bind(Endpoint const& endpoint);
+  void listen();
 
   HandleType handle_;
 };
@@ -78,7 +75,7 @@ public:
   ~ConnectorSocket() = default;
 
   HandleType const& handle() const { return handle_; }
-  bool connect(Endpoint const& endpoint);
+  void connect(Endpoint const& endpoint);
 };
 
 } } // namespace ku::net

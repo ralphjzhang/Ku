@@ -24,9 +24,10 @@ AcceptorSocket::AcceptorSocket(Endpoint const& endpoint)
   : handle_(ops::Socket::create(Resolver(Resolver::Passive)))
 {
   // TODO maybe let user do this ?
-  if (handle_)
-    if (bind(endpoint))
-      listen();
+  if (handle_) {
+    bind(endpoint);
+    listen();
+  }
 }
 
 StreamSocket AcceptorSocket::accept(Endpoint& endpoint)
@@ -34,14 +35,14 @@ StreamSocket AcceptorSocket::accept(Endpoint& endpoint)
   return StreamSocket(ops::Socket::accept(handle_, endpoint));
 }
 
-bool AcceptorSocket::bind(Endpoint const& endpoint)
+void AcceptorSocket::bind(Endpoint const& endpoint)
 {
-  return ops::Socket::bind(handle_, endpoint);
+  ops::Socket::bind(handle_, endpoint);
 }
 
-bool AcceptorSocket::listen()
+void AcceptorSocket::listen()
 {
-  return ops::Socket::listen(handle_);
+  ops::Socket::listen(handle_);
 }
 
 /// ConnectorSocket ///
@@ -51,9 +52,9 @@ ConnectorSocket::ConnectorSocket(bool non_block)
 {
 }
 
-bool ConnectorSocket::connect(Endpoint const& endpoint)
+void ConnectorSocket::connect(Endpoint const& endpoint)
 {
-  return ops::Socket::connect(handle_, endpoint);
+  ops::Socket::connect(handle_, endpoint);
 }
 
 } } // namespace ku::net

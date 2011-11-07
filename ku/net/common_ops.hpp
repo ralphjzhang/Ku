@@ -20,7 +20,8 @@ struct Common
   static inline ssize_t read(Handle<T>& h, Buffer&& buf, size_t count)
   {
     ssize_t ret = ::read(h.raw_handle(), raw_buffer(buf), count);
-    if (ret == -1) h.set_error(errno);
+    if (ret == -1)
+      return errno == EAGAIN || errno == EWOULDBLOCK ? 0 : -1;
     return ret;
   }
 
@@ -28,7 +29,8 @@ struct Common
   static inline ssize_t write(Handle<T>& h, Buffer const& buf, size_t count)
   {
     ssize_t ret = ::write(h.raw_handle(), raw_buffer(buf), count);
-    if (ret == -1) h.set_error(errno);
+    if (ret == -1)
+      return errno == EAGAIN || errno == EWOULDBLOCK ? 0 : -1;
     return ret;
   }
 
@@ -37,7 +39,8 @@ struct Common
   {
     // TODO: think about raw_buffer_vec
     ssize_t ret = ::writev(h.raw_handle(), raw_buffer_vec(buf), count);
-    if (ret == -1) h.set_error(errno);
+    if (ret == -1)
+      return errno == EAGAIN || errno == EWOULDBLOCK ? 0 : -1;
     return ret;
   }
 
@@ -46,7 +49,8 @@ struct Common
   {
     // TODO: think about raw_buffer_vec
     ssize_t ret = ::readv(h.raw_handle(), raw_buffer_vec(buf), count);
-    if (ret == -1) h.set_error(errno);
+    if (ret == -1)
+      return errno == EAGAIN || errno == EWOULDBLOCK ? 0 : -1;
     return ret;
   }
 

@@ -42,44 +42,25 @@ class Handle
   friend class WeakHandle;
 
 public:
-  Handle(Handle&& h) : owner_(h.owner_), raw_handle_(h.raw_handle_), error_(h.error_)
-  { h.clear(); }
-  ~Handle() { if (owner()) close(); }
+  Handle(Handle&& h) : raw_handle_(h.raw_handle_) { h.clear(); }
+  ~Handle() { close(); }
 
-  bool owner() const { return owner_; }
   bool valid() const { return raw_handle_ > 0; }
   explicit operator bool () { return valid(); }
-
-  std::error_code const& error() const { return error_; }
-  void clear_error() { error_.clear(); }
-  bool close();
+  void close()
+  {
+    if (valid() && (raw_handle_ = ::close(raw_handle_)) == -1)
+      throw std::system_error(util::errc(), "Handle<T>::close");
+  }
 
 private:
-  // Handle() : owner_(false), raw_handle_(0) { } // TODO made public?
-  explicit Handle(int raw_handle, bool owner = true)
-    : owner_(owner), raw_handle_(raw_handle)
-  { }
-
+  explicit Handle(int raw_handle) : raw_handle_(raw_handle) { }
   int raw_handle() const { return raw_handle_; }
-  void clear() { owner_ = false; raw_handle_ = 0; error_.clear(); }
-  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
-  void set_error(std::errc err) { error_ = std::make_error_code(err); }
+  void clear() { raw_handle_ = 0; }
 
-  bool owner_;
+private:
   int raw_handle_;
-  std::error_code error_;
 };
-
-template <typename T>
-bool Handle<T>::close()
-{
-  if (!valid())
-    return true;
-  set_error(::close(raw_handle_) == -1 ? errno : 0);
-  if (!error())
-    raw_handle_ = 0;
-  return !error();
-}
 
 
 // =======================================================================================

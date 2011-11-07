@@ -6,6 +6,8 @@
  ***************************************************************/ 
 #pragma once
 #include <sys/timerfd.h>
+#include <system_error>
+#include "util.hpp"
 #include "handle.hpp"
 
 namespace ku { namespace net { namespace ops {
@@ -15,22 +17,22 @@ struct Timer
   static inline Handle<Timer> create(int clock, bool non_block = true)
   {
     int flag = non_block ? (TFD_NONBLOCK | TFD_CLOEXEC) : TFD_CLOEXEC;
-    Handle<Timer> h(::timerfd_create(clock, flag));
-    if (!h)
-      h.set_error(errno);
-    return std::move(h);
+    Handle<Timer> timer_handle(::timerfd_create(clock, flag));
+    if (!timer_handle)
+      throw std::system_error(util::errc(), "ops::Timer::create");
+    return std::move(timer_handle);
   }
 
-  static inline bool get_time(Handle<Timer>& h, itimerspec &spec)
+  static inline void get_time(Handle<Timer>& h, itimerspec &spec)
   {
-    h.set_error(::timerfd_gettime(h.raw_handle(), &spec) == -1 ? errno : 0);
-    return !h.error();
+    if (::timerfd_gettime(h.raw_handle(), &spec) == -1)
+      throw std::system_error(util::errc(), "ops::Timer::get_time");
   }
 
-  static inline bool set_time(Handle<Timer>& h, itimerspec const& spec)
+  static inline void set_time(Handle<Timer>& h, itimerspec const& spec)
   {
-    h.set_error(::timerfd_settime(h.raw_handle(), 0, &spec, NULL) == -1 ? errno : 0);
-    return !h.error();
+    if (::timerfd_settime(h.raw_handle(), 0, &spec, NULL) == -1)
+      throw std::system_error(util::errc(), "ops::Timer::set_time");
   }
 };
 

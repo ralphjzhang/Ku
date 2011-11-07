@@ -20,19 +20,12 @@ size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
   while (true) {
     Endpoint peer_endpoint;
     StreamSocket conn_socket = socket.accept(peer_endpoint);
-    if (!socket.error()) {
+    if (conn_socket) {
       WeakHandle weak_handle(conn_socket.handle());
       notices.add_notice(weak_handle, handler_creator(std::move(conn_socket), peer_endpoint),
           { Notice::Inbound, Notice::Outbound });
       ++count;
     } else {
-      std::error_code const& ec = socket.error();
-      if (ec == std::errc::operation_would_block ||
-          ec == std::errc::resource_unavailable_try_again) {
-        // All incoming connections handled, not an error
-        socket.clear_error();
-      }
-      // else: Acceptor error, keep the error for caller inspection
       break;
     }
   }

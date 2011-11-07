@@ -29,8 +29,7 @@ public:
   SocketAcceptor(Endpoint const& local_endpoint, NoticeBoard& notices)
     : local_endpoint_(local_endpoint), socket_(local_endpoint), notices_(notices)
   {
-    if (!socket_.error())
-      notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { return (*this)(); },
+    notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { return (*this)(); },
           { Notice::Inbound });
   }
 
@@ -44,7 +43,7 @@ public:
             return (*conn_ptr)(event, id);
             });
         });
-    return !socket_.error();
+    return true;
   }
 
   AcceptorSocket& socket() { return socket_; }

@@ -39,31 +39,23 @@ public:
   ssize_t write(uint64_t val, size_t)
   { return ops::Common::write(handle_, &val, sizeof(val)); }
 
-  bool set_interval(std::chrono::nanoseconds interval) { return set_timespec(Periodic, interval); }
-  bool clear();
+  void set_interval(std::chrono::nanoseconds interval) { set_timespec(Periodic, interval); }
+  void clear();
 
   template <typename Duration = std::chrono::nanoseconds>
   Duration interval() { return std::chrono::duration_cast<Duration>(get_interval_internal()); }
 
-  template <typename Clock>
-  bool set_expires_at(std::chrono::time_point<Clock> expiry)
-  {
-    std::error_code ec;
-    auto duration = expiry - Clock::now(ec);
-    if (!ec)
-      return set_timespec(Deadline, duration);
-    handle_.set_error(ec.value());
-    return false;
-  }
+  void set_expires_in(std::chrono::nanoseconds duration) { set_timespec(Deadline, duration); }
 
-  bool set_expires_in(std::chrono::nanoseconds duration) { return set_timespec(Deadline, duration); }
+  template <typename Clock>
+  void set_expires_at(std::chrono::time_point<Clock> expiry)
+  { set_expires_in(expiry - Clock::now()); }
 
   HandleType release_handle() { return std::move(handle_); }
-  std::error_code error() const { return handle_.error(); }
 
 private:
   std::chrono::nanoseconds get_interval_internal();
-  bool set_timespec(Mode mode, std::chrono::nanoseconds duration);
+  void set_timespec(Mode mode, std::chrono::nanoseconds duration);
 
   HandleType handle_;
   Mode mode_;

@@ -30,7 +30,7 @@ public:
   ssize_t write(uint64_t val, size_t = 0)
   { return ops::Common::write(handle_, &val, sizeof(val)); }
 
-  bool close() { return handle_.close(); }
+  void close() { handle_.close(); }
 
 private:
   HandleType handle_;

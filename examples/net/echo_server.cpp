@@ -1,4 +1,5 @@
 #include <iostream>
+#include <future>
 #include <ku/net/socket_acceptor.hpp>
 #include <ku/net/server_connection.hpp>
 #include <ku/net/tcp_server.hpp>
@@ -35,12 +36,18 @@ int main(int argc, char* argv[])
     exit(0);
   }
 
-  Endpoint local_endpoint("127.0.0.1", 8888);
-  TCPServer<EchoHandler> server(local_endpoint);
-  server.start();
-  std::cout << "Server running, press enter to exit." << std::endl;
-  std::cin.ignore();
-  server.stop();
-  std::cout << "Server stopped, exiting program." << std::endl;
+  try {
+    Endpoint local_endpoint("127.0.0.1", 8888);
+    TCPServer<EchoHandler> server(local_endpoint);
+    // auto fut = std::async(std::ref(server)); TODO async in gcc 4.6 seems broken
+    std::thread t(std::ref(server));
+    std::cout << "Server running, press enter to exit." << std::endl;
+    std::cin.ignore();
+    server.stop();
+    std::cout << "Server stopped, exiting program." << std::endl;
+    t.join();
+  } catch (std::system_error const& ec) {
+    std::cout << "Server error in " << ec.what() << std::endl;
+  }
 }
 

@@ -5,7 +5,6 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
-#include <thread>
 #include <utility>
 #include "epoll_poller.hpp" 
 #include "socket_acceptor.hpp"
@@ -21,19 +20,11 @@ public:
   TCPServer(Endpoint const& local_endpoint)
     : acceptor_(local_endpoint, loop_.notices()) { }
 
-  void start()
-  {
-    std::thread(std::ref(loop_)).swap(thread_);
-  }
+  bool operator()() { return loop_(); }
 
-  void stop()
-  {
-    loop_.quit();
-    thread_.join();
-  }
+  void stop() { loop_.quit(); }
 
 private:
-  std::thread thread_;
   epoll::PollLoop loop_;
   SocketAcceptor<Connection> acceptor_;
 };

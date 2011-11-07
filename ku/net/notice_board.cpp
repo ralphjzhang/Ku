@@ -67,6 +67,7 @@ void NoticeBoard::apply_updates()
       add_notice_internal(std::move(update.notice));
     }
   }
+  pending_updates_ = false;
 }
 
 } } // namespace ku::net

@@ -20,12 +20,11 @@ Timer::Timer(Clock clock)
 std::chrono::nanoseconds Timer::get_interval_internal()
 {
   itimerspec spec;
-  if (ops::Timer::get_time(handle_, spec))
-    return util::from_timespec(spec.it_interval);
-  return std::chrono::nanoseconds(0);
+  ops::Timer::get_time(handle_, spec);
+  return util::from_timespec(spec.it_interval);
 }
 
-bool Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
+void Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
 {
   itimerspec spec;
   ::bzero(&spec, sizeof(itimerspec));
@@ -37,17 +36,14 @@ bool Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
   } else {
     assert(false);
   }
-  if (ops::Timer::set_time(handle_, spec))
-    mode_ = mode;
-  return !handle_.error();
+  mode_ = mode;
+  ops::Timer::set_time(handle_, spec);
 }
 
-bool Timer::clear()
+void Timer::clear()
 {
-  if (mode() == Timer::None)
-    return false;
-  else
-    return set_timespec(mode(), std::chrono::nanoseconds(0));
+  if (mode() != Timer::None)
+    set_timespec(mode(), std::chrono::nanoseconds(0));
 }
 
 } } // namespace ku::net

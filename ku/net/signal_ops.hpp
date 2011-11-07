@@ -8,6 +8,8 @@
 #include <sys/signalfd.h>
 #include <signal.h>
 #include <initializer_list>
+#include <system_error>
+#include "util.hpp"
 #include "handle.hpp"
 
 namespace ku { namespace net { namespace ops {
@@ -21,10 +23,10 @@ struct Signal
     ::sigemptyset(&mask);
     for (int signal : signals)
       ::sigaddset(&mask, signal);
-    Handle<Signal> h(::signalfd(-1, &mask, flag));
-    if (!h)
-      h.set_error(errno);
-    return std::move(h);
+    Handle<Signal> signal_handle(::signalfd(-1, &mask, flag));
+    if (!signal_handle)
+      throw std::system_error(util::errc(), "ops::Signal::create");
+    return std::move(signal_handle);
   }
 };
 

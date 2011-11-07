@@ -100,7 +100,6 @@ public:
   PollLoop(PollLoop const&) = default;
 
   void quit() { quit_ = true; }
-  std::error_code const& error() const { return error_; }
 
   void set_on_error(OnError const& on_error) { on_error_ = on_error; }
 
@@ -113,7 +112,6 @@ public:
 
 private:
   bool quit_;
-  std::error_code error_;
   Events events_;
   OnError on_error_;
 };
