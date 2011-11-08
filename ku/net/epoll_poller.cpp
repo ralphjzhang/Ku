@@ -5,6 +5,7 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #include <cassert>
+#include "util.hpp"
 #include "epoll_poller.hpp"
 
 namespace ku { namespace net { namespace epoll {
@@ -59,7 +60,7 @@ bool Events::add_notice_internal(Notice&& notice)
     ev.events = translate_event_types(*notice_ptr);
     if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_ADD, notice_ptr->raw_handle(), &ev) == 0)
       return true;
-    poller().set_error(errno);
+    set_error(errno);
     notices_.erase(res.first);
   }
   return false;
@@ -85,10 +86,9 @@ bool Events::remove_notice_internal(NoticeId id)
     if (notices_.erase(id)) {
       int ret = ::epoll_ctl(poller().raw_handle(), EPOLL_CTL_DEL, raw_handle, nullptr);
       // If owner closes the file descriptor, epoll_ctl returns EBADF, which can be ignored
-      // If EBADF is because of poller not valid, we will see the error next round anyway
       if (ret == 0 || errno == EBADF)
         return true;
-      poller().set_error(errno);
+      set_error(errno);
     }
   }
   return false;
@@ -104,24 +104,22 @@ bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
       notice_ptr->set_event_types(notice.event_types());
       return true;
     }
-    poller().set_error(errno);
+    set_error(errno);
   }
   return false;
 }
 
 /// Poller ///
 
-Poller::Poller(Poller&& h) 
-  : raw_handle_(h.raw_handle_), error_(h.error_)
+Poller::Poller(Poller&& h) : raw_handle_(h.raw_handle_)
 {
   h.clear();
 }
 
 Poller::Poller(int flags)
 {
-  raw_handle_ = epoll_create1(flags);
-  if (raw_handle_ == -1)
-    set_error(errno);
+  if ((raw_handle_ = epoll_create1(flags)) == -1)
+    throw std::system_error(util::errc(), "epoll::Poller::Poller");
 }
 
 Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
@@ -130,7 +128,7 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
                                timeout.count());
   if (event_num == -1) {
     evts.set_active_count(0);
-    set_error(errno);
+    throw std::system_error(util::errc(), "epoll::Poller::poll");
   } else {
     evts.set_active_count(event_num);
     if (evts.active_count() >= evts.events_.size())
@@ -141,12 +139,8 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 
 void Poller::close()
 {
-  if (raw_handle_ > 0) {
-    if (::close(raw_handle_) == -1)
-      set_error(errno);
-    else
-      clear();
-  }
+  if (raw_handle_ > 0 && (raw_handle_ = ::close(raw_handle_)) == -1)
+    throw std::system_error(util::errc(), "epoll::Poller::close");
 }
 
 /// PollLoop ///
@@ -174,15 +168,11 @@ void PollLoop::dispatch(Notice& notice, NoticeBoard& notice_board)
 bool PollLoop::loop(std::chrono::milliseconds timeout)
 {
   Poller poller(EPOLL_CLOEXEC);
-  if (poller.error())
-    return on_error_ && on_error_(poller.error());
   events_.set_poller(&poller);
 
   while (!quit_) {
     events_.apply_updates();
     poller.poll(events_, timeout);
-    if (poller.error())
-      return on_error_ && on_error_(poller.error());
 
     for (unsigned i = 0; i < events_.active_count(); ++i) {
       epoll_event const& ev = events_.raw_event(i);
@@ -190,12 +180,12 @@ bool PollLoop::loop(std::chrono::milliseconds timeout)
       translate_events(ev, *notice);
       dispatch(*notice, events_);
       // These errors are from add/remove/modify events, can be ignored
-      // So unlike polling error, if user doesn't register error handler, these are ignored
-      if (poller.error()) {
-        if (on_error_ && !on_error_(poller.error())) 
+      // If user doesn't register error handler, these are ignored TODO review this
+      if (events_.error()) {
+        if (on_error_ && !on_error_(events_.error())) 
           return false;
         else
-          poller.clear_error();
+          events_.clear_error();
       }
     }
   }

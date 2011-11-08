@@ -1,0 +1,27 @@
+1. User throw std::system_error instead of storing error_code, notice don't throw EWOULDBLOCK/EAGAIN!!!!
+1.1 Remove owner_ as we have WeakHandle
+
+2. Zero MQ style addressing?
+3. MsgPack
+4. Read/Write RingDeque?
+
+ku::net -> ku::fusion ?
+
+PollLoops can have virtual base
+
+fsync + close
+
+Resolver receives:
+inproc://#1
+rpc:///tmp/fusion/s
+tcp://192.168.1.1:3333
+pgm://
+and creates Endpoint
+
+experiment double buffer vector in logging, buffer swap can use atomic ops
+
+Ku::log:
+1. Dedicated sink thread, buffer move in
+2. writev-ready buffer, gathered write
+3. Each application thread has own buffer
+

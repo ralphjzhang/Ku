@@ -37,6 +37,10 @@ public:
 
   using NoticeBoard::apply_updates;
 
+  std::error_code error() const { return error_; }
+  void set_error(int err_no) { error_ = (std::make_error_code(static_cast<std::errc>(err_no))); }
+  void clear_error() { error_.clear(); }
+
 private:
   Poller& poller() { return *poller_; }
 
@@ -54,6 +58,7 @@ private:
   std::vector<epoll_event> events_;
   unsigned active_count_;
   NoticeMap notices_;
+  std::error_code error_;
 };
 
 // =======================================================================================
@@ -68,25 +73,16 @@ class Poller : private util::noncopyable
 public:
   Poller(Poller&& h);
   ~Poller() { close(); }
-
   explicit Poller(int flags);
 
-  Events& poll(Events& evts,
-      std::chrono::milliseconds const& timeout = std::chrono::milliseconds(-1));
-
-  std::error_code error() const { return error_; }
-  void set_error(int err_no) { set_error(static_cast<std::errc>(err_no)); }
-  void set_error(std::errc err) { error_ = std::make_error_code(err); }
-  void clear_error() { error_.clear(); }
-
+  Events& poll(Events& evts, std::chrono::milliseconds const& timeout);
   void close();
 
 private:
   int raw_handle() const { return raw_handle_; }
-  void clear() { raw_handle_ = 0; error_.clear(); }
+  void clear() { raw_handle_ = 0; }
 
   int raw_handle_;
-  std::error_code error_;
 };
 
 void translate_events(epoll_event const& ev, Notice& notice);
@@ -105,7 +101,7 @@ public:
 
   void dispatch(Notice& notice, NoticeBoard& notice_board);
   bool loop(std::chrono::milliseconds timeout);
-  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(3000))
+  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))
   { return loop(timeout); }
 
   NoticeBoard& notices() { return events_; }
