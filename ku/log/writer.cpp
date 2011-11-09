@@ -18,6 +18,7 @@ void Writer::start()
 
 void Writer::operator () ()
 {
+  /*
   std::unique_lock<std::mutex> lock(mutex_);
   while (!quit_ && buffer_.empty())
     condition_.wait(lock);
@@ -27,6 +28,7 @@ void Writer::operator () ()
       sink_ptr->write(buffer_);
   }
   logger_.give_back(buffer_);
+  */
 }
 
 void Writer::submit(Buffer& buf)

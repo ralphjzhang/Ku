@@ -7,8 +7,10 @@
 #include <sys/uio.h>
 #include <cstring>
 #include <cassert>
+#include <exception>
 #include <algorithm>
 #include "buffer.hpp"
+#include "buffer_queue.hpp"
 
 #include <iostream>
 
@@ -16,30 +18,23 @@ namespace ku { namespace log {
 
 /// Buffer::NodeList ///
 //
-Buffer::NodeList::NodeList(NodeList& list)
-  : nodes_(&data_[0]), capacity_(InitialCapacity)
-  , size_(std::min(list.size_, capacity_))
-{
-  if (size_) {
-    list.size_ -= size_;
-    std::memcpy(nodes_, list.nodes_ + list.size_, sizeof(Node) * size_);
-  }
-}
-
-void Buffer::NodeList::reserve(size_t n)
+void Buffer::NodeList::reserve(uint32_t n)
 {
   if (n > capacity()) {
-    if (nodes_ == &data_[0]) {
+    if (nodes_ == data_) {
       // Nodes are on the stack, move them to heap
-      nodes_ = static_cast<Node*>(::malloc(sizeof(Node) * n));
-      ::bzero(nodes_, sizeof(Node) * n);
-      std::memcpy(nodes_, &data_, sizeof(data_));
+      Node* new_nodes = static_cast<Node*>(::malloc(sizeof(Node) * n));
+      if (!new_nodes)
+        throw std::bad_alloc();
+      nodes_ = new_nodes;
+      std::memcpy(nodes_, data_, sizeof(data_));
       capacity_ = n;
     } else {
       // Nodes are already on the heap, expand the heap space
-      nodes_ = static_cast<Node*>(::realloc(nodes_, sizeof(Node) * n));
-      assert(nodes_); // If memory is up, we are in trouble anyway...
-      ::bzero(nodes_ + capacity(), sizeof(Node) * (n - capacity()));
+      Node* new_nodes = static_cast<Node*>(::realloc(nodes_, sizeof(Node) * n));
+      if (!new_nodes)
+        throw std::bad_alloc();
+      nodes_ = new_nodes;
       capacity_ = n;
     }
   }
@@ -61,21 +56,21 @@ void Buffer::NodeList::swap(NodeList& list)
     } else {
       // We are on heap, list is on stack
       list.nodes_ = nodes_;
-      data_ = list.data_;
-      nodes_ = &data_[0];
+      std::memcpy(data_, list.data_, sizeof(data_));
+      nodes_ = data_;
     }
   } else {
     if (list.capacity() > InitialCapacity) {
       // We are on stack, list is on heap
       nodes_ = list.nodes_;
-      list.data_ = data_;
-      list.nodes_ = &list.data_[0];
+      std::memcpy(list.data_, data_, sizeof(data_));
+      list.nodes_ = list.data_;
     } else {
       // Both on stack
       char temp[sizeof(data_)];
-      std::memcpy(temp, &data_, sizeof(data_));
-      std::memcpy(&data_, &list.data_, sizeof(data_));
-      std::memcpy(&list.data_, temp, sizeof(data_));
+      std::memcpy(temp, data_, sizeof(data_));
+      std::memcpy(data_, list.data_, sizeof(data_));
+      std::memcpy(list.data_, temp, sizeof(data_));
     }
   }
   std::swap(capacity_, list.capacity_);
@@ -123,23 +118,17 @@ void Buffer::reserve(size_t n)
     size_t div = over_size >> BaseBit;
     size_t new_nodes = div + (over_size - (div << BaseBit) != 0);
     nodes_.reserve(nodes_.size() + new_nodes);
-    for (size_t i = 0; i < new_nodes; ++i)
-      nodes_.emplace_back(static_cast<char*>(::malloc(BaseSize)), 0);
+    for (size_t i = 0; i < new_nodes; ++i) {
+      void* p = ::malloc(BaseSize);
+      if (!p) throw std::bad_alloc();
+      nodes_.emplace_back(static_cast<char*>(p), 0);
+    }
   }
 }
 
-void Buffer::reclaim()
+Buffer::Buffer(BufferQueue& free_queue) : size_(0), nodes_(free_queue.nodes_, free_queue.size_)
 {
-  for (size_t n = 0; n < nodes_.size(); ++n)
-    nodes_[n].used = 0;
-  size_ = 0;
-}
-
-void Buffer::combine_buffer(Buffer& buf)
-{
-  nodes_.append(buf.nodes_);
-  size_ += buf.size_;
-  buf.clear();
+  free_queue.size_ -= nodes_.size();
 }
 
 std::string to_str(Buffer const& buf)

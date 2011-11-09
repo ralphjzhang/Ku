@@ -8,6 +8,8 @@ int main()
   using namespace ku::log;
   logger();
 
+  std::cout << sizeof(Buffer) << std::endl;
+
   logger().add_sink(Sink_ptr(new ConsoleSink()));
   LOG(Debug) << "Hello11111";
   LOG(Debug) << "World22222";

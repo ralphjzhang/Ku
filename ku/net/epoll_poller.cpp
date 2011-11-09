@@ -60,8 +60,8 @@ bool Events::add_notice_internal(Notice&& notice)
     ev.events = translate_event_types(*notice_ptr);
     if (::epoll_ctl(poller().raw_handle(), EPOLL_CTL_ADD, notice_ptr->raw_handle(), &ev) == 0)
       return true;
-    set_error(errno);
     notices_.erase(res.first);
+    on_error_ && on_error_(util::errc());
   }
   return false;
 }
@@ -88,7 +88,7 @@ bool Events::remove_notice_internal(NoticeId id)
       // If owner closes the file descriptor, epoll_ctl returns EBADF, which can be ignored
       if (ret == 0 || errno == EBADF)
         return true;
-      set_error(errno);
+      on_error_ && on_error_(util::errc());
     }
   }
   return false;
@@ -104,7 +104,7 @@ bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
       notice_ptr->set_event_types(notice.event_types());
       return true;
     }
-    set_error(errno);
+    on_error_ && on_error_(util::errc());
   }
   return false;
 }
@@ -179,14 +179,6 @@ bool PollLoop::loop(std::chrono::milliseconds timeout)
       Notice* notice = events_.find_notice(ev);
       translate_events(ev, *notice);
       dispatch(*notice, events_);
-      // These errors are from add/remove/modify events, can be ignored
-      // If user doesn't register error handler, these are ignored TODO review this
-      if (events_.error()) {
-        if (on_error_ && !on_error_(events_.error())) 
-          return false;
-        else
-          events_.clear_error();
-      }
     }
   }
   return true;

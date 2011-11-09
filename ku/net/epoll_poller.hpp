@@ -25,6 +25,8 @@ class Events : public NoticeBoard
   typedef std::map<NoticeId, Notice> NoticeMap;
 
 public:
+  typedef std::function<bool(std::error_code)> OnError;
+
   Events(size_t capacity = 16);
   virtual ~Events() { }
 
@@ -37,9 +39,7 @@ public:
 
   using NoticeBoard::apply_updates;
 
-  std::error_code error() const { return error_; }
-  void set_error(int err_no) { error_ = (std::make_error_code(static_cast<std::errc>(err_no))); }
-  void clear_error() { error_.clear(); }
+  void set_on_error(OnError const& on_error) { on_error_ = on_error; }
 
 private:
   Poller& poller() { return *poller_; }
@@ -58,7 +58,7 @@ private:
   std::vector<epoll_event> events_;
   unsigned active_count_;
   NoticeMap notices_;
-  std::error_code error_;
+  OnError on_error_;
 };
 
 // =======================================================================================
@@ -90,14 +90,12 @@ void translate_events(epoll_event const& ev, Notice& notice);
 class PollLoop
 {
 public:
-  typedef std::function<bool(std::error_code)> OnError;
-
   PollLoop() : quit_(false) { }
   PollLoop(PollLoop const&) = default;
 
-  void quit() { quit_ = true; }
+  void quit() { quit_ = true; } // TODO quit should take care of timeout=-1
 
-  void set_on_error(OnError const& on_error) { on_error_ = on_error; }
+  void set_on_error(Events::OnError const& on_error) { events_.set_on_error(on_error); }
 
   void dispatch(Notice& notice, NoticeBoard& notice_board);
   bool loop(std::chrono::milliseconds timeout);
@@ -109,7 +107,6 @@ public:
 private:
   bool quit_;
   Events events_;
-  OnError on_error_;
 };
 
 } } } // namespace ku::net::epoll

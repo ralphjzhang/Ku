@@ -4,44 +4,58 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#include "buffer.hpp"
+#include <chrono>
+#include "message.hpp"
 #include "logger.hpp"
 
 namespace ku { namespace log {
 
-Logger::Logger() : writer_(*this)
+Logger::Logger()
 {
   // Initial free buffer space pool, ideally it can be WriteBlock * number-of-work-threads
-  free_buffer_.reserve(WriteBlock);
-  // write_buffer_.reserve(WriteBlock);
-  writer_.start();
+  free_queue_.allocate_space(4096);
+  message_queue_.reserve(16);
 }
 
 Logger::~Logger()
 {
   flush();
-  writer_.quit();
 }
 
-void Logger::submit(Buffer& buf)
+void Logger::submit(Message&& message)
 {
-  std::unique_lock<std::mutex> lock(write_buffer_mutex_);
-  write_buffer_.combine_buffer(buf);
-  // Ask writer thread to write if we've gathered enough data
-  if (write_buffer_.size() >= WriteBlock)
-    writer_.submit(write_buffer_);
+  bool write(false);
+  {
+    std::lock_guard<std::mutex> lock(message_queue_mutex_);
+    message_queue_.emplace_back(std::move(message));
+    write = message_queue_.size() >= 16;
+  }
+  if (write)
+    write_condition_.notify_one();
 }
 
-void Logger::give_back(Buffer& buf)
+void Logger::write()
 {
-  buf.reclaim();
-  std::lock_guard<std::mutex> lock(free_buffer_mutex_);
-  free_buffer_.combine_buffer(buf);
+  // TODO outer loop, quit machanism
+  std::unique_lock<std::mutex> lock(message_queue_mutex_);
+  while (message_queue_.empty())
+    write_condition_.wait_for(lock, std::chrono::seconds(5));
+  MessageQueue queue(std::move(message_queue_));
+  lock.unlock();
+
+  for (auto& sink_ptr : sink_list_) {
+    ; // TODO write queue to sink
+  }
+  {
+    std::lock_guard<std::mutex> lock(free_queue_mutex_);
+    free_queue_.combine(std::move(queue.buffers()));
+  }
 }
+
 
 void Logger::flush()
 {
-  submit(write_buffer_);
+  //submit(write_queue_);
 }
 
 Logger& logger()

@@ -10,7 +10,8 @@
 #include <type_traits>
 #include "util.hpp"
 #include "log_level.hpp"
-#include "buffer.hpp"
+#include "message.hpp"
+#include "buffer_queue.hpp"
 
 namespace ku { namespace log {
 
@@ -26,11 +27,11 @@ class Collector : private util::noncopyable
 
 public:
   Collector() = delete;
-  ~Collector() { submit(); }
+  ~Collector();
 
-  void append(char c) { buffer().append(c); }
-  void append(std::string const& s) { buffer().append(s.c_str(), s.size()); }
-  void append(char const* s, size_t size) { buffer().append(s, size); }
+  void append(char c) { message_.append(c); }
+  void append(std::string const& s) { message_.append(s.c_str(), s.size()); }
+  void append(char const* s, size_t size) { message_.append(s, size); }
 
   Collector& initialize(LogLevel log_level);
   void set_format(char const* fmt) { format_ = fmt; }
@@ -40,19 +41,17 @@ public:
   Collector& operator () (char const* fmt, Args... args);
 
 private:
-  Collector(Buffer& free_buffer, Logger& logger)
-    : buffer_(free_buffer), logger_(logger), format_(nullptr)
+  Collector(BufferQueue& free_queue, Logger& logger)
+    : logger_(logger), message_(free_queue), format_(nullptr)
   { }
 
-  Collector(Collector&& col) : logger_(col.logger_)
-  { buffer_.swap(col.buffer_); format_ = col.format_; col.format_ = nullptr; }
-
-  Buffer& buffer() { return buffer_; }
-  void submit();
+  Collector(Collector&& col)
+    : logger_(col.logger_), message_(std::move(col.message_)), format_(col.format_)
+  { }
 
 private:
-  Buffer buffer_;
   Logger& logger_;
+  Message message_;
   char const* format_;
 };
 
