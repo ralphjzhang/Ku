@@ -21,12 +21,9 @@ class BufferQueue;
 
 class Buffer : private util::noncopyable
 {
-  friend class Collector;
-  friend class Logger;
-  friend class BufferQueue;
   friend std::string to_str(Buffer const& buf);
 
-private:
+public:
   // This maps iovec, can be casted directly to iovec
   struct Node
   {
@@ -36,6 +33,7 @@ private:
     size_t used;
   };
 
+private:
   class NodeList : private util::noncopyable
   {
   public:

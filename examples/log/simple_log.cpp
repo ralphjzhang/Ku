@@ -8,7 +8,7 @@ int main()
   using namespace ku::log;
   logger();
 
-  std::cout << sizeof(Buffer) << std::endl;
+  std::cout << sizeof(Message) << std::endl;
 
   logger().add_sink(Sink_ptr(new ConsoleSink()));
   LOG(Debug) << "Hello11111";
@@ -23,7 +23,5 @@ int main()
   LOG(Debug) << "KLMNO66666";
   LOG(Debug) << "PQRST77777";
   LOG(Debug) << "UVWXY88888";
-
-  sleep(3);
 }
 

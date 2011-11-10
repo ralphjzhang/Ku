@@ -11,8 +11,9 @@ namespace ku { namespace log {
 
 Collector& Collector::initialize(LogLevel log_level)
 {
-  std::string now(util::now());
-  message_.append(now.c_str(), now.size());
+  char buf[32];
+  size_t sz = util::now(buf);
+  message_.append(buf, sz);
   message_.set_log_level(log_level);
   char const* s_log_level = to_log(log_level);
   message_.append(s_log_level, std::strlen(s_log_level)); 

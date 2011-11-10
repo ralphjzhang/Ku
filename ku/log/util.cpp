@@ -11,15 +11,20 @@
 
 namespace ku { namespace log { namespace util {
 
+size_t now(char* buf)
+{
+  timespec ts;
+  ::clock_gettime(CLOCK_REALTIME, &ts);
+  tm t;
+  ::localtime_r(&ts.tv_sec, &t);
+  return sprintf(buf, "%d-%02d-%02d %02d:%02d:%02d.%09lu", t.tm_year + 1900, t.tm_mon + 1,
+      t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, ts.tv_nsec);
+}
+
 std::string now()
 {
-  timeval tv;
-  ::gettimeofday(&tv, NULL);
   char buf[32];
-  if (tm* tm_ptr = localtime(&tv.tv_sec)) {
-    size_t s = std::strftime(buf, 32, "%Y-%m-%d %H:%M:%S.", tm_ptr);
-    std::sprintf(buf + s, "%06ld", tv.tv_usec);
-  }
+  now(buf);
   return std::string(buf);
 }
 

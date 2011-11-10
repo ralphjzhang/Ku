@@ -16,7 +16,7 @@ public:
 
   virtual ~FileSink() { close(); }
 
-  virtual void write(Buffer& buf);
+  virtual void write(BufferQueue const& queue);
 
 protected:
   FileSink(int file_handle) : file_handle_(file_handle) { }

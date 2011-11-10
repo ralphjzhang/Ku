@@ -10,7 +10,7 @@
 #include <sys/stat.h>
 #include <sys/uio.h>
 #include <cassert>
-#include "buffer.hpp"
+#include "buffer_queue.hpp"
 #include "file_sink.hpp"
 
 #include <iostream>
@@ -25,15 +25,17 @@ FileSink::FileSink(char const* path)
     file_handle_ = 0;
 }
 
-void FileSink::write(Buffer& buf)
+void FileSink::write(BufferQueue const& queue)
 {
-  ::writev(file_handle_, buf.raw_buffer(), buf.raw_buffer_count());
+  ::writev(file_handle_, queue.raw_buffer(), queue.raw_buffer_count());
 }
 
 void FileSink::close()
 {
-  if (file_handle_)
+  if (file_handle_) {
+    ::fsync(file_handle_);
     ::close(file_handle_);
+  }
 }
 
 } } // namespace ku::log

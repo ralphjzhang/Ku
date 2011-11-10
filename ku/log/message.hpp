@@ -16,7 +16,7 @@ public:
   Message() = default;
   Message(BufferQueue& free_queue) : buffer_(free_queue) { }
   Message(Message&& message)
-    : buffer_(std::move(message.buffer_)), log_level_(message.log_level_) { }
+    : log_level_(message.log_level_), buffer_(std::move(message.buffer_)) { }
 
   iovec const* raw_buffer() const { return buffer_.raw_buffer(); }
   size_t raw_buffer_count() const { return buffer_.raw_buffer_count(); }
@@ -30,8 +30,8 @@ public:
   void set_log_level(LogLevel log_level) { log_level_ = log_level; }
 
 private:
-  Buffer buffer_;
   LogLevel log_level_;
+  Buffer buffer_;
 };
 
 } } // namespace ku::log

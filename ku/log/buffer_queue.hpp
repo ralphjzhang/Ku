@@ -22,11 +22,11 @@ public:
   BufferQueue(uint32_t capacity);
   BufferQueue(BufferQueue&& queue)
     : capacity_(queue.capacity_), size_(queue.size_), nodes_(queue.nodes_)
-  { queue.size_ = 0; queue.nodes_ = nullptr; }
+  { queue.capacity_ = 0; queue.size_ = 0; queue.nodes_ = nullptr; }
   ~BufferQueue();
 
   iovec const* raw_buffer() const { return reinterpret_cast<iovec const*>(nodes_); }
-  uint32_t raw_buffer_count() const { return size(); }
+  uint32_t raw_buffer_count() const { return size_; }
 
   void swap(BufferQueue& queue)
   {
@@ -38,11 +38,16 @@ public:
   void reserve(uint32_t n); // reserve n nodes
   void allocate_space(size_t n); // allocate at least n bytes free space
 
+  void push_back(Node const* node, uint32_t count)
+  {
+    reserve(size_ + count);
+    std::memcpy(nodes_ + size_, node, sizeof(Node) * count);
+    size_ += count;
+  }
+
   void emplace_back(Buffer&& buf)
   {
-    reserve(size() + buf.raw_buffer_count());
-    std::memcpy(nodes_ + size(), buf.raw_buffer(), sizeof(Node) * buf.raw_buffer_count());
-    size_ += buf.raw_buffer_count();
+    push_back(reinterpret_cast<Node const*>(buf.raw_buffer()), buf.raw_buffer_count());
     buf.clear();
   }
 

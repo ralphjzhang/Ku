@@ -24,6 +24,8 @@ struct noncopyable
   noncopyable& operator=(noncopyable const&) = delete;
 };
 
+size_t now(char* buf);
+
 std::string now();
 
 struct LineNo { typedef uint32_t type; };

@@ -38,16 +38,15 @@ public:
 
 private:
   void write();
-  void flush();
 
 private:
-  const static size_t WriteBlock = 1024;//4096;
-
+  std::thread thread_;
   MessageQueue message_queue_;
   BufferQueue free_queue_;
   std::mutex message_queue_mutex_, free_queue_mutex_;
   std::condition_variable write_condition_;
   SinkList sink_list_;
+  bool quit_;
 };
 
 Logger& logger();

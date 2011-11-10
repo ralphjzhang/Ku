@@ -5,10 +5,11 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
+#include <cstdint>
 
 namespace ku { namespace log {
 
-enum class LogLevel
+enum class LogLevel : uint32_t 
 {
   Debug, Info, Warn, Error, Fatal
 };
