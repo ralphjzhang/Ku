@@ -24,6 +24,8 @@ void MessageQueue::flush_to(Sink& sink)
         bufs.push_back(node_ptr, info.raw_buffer_count);
       node_ptr += info.raw_buffer_count;
     }
+    // This one-shot write assumes sink uses blocking write,
+    // or non-blocking but handle partial write internally
     sink.write(bufs);
   }
 }

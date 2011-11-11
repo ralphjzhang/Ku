@@ -1,7 +1,0 @@
-import os
-
-Import('env')
-env = env.Clone()
-
-env.Library('kunet', Glob('*.cpp'))
-
