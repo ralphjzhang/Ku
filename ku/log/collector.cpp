@@ -9,15 +9,14 @@
 
 namespace ku { namespace log {
 
-Collector& Collector::initialize(LogLevel log_level)
+Collector::Collector(LogLevel log_level, BufferList& free_queue, Logger& logger)
+  : logger_(logger), message_(log_level, free_queue)
 {
   char buf[32];
   size_t sz = util::now(buf);
   message_.append(buf, sz);
-  message_.set_log_level(log_level);
-  char const* s_log_level = to_log(log_level);
+  char const* s_log_level = to_log(message_.log_level());
   message_.append(s_log_level, std::strlen(s_log_level)); 
-  return *this;
 }
 
 Collector::~Collector()

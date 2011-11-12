@@ -10,7 +10,7 @@
 #include <exception>
 #include <algorithm>
 #include "buffer.hpp"
-#include "buffer_queue.hpp"
+#include "buffer_list.hpp"
 
 #include <iostream>
 
@@ -126,7 +126,7 @@ void Buffer::reserve(size_t n)
   }
 }
 
-Buffer::Buffer(BufferQueue& free_queue) : size_(0), nodes_(free_queue.nodes_, free_queue.size_)
+Buffer::Buffer(BufferList& free_queue) : size_(0), nodes_(free_queue.nodes_, free_queue.size_)
 {
   free_queue.size_ -= nodes_.size();
 }

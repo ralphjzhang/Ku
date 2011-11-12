@@ -8,12 +8,6 @@
 
 namespace ku { namespace log {
 
-LogLevel& g_log_level()
-{
-  static LogLevel level = LogLevel::Debug;
-  return level;
-}
-
 char const* to_log(LogLevel level)
 {
   switch (level) {

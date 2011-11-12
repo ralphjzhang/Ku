@@ -1,19 +1,25 @@
 #include <ku/log/logger.hpp>
 #include <ku/log/console_sink.hpp>
+#include <ku/log/file_sink.hpp>
 #include <ku/log/log.hpp>
 #include <iostream>
 
 int main()
 {
   using namespace ku::log;
-  logger();
 
   std::cout << sizeof(Message) << std::endl;
 
-  logger().add_sink(Sink_ptr(new ConsoleSink()));
+  g_logger().add_sink(Sink_ptr(new ConsoleSink(LogLevel::Info)));
+  auto file_ptr = new FileSink(".", "simple_log");
+  g_logger().add_sink(Sink_ptr(file_ptr)); 
   LOG(Debug) << "Hello11111";
+  LOG(Info) << "Info info info " << 42;
   LOG(Debug) << "World22222";
   LOG(Debug) << "Ralph33333";
+  LOG(Warn) << "Warn warn " << 42;
+  LOG_IF(Fatal, true) << "This LOG_IF should always be there";
+  LOG_IF(Fatal, false) << "This LOG_IF should never be there";
   LOG(Debug) << "ABCDE44444";
   LOG(Debug) << "FGHIJ55555";
   LOG(Debug) << "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii";

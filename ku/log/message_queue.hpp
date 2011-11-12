@@ -7,7 +7,7 @@
 #pragma once
 #include <algorithm>
 #include <vector>
-#include "buffer_queue.hpp"
+#include "buffer_list.hpp"
 #include "message.hpp"
 
 namespace ku { namespace log {
@@ -28,7 +28,11 @@ class MessageQueue
 
 public:
   MessageQueue() : min_log_level_(LogLevel::Fatal) { }
-  MessageQueue(MessageQueue&& queue) : index_(std::move(queue.index_)), buffers_(std::move(queue.buffers_)) { }
+  // move constructor is NOT thread safe, lock it when use
+  MessageQueue(MessageQueue&& queue)
+    : index_(std::move(queue.index_)) , buffers_(std::move(queue.buffers_))
+    , min_log_level_(LogLevel::Fatal)
+  { }
 
   void emplace_back(Message&& message)
   {
@@ -38,16 +42,16 @@ public:
   }
 
   void reserve() { index_.reserve(FlushCount); buffers_.reserve(FlushCount + FlushCount / 2); }
-  bool empty() { return index_.empty(); }
+  inline bool empty() { return index_.empty(); }
 
   bool flushable() const { return buffers_.raw_buffer_count() >= FlushCount; }
   void flush_to(Sink& sink);
 
-  BufferQueue& buffers() { return buffers_; }
+  BufferList& buffers() { return buffers_; }
 
 private:
   BufferIndex index_;
-  BufferQueue buffers_;
+  BufferList buffers_;
   LogLevel min_log_level_;
 };
 

@@ -9,7 +9,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include "buffer_queue.hpp"
+#include "log_level.hpp"
+#include "buffer_list.hpp"
 #include "message_queue.hpp"
 #include "sink.hpp"
 #include "collector.hpp"
@@ -21,35 +22,39 @@ class Message;
 class Logger
 {
   typedef std::forward_list<Sink_ptr> SinkList;
+  friend Logger& g_logger();
 
 public:
-  Logger();
   ~Logger();
-
   void add_sink(Sink_ptr sink) { sink_list_.push_front(std::move(sink)); }
 
-  Collector create_collector()
+  Collector create_collector(LogLevel log_level)
   {
     std::lock_guard<std::mutex> lock(free_queue_mutex_);
-    return Collector(free_queue_, *this);
+    return Collector(log_level, free_queue_, *this);
   }
 
   void submit(Message&& message);
+  LogLevel log_level() const { return log_level_; }
+  void set_log_level(LogLevel log_level) { log_level_ = log_level; }
 
 private:
+  Logger();
+
   void write();
 
 private:
   std::thread thread_;
   MessageQueue message_queue_;
-  BufferQueue free_queue_;
+  BufferList free_queue_;
   std::mutex message_queue_mutex_, free_queue_mutex_;
   std::condition_variable write_condition_;
   SinkList sink_list_;
   bool quit_;
+  LogLevel log_level_;
 };
 
-Logger& logger();
+Logger& g_logger();
 
 } } // namespace ku::log
 

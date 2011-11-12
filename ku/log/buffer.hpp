@@ -17,7 +17,7 @@ struct iovec;
 
 namespace ku { namespace log {
 
-class BufferQueue;
+class BufferList;
 
 class Buffer : private util::noncopyable
 {
@@ -81,7 +81,7 @@ private:
 
 public:
   Buffer() : size_(0) { }
-  Buffer(BufferQueue& free_queue); // Try to construct a Buffer from recycled heap space
+  Buffer(BufferList& free_queue); // Try to construct a Buffer from recycled heap space
   Buffer(Buffer&& buf) : size_(buf.size_), nodes_(std::move(buf.nodes_)) { buf.size_ = 0; }
   ~Buffer();
 

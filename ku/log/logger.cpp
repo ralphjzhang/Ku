@@ -10,7 +10,7 @@
 
 namespace ku { namespace log {
 
-Logger::Logger() : quit_(false)
+Logger::Logger() : quit_(false), log_level_(LogLevel::Debug)
 {
   // Initial free buffer space pool, a typical flush size of MessageQueue is 4K.
   // FreeHeap doubles this to allow free space allocated during flushing operation.
@@ -41,17 +41,21 @@ void Logger::submit(Message&& message)
 
 void Logger::write()
 {
-  while (!quit_) {
-    std::unique_lock<std::mutex> lock(message_queue_mutex_);
+  std::unique_lock<std::mutex> lock(message_queue_mutex_, std::defer_lock);
+  while (true) {
+    lock.lock();
     while (message_queue_.empty() && !quit_)
       write_condition_.wait_for(lock, std::chrono::seconds(3));
-    if (message_queue_.empty())
-      continue;
+    if (message_queue_.empty()) {
+      lock.unlock();
+      if (quit_) break; else continue;
+    }
     MessageQueue queue(std::move(message_queue_));
     lock.unlock();
 
     for (auto& sink_ptr : sink_list_)
       queue.flush_to(*sink_ptr);
+    queue.buffers().reclaim_space();
     {
       // Message flushed, return heap space back to free_queue_
       std::lock_guard<std::mutex> lock(free_queue_mutex_);
@@ -61,9 +65,8 @@ void Logger::write()
   }
 }
 
-Logger& logger()
+Logger& g_logger()
 {
-  // TODO: call_once
   static Logger lg;
   return lg;
 }

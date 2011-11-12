@@ -9,6 +9,11 @@
 #include "collector.hpp"
 
 #define LOG(level) \
-  if (LogLevel::level > g_log_level()); else logger().create_collector().initialize(LogLevel::level)
+  if (LogLevel::level < g_logger().log_level()); \
+  else g_logger().create_collector(LogLevel::level).message()
+
+#define LOG_IF(level, cond) \
+  if (LogLevel::level < g_logger().log_level() || !(cond)); \
+  else g_logger().create_collector(LogLevel::level).message()
 
 

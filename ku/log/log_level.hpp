@@ -14,8 +14,6 @@ enum class LogLevel : uint32_t
   Debug, Info, Warn, Error, Fatal
 };
 
-LogLevel& g_log_level();
-
 char const* to_log(LogLevel level);
 
 } } // namespace ku::log

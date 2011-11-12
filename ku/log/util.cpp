@@ -9,6 +9,18 @@
 #include <cstdio>
 #include "util.hpp"
 
+namespace {
+inline size_t to_str(char* buf, unsigned num, size_t size)
+{
+  size_t sz = size;
+  while (sz) {
+    buf[--sz] = num % 10 + '0';
+    num /= 10;
+  }
+  return size;
+}
+} // unamed namespace
+
 namespace ku { namespace log { namespace util {
 
 size_t now(char* buf)
@@ -17,8 +29,21 @@ size_t now(char* buf)
   ::clock_gettime(CLOCK_REALTIME, &ts);
   tm t;
   ::localtime_r(&ts.tv_sec, &t);
-  return sprintf(buf, "%d-%02d-%02d %02d:%02d:%02d.%09lu", t.tm_year + 1900, t.tm_mon + 1,
-      t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec, ts.tv_nsec);
+  char* p = buf;
+  p += to_str(p, t.tm_year + 1900, 4);
+  *p++ = '-';
+  p += to_str(p, t.tm_mon + 1, 2);
+  *p++ = '-';
+  p += to_str(p, t.tm_mday, 2);
+  *p++ = ' ';
+  p += to_str(p, t.tm_hour, 2);
+  *p++ = ':';
+  p += to_str(p, t.tm_min, 2);
+  *p++ = ':';
+  p += to_str(p, t.tm_sec, 2);
+  *p++ = '.';
+  p += to_str(p, ts.tv_nsec, 9);
+  return p - buf;
 }
 
 std::string now()

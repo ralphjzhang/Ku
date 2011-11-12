@@ -11,7 +11,7 @@
 
 namespace ku { namespace log {
 
-class BufferQueue;
+class BufferList;
 
 class Sink;
 typedef std::unique_ptr<Sink> Sink_ptr;
@@ -19,11 +19,11 @@ typedef std::unique_ptr<Sink> Sink_ptr;
 class Sink : private util::noncopyable
 {
 public:
-  Sink() : log_level_(LogLevel::Debug) { }
+  Sink(LogLevel log_level) : log_level_(log_level) { }
 
   virtual ~Sink() { }
 
-  virtual void write(BufferQueue const& queue) = 0;
+  virtual void write(BufferList const& list) = 0;
 
   LogLevel log_level() { return log_level_; }
   void set_log_level(LogLevel log_level) { log_level_ = log_level; }

@@ -16,7 +16,7 @@ void MessageQueue::flush_to(Sink& sink)
   if (min_log_level_ >= sink.log_level()) {
     sink.write(buffers_);
   } else {
-    BufferQueue bufs;
+    BufferList bufs;
     bufs.reserve(buffers_.raw_buffer_count());
     Buffer::Node const* node_ptr = reinterpret_cast<Buffer::Node const*>(buffers_.raw_buffer());
     for (MessageInfo const& info : index_) {

@@ -6,14 +6,14 @@
  ***************************************************************/ 
 #pragma once
 #include "sink.hpp"
-#include "file_sink.hpp"
 
 namespace ku { namespace log {
 
-class ConsoleSink : public FileSink
+class ConsoleSink : public Sink
 {
 public:
-  ConsoleSink() : FileSink(STDOUT_FILENO) { }
+  ConsoleSink(LogLevel log_level = LogLevel::Debug) : Sink(log_level) { }
+  virtual void write(BufferList const& list);
 
   virtual ~ConsoleSink() { }
 };
