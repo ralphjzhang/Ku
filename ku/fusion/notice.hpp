@@ -17,8 +17,6 @@
 
 namespace ku { namespace fusion {
 
-class Endpoint;
-
 typedef uint32_t NoticeId;
 
 // =======================================================================================

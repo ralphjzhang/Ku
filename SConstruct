@@ -8,6 +8,6 @@ env = Environment(
 
 Export('env')
 
-SConscript('ku/fusion/SConscript')
+#SConscript('ku/fusion/SConscript')
 SConscript('ku/log/SConscript')
 

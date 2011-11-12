@@ -1,38 +1,36 @@
-#include <cstdio>
-#include "endpoint.hpp"
+/***************************************************************
+ * Copyright 2011, Zhang, Jun. All rights reserved.            *
+ * Author: Zhang, Jun (ralph dot j dot zhang at gmail dot com) *
+ *                                                             *
+ * This source code is provided with absolutely no warranty.   *
+ ***************************************************************/ 
+#include <cassert>
+#include <system_error>
 #include "util.hpp"
+#include "endpoint.hpp"
 
 namespace ku { namespace fusion {
 
-Endpoint::Endpoint(std::string const& ip, uint16_t port)
+Endpoint::Endpoint(char const* uri)
 {
-  util::make_sockaddr(ip.c_str(), port, sockaddr_);
+  if (!parse(uri))
+    throw std::system_error(util::errc(EINVAL), "Endpoint::Endpoint");
 }
 
-Endpoint::Endpoint(uint16_t port)
+bool Endpoint::parse(char const* str)
 {
-  util::make_sockaddr(port, sockaddr_);
+  assert(str);
+  std::string uri(str);
+  std::string::size_type pos = uri.find ("://");
+  if (pos == std::string::npos)
+    return false;
+  protocol_ = str_to_protocol(uri.substr(0, pos));
+  address_ = uri.substr(pos + 3);
+  if (!protocol_ || address_.empty())
+    return false;
+  return true;
 }
-
-std::string Endpoint::ip() const
-{
-  return util::ip_str(sockaddr_);
-}
-
-uint16_t Endpoint::port() const
-{
-  return ::ntohs(sockaddr_.sin_addr.s_addr);
-}
-
-std::string to_str(Endpoint const& addr)
-{
-  std::string ip = addr.ip();
-  char port[8];
-  sprintf(port, ":%u", addr.port());
-  ip.append(port);
-  return ip;
-}
-
 
 } } // namespace ku::fusion
+
 

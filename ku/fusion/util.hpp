@@ -8,7 +8,8 @@ struct sockaddr_in;
 
 namespace ku { namespace fusion { namespace util {
 
-inline std::error_code errc() { return std::make_error_code(static_cast<std::errc>(errno)); }
+inline std::error_code errc(int err) { return std::make_error_code(static_cast<std::errc>(err)); }
+inline std::error_code errc() { return errc(errno); }
 
 template<typename To, typename From>
 inline To implicit_cast(From const &f)

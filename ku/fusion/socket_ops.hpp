@@ -20,14 +20,17 @@ struct Socket
 {
   static inline Handle<Socket> create(addrinfo const& ai, bool non_block = true)
   {
-    int flag = ai.ai_socktype | SOCK_CLOEXEC;
-    if (non_block)
-      flag |= SOCK_NONBLOCK;
-    Handle<Socket> socket_handle(::socket(ai.ai_family, flag, ai.ai_protocol));
-    if (!socket_handle)
-      throw std::system_error(util::errc(), "ops::Socket::create");
-    else
-      return std::move(socket_handle);
+    addrinfo const* ai_ptr = &ai;
+    while (ai_ptr) {
+      int flag = ai_ptr->ai_socktype | SOCK_CLOEXEC;
+      if (non_block)
+        flag |= SOCK_NONBLOCK;
+      Handle<Socket> socket_handle(::socket(ai_ptr->ai_family, flag, ai_ptr->ai_protocol));
+      if (socket_handle)
+        return std::move(socket_handle);
+      ai_ptr = ai_ptr->ai_next;
+    }
+    throw std::system_error(util::errc(), "ops::Socket::create");
   }
 
   static inline void bind(Handle<Socket>& h, Endpoint const& endpoint)

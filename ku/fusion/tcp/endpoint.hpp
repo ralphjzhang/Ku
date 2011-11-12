@@ -7,11 +7,11 @@
 #pragma once
 #include <netinet/in.h>
 #include <string>
-#include "protocol.hpp"
+#include "../endpoint.hpp"
 
-namespace ku { namespace fusion {
+namespace ku { namespace fusion { namespace tcp {
 
-class Endpoint
+class Endpoint : public ku::fusion::Endpoint
 {
   friend std::string to_str(Endpoint const&);
 
@@ -35,5 +35,5 @@ private:
 
 std::string to_str(Endpoint const& addr);
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

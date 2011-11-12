@@ -4,7 +4,6 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#include "endpoint.hpp"
 #include "notice.hpp"
 
 namespace ku { namespace fusion {
