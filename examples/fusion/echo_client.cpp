@@ -1,18 +1,21 @@
 #include <iostream>
 #include <sstream>
 #include <ku/fusion/endpoint.hpp>
-#include <ku/fusion/socket.hpp>
+#include <ku/fusion/ip_endpoint.hpp>
+#include <ku/fusion/tcp/socket.hpp>
 
 using namespace ku::fusion;
+using namespace ku::fusion::tcp;
 
 int main(int argc, char* argv[])
 {
   if (argc < 2) {
-    std::cout << "Usage: echo_server port endpoint" << std::endl;
+    std::cout << "Usage: echo_server endpoint" << std::endl;
+    std::cout << "  e.g., echo_server tcp://*:8888" << std::endl;
     exit(0);
   }
-  uint16_t port = atoi(argv[1]);
-  Endpoint endpoint = argc > 2 ? Endpoint(argv[2], port) : Endpoint(port);
+  Endpoint ep(argv[1]);
+  IPEndpoint endpoint(ep);
 
   try {
     ConnectorSocket socket(false);

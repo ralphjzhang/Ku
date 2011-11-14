@@ -38,5 +38,12 @@ private:
   SockAddr sockaddr_;
 };
 
+inline std::string to_str(IPEndpoint const& endpoint)
+{
+  char buf[10];
+  sprintf(buf, "%u", endpoint.port());
+  return endpoint.address().append(":").append(buf);
+}
+
 } } // namespace ku::fusion
 

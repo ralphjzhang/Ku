@@ -1,10 +1,13 @@
 #include <iostream>
 #include <future>
-#include <ku/fusion/socket_acceptor.hpp>
-#include <ku/fusion/server_connection.hpp>
-#include <ku/fusion/tcp_server.hpp>
+#include <ku/fusion/endpoint.hpp>
+#include <ku/fusion/ip_endpoint.hpp>
+#include <ku/fusion/tcp/socket_acceptor.hpp>
+#include <ku/fusion/tcp/server_connection.hpp>
+#include <ku/fusion/tcp/server.hpp>
 
 using namespace ku::fusion;
+using namespace ku::fusion::tcp;
 
 // ======================================================================================
 // It's not really necessary to inherit from TCPConnection, as long as the handle provides
@@ -37,13 +40,14 @@ int main(int argc, char* argv[])
   }
 
   try {
-    Endpoint local_endpoint("127.0.0.1", 8888);
-    TCPServer<EchoHandler> server(local_endpoint);
+    Endpoint ep("tcp://127.0.0.1:8888");
+    IPEndpoint local_endpoint(ep);
+    Server<EchoHandler> server(local_endpoint);
     // auto fut = std::async(std::ref(server)); TODO async in gcc 4.6 seems broken
     std::thread t(std::ref(server));
     std::cout << "Server running, press enter to exit." << std::endl;
     std::cin.ignore();
-    server.stop();
+    server.stop(); // TODO if poller has infinite timeout, this won't work
     std::cout << "Server stopped, exiting program." << std::endl;
     t.join();
   } catch (std::system_error const& ec) {

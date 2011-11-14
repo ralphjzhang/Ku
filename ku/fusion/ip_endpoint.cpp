@@ -45,7 +45,7 @@ namespace ku { namespace fusion {
 IPEndpoint::IPEndpoint(Endpoint const& endpoint)
 {
   Protocol p = endpoint.protocol();
-  if (p != Protocol::TCP && p != Protocol::PGM && p != Protocol::WS);
+  if (p != Protocol::TCP && p != Protocol::PGM && p != Protocol::WS)
     throw std::system_error(util::errc(EINVAL), "IPEndpoint::IPEndpoint");
   // "address" of Endpoint is actually "endpoint" of IP protocol
   std::string const& ep = endpoint.address();

@@ -14,7 +14,7 @@ template <typename EventHandler>
 class ServerConnection : public SocketConnection
 {
 public:
-  ServerConnection(Socket&& socket, Endpoint const& peer_endpoint) 
+  ServerConnection(Socket&& socket, IPEndpoint const& peer_endpoint) 
     : SocketConnection(std::move(socket), peer_endpoint)
   { }
 

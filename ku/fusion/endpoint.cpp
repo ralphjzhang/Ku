@@ -28,15 +28,10 @@ Protocol parse_uri(char const* str, std::string& address)
 
 namespace ku { namespace fusion {
 
-/// resolve ///
-//
-Endpoint resolve(char const* uri)
+bool Endpoint::resolve(char const* uri)
 {
-  std::string address;
-  Protocol protocol = parse_uri(uri, address);
-  if (protocol == Protocol::Invalid)
-    throw std::system_error(util::errc(EINVAL), "resolve");
-  return Endpoint(protocol, address);
+  protocol_ = parse_uri(uri, address_);
+  return protocol_ != Protocol::Invalid;
 }
 
 

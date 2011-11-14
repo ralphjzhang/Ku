@@ -26,7 +26,7 @@ Protocol str_to_protocol(std::string const& s)
 {
   for (unsigned i = 0; i < sizeof(protocols); ++i)
     if (s.compare(protocols[i]) == 0)
-      return static_cast<Protocol>(i + 1);
+      return static_cast<Protocol>(i);
   return Protocol::Invalid;
 }
 

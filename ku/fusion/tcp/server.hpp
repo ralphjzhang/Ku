@@ -17,7 +17,7 @@ class Server
   typedef ServerConnection<EventHandler> Connection;
 
 public:
-  Server(Endpoint const& local_endpoint)
+  Server(IPEndpoint const& local_endpoint)
     : acceptor_(local_endpoint, loop_.notices()) { }
 
   bool operator()() { return loop_(); }

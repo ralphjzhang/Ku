@@ -1,0 +1,13 @@
+import os
+
+Import('env')
+env = env.Clone()
+env.Append(LIBPATH = ['#../build/fusion'])
+env.Append(LIBS = ['kufusion', 'rt'])
+
+env.Program('timer', 'timer.cpp')
+env.Program('echo_server', 'echo_server.cpp')
+env.Program('echo_client', 'echo_client.cpp')
+env.Program('event_server', 'event_server.cpp')
+env.Program('event_server_cond_var', 'event_server_cond_var.cpp')
+
