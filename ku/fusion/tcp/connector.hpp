@@ -1,21 +1,22 @@
 #pragma once
-#include "util.hpp"
+#include "../util.hpp"
+#include "../ip_endpoint.hpp"
 #include "socket.hpp"
 
-namespace ku { namespace fusion {
+namespace ku { namespace fusion { namespace tcp {
 
 class Connector : private util::noncopyable
 {
 public:
   Connector() = default;
 
-  void connect(Endpoint const& endpoint);
+  void connect(IPEndpoint const& endpoint);
   ConnectorSocket& socket() { return socket_; }
 
 private:
-  Endpoint endpoint_;
+  IPEndpoint endpoint_;
   ConnectorSocket socket_;
 };
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

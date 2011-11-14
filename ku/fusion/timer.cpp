@@ -7,8 +7,26 @@
 #include <strings.h>
 #include <cassert>
 #include "util.hpp"
-#include "timer_ops.hpp"
+#include "ops/timer.hpp"
 #include "timer.hpp"
+
+namespace {
+
+timespec to_timespec(std::chrono::nanoseconds ns)
+{
+  using namespace std::chrono;
+  seconds sec = duration_cast<seconds>(ns);
+  ns = ns - sec;
+  return timespec{sec.count(), ns.count()};
+}
+
+std::chrono::nanoseconds from_timespec(timespec const& spec)
+{
+  using namespace std::chrono;
+  return seconds(spec.tv_sec) + nanoseconds(spec.tv_nsec);
+}
+
+} // unamed namespace
 
 namespace ku { namespace fusion {
 
@@ -21,7 +39,7 @@ std::chrono::nanoseconds Timer::get_interval_internal()
 {
   itimerspec spec;
   ops::Timer::get_time(handle_, spec);
-  return util::from_timespec(spec.it_interval);
+  return from_timespec(spec.it_interval);
 }
 
 void Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
@@ -29,10 +47,10 @@ void Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
   itimerspec spec;
   ::bzero(&spec, sizeof(itimerspec));
   if (mode == Timer::Periodic) {
-    spec.it_value = util::to_timespec(duration);
-    spec.it_interval = util::to_timespec(duration);
+    spec.it_value = to_timespec(duration);
+    spec.it_interval = to_timespec(duration);
   } else if (mode == Timer::Deadline) {
-    spec.it_value = util::to_timespec(duration);
+    spec.it_value = to_timespec(duration);
   } else {
     assert(false);
   }

@@ -1,7 +1,10 @@
-import os
-
 Import('env')
 env = env.Clone()
 
-env.Library('kufusion', Glob('*.cpp'))
+objs = []
+for subdir in ['tcp']:
+  o = SConscript('%s/SConscript' % subdir)
+  objs.append(o)
+
+env.Library('kufusion', Glob('*.cpp') + objs)
 

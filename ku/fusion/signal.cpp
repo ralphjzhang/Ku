@@ -5,7 +5,7 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #include "signal.hpp"
-#include "signal_ops.hpp"
+#include "ops/signal.hpp"
 
 namespace ku { namespace fusion {
 

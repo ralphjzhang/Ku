@@ -9,7 +9,7 @@
 #include <chrono>
 #include <string>
 #include "handle.hpp"
-#include "common_ops.hpp"
+#include "ops/common.hpp"
 
 namespace ku { namespace fusion {
 

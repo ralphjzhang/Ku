@@ -6,15 +6,15 @@
  ***************************************************************/ 
 #pragma once
 #include "socket_connection.hpp"
-#include "call_selector.hpp"
+#include "../call_selector.hpp"
 
-namespace ku { namespace fusion {
+namespace ku { namespace fusion { namespace tcp {
 
 template <typename EventHandler>
 class ServerConnection : public SocketConnection
 {
 public:
-  ServerConnection(StreamSocket&& socket, Endpoint const& peer_endpoint) 
+  ServerConnection(Socket&& socket, Endpoint const& peer_endpoint) 
     : SocketConnection(std::move(socket), peer_endpoint)
   { }
 
@@ -54,5 +54,5 @@ private:
   EventHandler handler_;
 };
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

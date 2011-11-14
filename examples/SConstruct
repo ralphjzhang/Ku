@@ -1,13 +1,13 @@
 import os
 
 env = Environment(
-    CPPPATH = ['../..'],
+    CPPPATH = ['#..'],
     LIBS = ['pthread'],
     CCFLAGS = '-Wall --std=c++0x -g -fPIC'
     )
 
 Export('env')
 #SConscript('fusion/SConscript')
-SConscript('log/SConscript')
+SConscript('log/SConscript', variant_dir = 'build/log', duplicate = 0)
 
 

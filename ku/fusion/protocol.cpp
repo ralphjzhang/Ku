@@ -18,7 +18,7 @@ namespace ku { namespace fusion {
 
 std::string to_str(Protocol p)
 {
-  assert(p >= Protocol::invalid && p <= Protocol::ws);
+  assert(p >= Protocol::Invalid && p <= Protocol::WS);
   return protocols[static_cast<int>(p)];
 }
 
@@ -27,7 +27,7 @@ Protocol str_to_protocol(std::string const& s)
   for (unsigned i = 0; i < sizeof(protocols); ++i)
     if (s.compare(protocols[i]) == 0)
       return static_cast<Protocol>(i + 1);
-  return Protocol::invalid;
+  return Protocol::Invalid;
 }
 
 } } // namespace ku::fusion

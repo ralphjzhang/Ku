@@ -8,6 +8,6 @@ env = Environment(
 
 Export('env')
 
-#SConscript('ku/fusion/SConscript')
-SConscript('ku/log/SConscript')
+SConscript('ku/fusion/SConscript', variant_dir = 'build/fusion', duplicate = 0)
+SConscript('ku/log/SConscript', variant_dir = 'build/log', duplicate = 0)
 

@@ -11,7 +11,7 @@ namespace ku { namespace fusion {
 
 enum class Protocol
 {
-  invalid = 0, inproc, ipc, tcp, pgm, ws
+  Invalid = 0, Inproc, IPC, TCP, PGM, WS 
 };
 
 inline bool operator!(Protocol p) { return static_cast<int>(p) > 0; }

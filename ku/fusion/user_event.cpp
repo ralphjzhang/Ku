@@ -5,7 +5,7 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #include "user_event.hpp"
-#include "user_event_ops.hpp"
+#include "ops/user_event.hpp"
 
 namespace ku { namespace fusion {
 

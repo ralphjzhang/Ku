@@ -5,28 +5,28 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
-#include "notice.hpp"
-#include "endpoint.hpp"
+#include "../notice.hpp"
+#include "../ip_endpoint.hpp"
 #include "socket.hpp"
 
-namespace ku { namespace fusion {
+namespace ku { namespace fusion { namespace tcp {
 
 class SocketConnection
 {
 public:
-  SocketConnection(StreamSocket&& socket, Endpoint const& peer_endpoint) 
+  SocketConnection(Socket&& socket, IPEndpoint const& peer_endpoint) 
     : socket_(std::move(socket)), peer_endpoint_(peer_endpoint)
   { }
 
   SocketConnection() = default; 
 
-  StreamSocket& socket() { return socket_; }
-  Endpoint const& peer_endpoint() const { return peer_endpoint_; }
+  Socket& socket() { return socket_; }
+  IPEndpoint const& peer_endpoint() const { return peer_endpoint_; }
 
 private:
-  StreamSocket socket_;
-  Endpoint peer_endpoint_;
+  Socket socket_;
+  IPEndpoint peer_endpoint_;
 };
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

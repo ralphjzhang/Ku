@@ -6,18 +6,18 @@
  ***************************************************************/ 
 #pragma once
 #include <utility>
-#include "epoll_poller.hpp" 
+#include "../epoll_poller.hpp" 
 #include "socket_acceptor.hpp"
 
-namespace ku { namespace fusion {
+namespace ku { namespace fusion { namespace tcp {
 
 template <typename EventHandler>
-class TCPServer
+class Server
 {
   typedef ServerConnection<EventHandler> Connection;
 
 public:
-  TCPServer(Endpoint const& local_endpoint)
+  Server(Endpoint const& local_endpoint)
     : acceptor_(local_endpoint, loop_.notices()) { }
 
   bool operator()() { return loop_(); }
@@ -29,5 +29,5 @@ private:
   SocketAcceptor<Connection> acceptor_;
 };
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

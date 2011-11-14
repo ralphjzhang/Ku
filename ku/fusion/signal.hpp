@@ -7,7 +7,7 @@
 #pragma once
 #include <sys/signalfd.h>
 #include "handle.hpp"
-#include "common_ops.hpp"
+#include "ops/common.hpp"
 
 
 namespace ku { namespace fusion {

@@ -6,8 +6,8 @@ KUDIR = env['HOME'] + '/Dropbox/Code/Ku/'
 
 env = Environment(
     CCFLAGS = '-Wall --std=c++0x -fPIC -g -O0',
-    CPPPATH = [KUDIR],
-    LIBPATH = [KUDIR + 'ku/fusion/'],
+    CPPPATH = ['../../'],
+    LIBPATH = ['../../build/fusion/'],
     LIBS = ['pthread', 'kufusion'],
     )
 

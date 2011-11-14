@@ -6,26 +6,26 @@
  ***************************************************************/ 
 #pragma once
 #include <system_error>
-#include "resolver.hpp"
-#include "handle.hpp"
-#include "common_ops.hpp"
+#include "../handle.hpp"
+#include "../ops/common.hpp"
 
 namespace ku { namespace fusion {
   
-class Endpoint;
+class IPEndpoint;
 namespace ops {
 struct Socket;
 } // namespace ku::fusion::ops
 
+namespace tcp {
  
-class StreamSocket
+class Socket
 {
   typedef Handle<ops::Socket> HandleType;
 
 public:
-  explicit StreamSocket(HandleType&& handle) : handle_(std::move(handle)) { }
-  StreamSocket(StreamSocket&&) = default;
-  ~StreamSocket() = default;
+  explicit Socket(HandleType&& handle) : handle_(std::move(handle)) { }
+  Socket(Socket&&) = default;
+  ~Socket() = default;
 
   template <typename Buffer>
   inline ssize_t read(Buffer& buf, size_t count)
@@ -48,35 +48,35 @@ class AcceptorSocket
   typedef Handle<ops::Socket> HandleType;
 
 public:
-  explicit AcceptorSocket(Endpoint const& endpoint);
+  explicit AcceptorSocket(IPEndpoint const& endpoint);
   explicit AcceptorSocket(HandleType&& handle) : handle_(std::move(handle)) { }
   AcceptorSocket(AcceptorSocket&&) = default;
   ~AcceptorSocket() = default;
 
   HandleType const& handle() const { return handle_; }
   HandleType release_handle() { return std::move(handle_); }
-  StreamSocket accept(Endpoint& endpoint);
+  Socket accept(IPEndpoint& endpoint);
 
 private:
-  void bind(Endpoint const& endpoint);
+  void bind(IPEndpoint const& endpoint);
   void listen();
 
   HandleType handle_;
 };
 
-class ConnectorSocket : public StreamSocket // TODO no inheritance is better?
+class ConnectorSocket : public Socket
 {
   typedef Handle<ops::Socket> HandleType;
 
 public:
   ConnectorSocket(bool non_block = true);
-  explicit ConnectorSocket(HandleType&& handle) : StreamSocket(std::move(handle)) { }
+  explicit ConnectorSocket(HandleType&& handle) : Socket(std::move(handle)) { }
   ConnectorSocket(ConnectorSocket&&) = default;
   ~ConnectorSocket() = default;
 
   HandleType const& handle() const { return handle_; }
-  void connect(Endpoint const& endpoint);
+  void connect(IPEndpoint const& endpoint);
 };
 
-} } // namespace ku::fusion
+} } } // namespace ku::fusion::tcp
 

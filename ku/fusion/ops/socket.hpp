@@ -10,9 +10,9 @@
 #include <sys/uio.h>
 #include <netdb.h>
 #include <system_error>
-#include "util.hpp"
-#include "endpoint.hpp"
-#include "handle.hpp"
+#include "../util.hpp"
+#include "../ip_endpoint.hpp"
+#include "../handle.hpp"
 
 namespace ku { namespace fusion { namespace ops {
 
@@ -33,9 +33,9 @@ struct Socket
     throw std::system_error(util::errc(), "ops::Socket::create");
   }
 
-  static inline void bind(Handle<Socket>& h, Endpoint const& endpoint)
+  static inline void bind(Handle<Socket>& h, IPEndpoint const& endpoint)
   {
-    if (::bind(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1)
+    if (::bind(h.raw_handle(), &endpoint.sockaddress(), endpoint.sockaddr_size()) == -1)
       throw std::system_error(util::errc(), "ops::Socket::bind");
   }
 
@@ -45,22 +45,31 @@ struct Socket
       throw std::system_error(util::errc(), "ops::Socket::listen");
   }
 
-  static inline Handle<Socket> accept(Handle<Socket>& h, Endpoint& endpoint, bool non_block = true)
+  static inline Handle<Socket> accept(Handle<Socket>& h, IPEndpoint& endpoint, bool non_block = true)
   {
     int flag = non_block ? (SOCK_NONBLOCK | SOCK_CLOEXEC) : SOCK_CLOEXEC;
-    socklen_t addr_len = sizeof(sockaddr_in);
+    sockaddr_storage addr;
+    socklen_t addr_len = sizeof(sockaddr_storage);
     Handle<Socket> socket_handle(
-        ::accept4(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), &addr_len, flag));
+        ::accept4(h.raw_handle(), reinterpret_cast<sockaddr*>(&addr), &addr_len, flag));
     if (!socket_handle && errno != EAGAIN && errno != EWOULDBLOCK)
       throw std::system_error(util::errc(), "ops::Socket::accept");
+    // TODO think if we do this at all, client can use getpeername() to get it later, saving a lot of trouble
+    if (addr_len == sizeof(sockaddr_in))
+      endpoint = IPEndpoint(*reinterpret_cast<sockaddr_in*>(&addr));
+    else if (addr_len == sizeof(sockaddr_in6))
+      endpoint = IPEndpoint(*reinterpret_cast<sockaddr_in6*>(&addr));
     return socket_handle;
   }
 
-  static inline void connect(Handle<Socket>& h, Endpoint const& endpoint)
+  static inline void connect(Handle<Socket>& h, IPEndpoint const& endpoint)
   {
-    if (::connect(h.raw_handle(), util::sockaddr_cast(&endpoint.sockaddr()), sizeof(sockaddr)) == -1)
+    if (::connect(h.raw_handle(), &endpoint.sockaddress(), endpoint.sockaddr_size()) == -1)
       throw std::system_error(util::errc(), "ops::Socket::connect");
   }
+
+private:
+  
 };
 
 } } } // namespace ku::fusion::ops
