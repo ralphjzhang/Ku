@@ -27,7 +27,7 @@ public:
 
   Timer(Clock clock = Clock::Monotonic);
 
-  Timer(Timer&& t) : handle_(std::move(t.release_handle())) { }
+  Timer(Timer&& t) : handle_(std::move(t.handle_)), mode_(t.mode_) { }
   ~Timer() = default;
 
   HandleType const& handle() const { return handle_; }
@@ -50,8 +50,6 @@ public:
   template <typename Clock>
   void set_expires_at(std::chrono::time_point<Clock> expiry)
   { set_expires_in(expiry - Clock::now()); }
-
-  HandleType release_handle() { return std::move(handle_); }
 
 private:
   std::chrono::nanoseconds get_interval_internal();
