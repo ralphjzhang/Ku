@@ -18,23 +18,19 @@ struct FriendMaker
 
 // =======================================================================================
 // Handle is a thin wrapper to OS file descriptor (raw_handle) with an error_code.
-// A Handle can own the file descriptor or not, the ownership can be retrieved by
-// owner(). Copying is prohibited to prevent multiple owners.
+// A handle owns the file descriptor, copying is prohibited to prevent multiple owners.
 // 
 // A file descriptor can have at most one owner, the owner is responsible for the 
-// life cycle (closing the file descriptor when destroyed). It is possible that a 
-// file descriptor has no owner at all, in which case the user is responsible for 
-// closing it.
+// life cycle (closing the file descriptor when destroyed).
 //
 // The ownership can be transferred with C++ move semantics. The handle being moved
-// is cleared after the move. The ownership can also be released by calling method
-// release_handle().
-//
+// is cleared after the move.
+// 
 // Handle is a wrapper. It's not supposed to be used polymorphically. It has no
 // virtual methods at all (not even destructor).
 // =======================================================================================
 template <typename T>
-class Handle
+class Handle : private util::noncopyable
 {
   friend class ops::Common;
   friend class FriendMaker<T>::Type;
@@ -42,8 +38,16 @@ class Handle
   friend class WeakHandle;
 
 public:
-  Handle(Handle&& h) : raw_handle_(h.raw_handle_) { h.clear(); }
+  Handle() : raw_handle_(0) { }
+  Handle(Handle&& h) { *this = std::move(h); }
   ~Handle() { close(); }
+
+  Handle& operator=(Handle&& h)
+  {
+    raw_handle_ = h.raw_handle_;
+    h.clear();
+    return *this;
+  }
 
   bool valid() const { return raw_handle_ > 0; }
   explicit operator bool () { return valid(); }

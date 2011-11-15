@@ -126,7 +126,7 @@ Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
   int event_num = ::epoll_wait(raw_handle(), evts.raw_events(), evts.events_.size(),
                                timeout.count());
-  if (event_num == -1) {
+  if (event_num == -1) { // TODO EINTR
     evts.set_active_count(0);
     throw std::system_error(util::errc(), "epoll::Poller::poll");
   } else {

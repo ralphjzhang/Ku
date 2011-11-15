@@ -6,24 +6,23 @@
  ***************************************************************/ 
 #pragma once
 #include <system_error>
-#include "../handle.hpp"
-#include "../ops/common.hpp"
+#include "handle.hpp"
+#include "ops/common.hpp"
 
 namespace ku { namespace fusion {
   
-class IPEndpoint;
+class SocketEndpoint;
 namespace ops {
 struct Socket;
 } // namespace ku::fusion::ops
 
-namespace tcp {
- 
 class Socket
 {
   typedef Handle<ops::Socket> HandleType;
+  friend class AcceptorSocket;
 
 public:
-  explicit Socket(HandleType&& handle) : handle_(std::move(handle)) { }
+  Socket() = default;
   Socket(Socket&&) = default;
   ~Socket() = default;
 
@@ -37,9 +36,9 @@ public:
 
   explicit operator bool () const { return handle_.valid(); }
   HandleType const& handle() const { return handle_; }
-  HandleType release_handle() { return std::move(handle_); }
 
 protected:
+  explicit Socket(HandleType&& handle) : handle_(std::move(handle)) { }
   HandleType handle_;
 };
 
@@ -48,19 +47,16 @@ class AcceptorSocket
   typedef Handle<ops::Socket> HandleType;
 
 public:
-  explicit AcceptorSocket(IPEndpoint const& endpoint);
-  explicit AcceptorSocket(HandleType&& handle) : handle_(std::move(handle)) { }
+  AcceptorSocket() = default;
   AcceptorSocket(AcceptorSocket&&) = default;
   ~AcceptorSocket() = default;
 
   HandleType const& handle() const { return handle_; }
-  HandleType release_handle() { return std::move(handle_); }
-  Socket accept(IPEndpoint& endpoint);
+  Socket accept(SocketEndpoint& endpoint);
+
+  void bind_listen(SocketEndpoint const& endpoint);
 
 private:
-  void bind(IPEndpoint const& endpoint);
-  void listen();
-
   HandleType handle_;
 };
 
@@ -69,14 +65,13 @@ class ConnectorSocket : public Socket
   typedef Handle<ops::Socket> HandleType;
 
 public:
-  ConnectorSocket(bool non_block = true);
-  explicit ConnectorSocket(HandleType&& handle) : Socket(std::move(handle)) { }
+  ConnectorSocket() = default;
   ConnectorSocket(ConnectorSocket&&) = default;
   ~ConnectorSocket() = default;
 
   HandleType const& handle() const { return handle_; }
-  void connect(IPEndpoint const& endpoint);
+  void connect(SocketEndpoint const& endpoint, bool non_block = true);
 };
 
-} } } // namespace ku::fusion::tcp
+} } // namespace ku::fusion
 

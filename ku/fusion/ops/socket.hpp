@@ -11,7 +11,7 @@
 #include <netdb.h>
 #include <system_error>
 #include "../util.hpp"
-#include "../ip_endpoint.hpp"
+#include "../socket_endpoint.hpp"
 #include "../handle.hpp"
 
 namespace ku { namespace fusion { namespace ops {
@@ -33,7 +33,7 @@ struct Socket
     throw std::system_error(util::errc(), "ops::Socket::create");
   }
 
-  static inline void bind(Handle<Socket>& h, IPEndpoint const& endpoint)
+  static inline void bind(Handle<Socket>& h, SocketEndpoint const& endpoint)
   {
     if (::bind(h.raw_handle(), &endpoint.sockaddress(), endpoint.sockaddr_size()) == -1)
       throw std::system_error(util::errc(), "ops::Socket::bind");
@@ -45,7 +45,7 @@ struct Socket
       throw std::system_error(util::errc(), "ops::Socket::listen");
   }
 
-  static inline Handle<Socket> accept(Handle<Socket>& h, IPEndpoint& endpoint, bool non_block = true)
+  static inline Handle<Socket> accept(Handle<Socket>& h, SocketEndpoint& endpoint, bool non_block = true)
   {
     int flag = non_block ? (SOCK_NONBLOCK | SOCK_CLOEXEC) : SOCK_CLOEXEC;
     sockaddr_storage addr;
@@ -56,13 +56,13 @@ struct Socket
       throw std::system_error(util::errc(), "ops::Socket::accept");
     // TODO think if we do this at all, client can use getpeername() to get it later, saving a lot of trouble
     if (addr_len == sizeof(sockaddr_in))
-      endpoint = IPEndpoint(*reinterpret_cast<sockaddr_in*>(&addr));
+      endpoint = SocketEndpoint(*reinterpret_cast<sockaddr_in*>(&addr));
     else if (addr_len == sizeof(sockaddr_in6))
-      endpoint = IPEndpoint(*reinterpret_cast<sockaddr_in6*>(&addr));
+      endpoint = SocketEndpoint(*reinterpret_cast<sockaddr_in6*>(&addr));
     return socket_handle;
   }
 
-  static inline void connect(Handle<Socket>& h, IPEndpoint const& endpoint)
+  static void connect(Handle<Socket>& h, SocketEndpoint const& endpoint)
   {
     if (::connect(h.raw_handle(), &endpoint.sockaddress(), endpoint.sockaddr_size()) == -1)
       throw std::system_error(util::errc(), "ops::Socket::connect");

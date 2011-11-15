@@ -7,7 +7,7 @@
 #pragma once
 #include <utility>
 #include "../epoll_poller.hpp" 
-#include "socket_acceptor.hpp"
+#include "../socket_acceptor.hpp"
 
 namespace ku { namespace fusion { namespace tcp {
 
@@ -17,7 +17,7 @@ class Server
   typedef ServerConnection<EventHandler> Connection;
 
 public:
-  Server(IPEndpoint const& local_endpoint)
+  Server(SocketEndpoint const& local_endpoint)
     : acceptor_(local_endpoint, loop_.notices()) { }
 
   bool operator()() { return loop_(); }

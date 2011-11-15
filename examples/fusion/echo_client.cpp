@@ -1,11 +1,10 @@
 #include <iostream>
 #include <sstream>
 #include <ku/fusion/endpoint.hpp>
-#include <ku/fusion/ip_endpoint.hpp>
-#include <ku/fusion/tcp/socket.hpp>
+#include <ku/fusion/socket_endpoint.hpp>
+#include <ku/fusion/socket.hpp>
 
 using namespace ku::fusion;
-using namespace ku::fusion::tcp;
 
 int main(int argc, char* argv[])
 {
@@ -15,11 +14,11 @@ int main(int argc, char* argv[])
     exit(0);
   }
   Endpoint ep(argv[1]);
-  IPEndpoint endpoint(ep);
+  SocketEndpoint endpoint(ep);
 
   try {
-    ConnectorSocket socket(false);
-    socket.connect(endpoint);
+    ConnectorSocket socket;
+    socket.connect(endpoint, false);
 
     for (int i = 0; i < 5; ++i) {
       std::stringstream ss;
