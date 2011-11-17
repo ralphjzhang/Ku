@@ -4,14 +4,13 @@
 
 namespace ku { namespace fusion { namespace poll {
 
-/*
 // Helper function
 int translate_event_types(Notice const& notice)
 {
   int event_types = 0;
-  if (notice.has_event_type(Notice::In))
+  if (notice.has_event_type(Notice::Inbound))
     event_types |= (POLLIN | POLLPRI | POLLRDHUP);
-  if (notice.has_event_type(Notice::Out))
+  if (notice.has_event_type(Notice::Outbound))
     event_types |= POLLOUT;
   return event_types;
 }
@@ -19,9 +18,9 @@ int translate_event_types(Notice const& notice)
 void translate_event_types(int event_types, Notice& notice)
 {
   if (event_types & (POLLIN | POLLPRI))
-    notice.set_event_type(Notice::In);
+    notice.set_event_type(Notice::Inbound);
   if (event_types & POLLOUT)
-    notice.set_event_type(Notice::Out);
+    notice.set_event_type(Notice::Outbound);
 }
 
 void translate_events(pollfd const& ev, Notice& notice)
@@ -37,31 +36,26 @@ void translate_events(pollfd const& ev, Notice& notice)
 }
 
 /// Events ///
-
-Events::Events(Events&& e)
-{
-  active_count_ = e.active_count_;
-  events_ = std::move(e.events_);
-  notices_ = std::move(e.notices_);
-  removal_ = std::move(e.removal_);
-  e.clear();
-}
-
+//
 void Events::clear()
 {
   active_count_ = 0;
   events_.clear();
   notices_.clear();
-  removal_.clear();
 }
 
-bool Events::adopt_notice(Notice&& notice)
+Notice* Events::find_notice(pollfd const& ev)
+{
+  // TODO
+}
+
+bool Events::add_notice_internal(Notice&& notice)
 {
   assert(notice.any_event_type());
   size_t evt_count = notices_.size();
   int raw_handle = notice.raw_handle();
   auto res = notices_.insert(std::make_pair(raw_handle,
-                                             std::make_pair(std::move(notice), evt_count)));
+                                            std::make_pair(std::move(notice), evt_count)));
   if (res.second) {
     if (evt_count >= events_.size())
       resize(evt_count + evt_count / 2);
@@ -74,24 +68,25 @@ bool Events::adopt_notice(Notice&& notice)
   return false;
 }
 
-Notice* Events::find_notice(int fd)
+bool Events::remove_notice_internal(NoticeId id)
 {
-  auto find = notices_.find(fd);
-  return notices_.end() == find ? nullptr : &find->second.first;
-}
-
-bool Events::remove_notice(Notice const& notice)
-{
-  if (find_notice(notice.raw_handle())) {
-    removal_.push_back(notice.raw_handle());
+  auto find = notices_.find(id);
+  if (notices_.end() != find) {
+    assert(find->second.first.id() == id);
+    size_t idx = find->second.second;
+    assert(0 <= idx && idx < events_.size());
+    pollfd& ev = events_[idx];
+    ev.fd = 0;
+    notices_.erase(find);
+    compress(idx);
     return true;
   }
   return false;
 }
 
-bool Events::modify_notice(Notice const& notice)
+bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
 {
-  auto find = notices_.find(notice.raw_handle());
+  auto find = notices_.find(id);
   if (notices_.end() != find) {
     size_t idx = find->second.second;
     assert(0 <= idx && idx < events_.size());
@@ -99,32 +94,16 @@ bool Events::modify_notice(Notice const& notice)
     assert(ev.fd == notice.raw_handle());
     ev.events = translate_event_types(notice);
     find->second.first.set_event_types(notice.event_types());
+    find->second.first.set_event_handler(notice.event_handler());
     return true;
   }
   return false;
 }
 
-void Events::apply_removal()
+Notice* Events::find_notice(NoticeId id)
 {
-  for (int fd : removal_)
-    remove_notice_internal(fd);
-}
-
-bool Events::remove_notice_internal(int fd)
-{
-  auto find = notices_.find(fd);
-  if (notices_.end() != find) {
-    assert(find->second.first.raw_handle() == fd);
-    size_t idx = find->second.second;
-    assert(0 <= idx && idx < events_.size());
-    pollfd& ev = events_[idx];
-    assert(ev.fd == fd);
-    ev.fd = 0;
-    notices_.erase(find);
-    compress(idx);
-    return true;
-  }
-  return false;
+  auto find = notices_.find(id);
+  return notices_.end() == find ? nullptr : &find->second.first;
 }
 
 void Events::compress(size_t idx)
@@ -143,19 +122,38 @@ void Events::compress(size_t idx)
 }
 
 /// Poller ///
-
-Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
+//
+Events& poll(Events& evts, std::chrono::milliseconds const& timeout)
 {
   int event_num = ::poll(evts.raw_events(), evts.notices_.size(), timeout.count());
-  if (event_num == -1) {
-    set_error(errno);
+  if (event_num == -1) { // TODO EINTR
     evts.set_active_count(0);
+    throw std::system_error(util::errc(), "poll::poll");
   } else {
     evts.set_active_count(util::implicit_cast<unsigned>(event_num));
   }
   return evts;
 }
-*/
+
+/// PollLoop ///
+//
+bool PollLoop::loop(std::chrono::milliseconds timeout)
+{
+  while (!quit_) {
+    events_.apply_updates();
+    poll(events_, timeout);
+  
+    for (unsigned i = 0; i < events_.events_count(); ++i) {
+      pollfd const& ev = events_.raw_event(i);
+      if (ev.revents == 0)
+        continue;
+      Notice* notice = events_.find_notice(ev);
+      translate_events(ev, *notice);
+      dispatch(*notice, events_);
+    }
+  }
+  return true;
+}
 
 } } } // namespace ku::fusion::poll
 

@@ -21,8 +21,8 @@ size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
     Socket conn_socket = socket.accept(peer_endpoint);
     if (conn_socket) {
       WeakHandle weak_handle(conn_socket.handle());
-      notices.add_notice(weak_handle, handler_creator(std::move(conn_socket), peer_endpoint),
-          { Notice::Inbound, Notice::Outbound });
+      notices.add_notice(weak_handle, { Notice::Inbound, Notice::Outbound },
+          handler_creator(std::move(conn_socket), peer_endpoint));
       ++count;
     } else {
       break;

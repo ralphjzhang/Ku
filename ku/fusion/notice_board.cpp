@@ -32,8 +32,8 @@ bool NoticeBoard::modify_notice(NoticeId notice_id, Notice::EventHandler const& 
   return true;
 }
 
-NoticeId NoticeBoard::add_notice(int raw_handle, Notice::EventHandler const& event_handler,
-    std::initializer_list<Notice::EventType> const& event_types)
+NoticeId NoticeBoard::add_notice(int raw_handle, std::initializer_list<Notice::EventType> const& event_types,
+    Notice::EventHandler const& event_handler)
 {
   pending_updates_ = true;
   std::lock_guard<std::mutex> lock(mutex_);

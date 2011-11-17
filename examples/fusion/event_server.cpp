@@ -37,8 +37,8 @@ struct Reader
   Reader(UserEvent& event) : event(event)
   {
     using namespace std::placeholders;
-    loop.notices().add_notice(event.handle(), std::bind(std::ref(*this), _1, _2),
-        { Notice::Inbound, Notice::Edge });
+    loop.notices().add_notice(event.handle(), { Notice::Inbound, Notice::Edge },
+        std::bind(std::ref(*this), _1, _2));
     loop.set_on_error(&print_error);
   }
 
@@ -66,8 +66,8 @@ struct Writer
   Writer(UserEvent& event, uint64_t value) : event(event), value(value)
   {
     using namespace std::placeholders;
-    loop.notices().add_notice(event.handle(), std::bind(std::ref(*this), _1, _2),
-        { Notice::Outbound, Notice::Edge });
+    loop.notices().add_notice(event.handle(), { Notice::Outbound, Notice::Edge },
+        std::bind(std::ref(*this), _1, _2));
     loop.set_on_error(&print_error);
   }
 

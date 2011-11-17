@@ -49,11 +49,8 @@ addrinfo connector_addrinfo(SocketEndpoint const& endpoint)
 
 namespace ku { namespace fusion {
 
-/// Socket ///
-
-
 /// AcceptorSocket ///
-
+//
 Socket AcceptorSocket::accept(SocketEndpoint& endpoint)
 {
   return Socket(ops::Socket::accept(handle_, endpoint));
@@ -64,14 +61,13 @@ void AcceptorSocket::bind_listen(SocketEndpoint const& endpoint)
   handle_.close();
   handle_ = ops::Socket::create(acceptor_addrinfo(endpoint));
   if (endpoint.address_family() == SocketEndpoint::Unix)
-    if (::unlink(endpoint.address().c_str()) == -1)
-      throw std::system_error(util::errc(), "AcceptorSocket::bind_listen");
+    ::unlink(endpoint.address().c_str()); // The error can be generally ignored
   ops::Socket::bind(handle_, endpoint);
   ops::Socket::listen(handle_);
 }
 
 /// ConnectorSocket ///
-
+//
 void ConnectorSocket::connect(SocketEndpoint const& endpoint, bool non_block)
 {
   handle_.close();

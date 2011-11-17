@@ -10,4 +10,5 @@ env.Program('echo_server', 'echo_server.cpp')
 env.Program('echo_client', 'echo_client.cpp')
 env.Program('event_server', 'event_server.cpp')
 env.Program('event_server_cond_var', 'event_server_cond_var.cpp')
+env.Program('event_pubsub', 'event_pubsub.cpp')
 

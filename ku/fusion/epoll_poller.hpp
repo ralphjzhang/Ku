@@ -13,6 +13,7 @@
 #include <functional>
 #include "notice.hpp"
 #include "notice_board.hpp"
+#include "poll_loop.hpp"
 
 namespace ku { namespace fusion { namespace epoll {
 
@@ -22,6 +23,8 @@ class Events : public NoticeBoard
              , private util::noncopyable
 {
   friend class Poller;
+  // NoticeMap is only used when add/remove/modify notice, shouldn't be the bottleneck,
+  // consider stable_vector if really necessary
   typedef std::map<NoticeId, Notice> NoticeMap;
 
 public:
@@ -34,7 +37,6 @@ public:
   epoll_event const& raw_event(unsigned n) const { return events_[n]; }
   unsigned active_count() const { return active_count_; }
 
-  Notice* find_notice(NoticeId id);
   Notice* find_notice(epoll_event const& ev);
 
   using NoticeBoard::apply_updates;
@@ -47,6 +49,7 @@ private:
   virtual bool add_notice_internal(Notice&& notice);
   virtual bool remove_notice_internal(NoticeId id);
   virtual bool modify_notice_internal(NoticeId id, Notice const& notice);
+  virtual Notice* find_notice(NoticeId id);
 
   epoll_event* raw_events() { return &*events_.begin(); }
   void set_active_count(unsigned n) { active_count_ = n; }
@@ -54,6 +57,7 @@ private:
   void clear();
   void resize(size_t size) { events_.resize(size); }
 
+private:
   Poller* poller_;
   std::vector<epoll_event> events_;
   unsigned active_count_;
@@ -71,7 +75,7 @@ class Poller : private util::noncopyable
   friend class Events;
 
 public:
-  Poller(Poller&& h);
+  Poller(Poller&& h) : raw_handle_(h.raw_handle_) { h.clear(); }
   ~Poller() { close(); }
   explicit Poller(int flags);
 
@@ -87,25 +91,23 @@ private:
 
 void translate_events(epoll_event const& ev, Notice& notice);
 
-class PollLoop
+
+// =======================================================================================
+// epoll::PollLoop is the main loop using epoll
+// =======================================================================================
+class PollLoop : public fusion::PollLoop
 {
 public:
-  PollLoop() : quit_(false) { }
+  PollLoop() { }
   PollLoop(PollLoop const&) = default;
 
-  void quit() { quit_ = true; } // TODO quit should take care of timeout=-1
-
   void set_on_error(Events::OnError const& on_error) { events_.set_on_error(on_error); }
-
-  void dispatch(Notice& notice, NoticeBoard& notice_board);
-  bool loop(std::chrono::milliseconds timeout);
-  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))
-  { return loop(timeout); }
-
-  NoticeBoard& notices() { return events_; }
+  virtual NoticeBoard& notices() { return events_; }
 
 private:
-  bool quit_;
+  virtual bool loop(std::chrono::milliseconds timeout);
+
+private:
   Events events_;
 };
 

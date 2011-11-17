@@ -53,8 +53,8 @@ public:
   explicit operator bool () { return valid(); }
   void close()
   {
-    if (valid() && (raw_handle_ = ::close(raw_handle_)) == -1)
-      throw std::system_error(util::errc(), "Handle<T>::close");
+    // throwing from dtor is a bad idea, we just swallow errors.
+    if (valid()) raw_handle_ = ::close(raw_handle_);
   }
 
 private:

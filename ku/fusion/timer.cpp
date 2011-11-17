@@ -4,8 +4,8 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#include <strings.h>
 #include <cassert>
+#include <cstring>
 #include "util.hpp"
 #include "ops/timer.hpp"
 #include "timer.hpp"
@@ -45,7 +45,7 @@ std::chrono::nanoseconds Timer::get_interval_internal()
 void Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)
 {
   itimerspec spec;
-  ::bzero(&spec, sizeof(itimerspec));
+  std::memset(&spec, 0, sizeof(itimerspec));
   if (mode == Timer::Periodic) {
     spec.it_value = to_timespec(duration);
     spec.it_interval = to_timespec(duration);

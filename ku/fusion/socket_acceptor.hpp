@@ -30,8 +30,8 @@ public:
     : local_endpoint_(local_endpoint), notices_(notices)
   {
     socket_.bind_listen(local_endpoint);
-    notices_.add_notice(socket_.handle(), [this](Notice::Event, NoticeId) { return (*this)(); },
-          { Notice::Inbound });
+    notices_.add_notice(socket_.handle(), { Notice::Inbound }, 
+        [this](Notice::Event, NoticeId) { return (*this)(); });
   }
 
   bool operator ()()

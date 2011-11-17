@@ -1,27 +1,27 @@
+#include <atomic>
 #pragma once
 
-namespace ku { namespace su {
+namespace ku { namespace util {
 
 class spinlock
 {
 public:
-  spinlock( ) = default;
-  spinlock( spinlock const& ) = default;
-  ~spinlock( ) = default;
+  spinlock() = default;
+  ~spinlock() = default;
 
   bool try_lock( ) {
-    int r = __sync_lock_test_and_set(&flag_, 1);
-    return r == 0;
+    flag_ = true;
+    return flag_;
   }
 
   void lock( ) {
     while (!try_lock())
-      while (flag_)
-        ;
+      ;
   }
 
   void unlock( ) {
-    __sync_lock_release(&flag_);
+    while (flag_)
+      flag_ = false;
   }
 
 public:
@@ -43,8 +43,8 @@ public:
   };
 
 private:
-  int flag_;
+  std::atomic_bool flag_;
 };
 
-} } // namespace ku::su
+} } // namespace ku::util
 

@@ -14,9 +14,11 @@ namespace ku { namespace fusion { namespace ops {
 
 struct UserEvent
 {
-  static inline Handle<UserEvent> create(int init_value, bool non_block)
+  static inline Handle<UserEvent> create(int init_value, bool non_block, bool semaphore)
   {
-    int flag = non_block ? (EFD_NONBLOCK | EFD_CLOEXEC) : EFD_CLOEXEC;
+    int flag = EFD_CLOEXEC;
+    if (non_block) flag |= EFD_NONBLOCK;
+    if (semaphore) flag |= EFD_SEMAPHORE;
     Handle<UserEvent> event_handle(::eventfd(init_value, flag));
     if (!event_handle)
       throw std::system_error(util::errc(), "ops::UserEvent::create");

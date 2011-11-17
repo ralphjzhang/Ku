@@ -49,6 +49,13 @@ void Events::clear()
   notices_.clear();
 }
 
+Notice* Events::find_notice(epoll_event const& ev)
+{
+  Notice* notice = static_cast<Notice*>(ev.data.ptr);
+  assert(notice == &notices_[notice->id()]);
+  return notice;
+}
+
 bool Events::add_notice_internal(Notice&& notice)
 {
   assert(notice.any_event_type());
@@ -70,13 +77,6 @@ Notice* Events::find_notice(NoticeId id)
 {
   auto find = notices_.find(id);
   return notices_.end() == find ? nullptr : &find->second;
-}
-
-Notice* Events::find_notice(epoll_event const& ev)
-{
-  Notice* notice = static_cast<Notice*>(ev.data.ptr);
-  assert(notice == &notices_[notice->id()]);
-  return notice;
 }
 
 bool Events::remove_notice_internal(NoticeId id)
@@ -111,11 +111,6 @@ bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
 
 /// Poller ///
 
-Poller::Poller(Poller&& h) : raw_handle_(h.raw_handle_)
-{
-  h.clear();
-}
-
 Poller::Poller(int flags)
 {
   if ((raw_handle_ = epoll_create1(flags)) == -1)
@@ -144,27 +139,7 @@ void Poller::close()
 }
 
 /// PollLoop ///
-
-void PollLoop::dispatch(Notice& notice, NoticeBoard& notice_board)
-{
-  Notice::EventHandler& event_handler = notice.event_handler();
-  // Read
-  if (notice.has_event(Notice::Read))
-    event_handler(Notice::Read, notice.id());
-  // Write
-  if (notice.has_event(Notice::Write))
-    event_handler(Notice::Write, notice.id());
-  // Error
-  if (notice.has_event(Notice::Error))
-    if (!event_handler(Notice::Error, notice.id()))
-      notice_board.remove_notice(notice.id());
-  // Close
-  if (notice.has_event(Notice::Close)) {
-    event_handler(Notice::Close, notice.id());
-    notice_board.remove_notice(notice.id());
-  }
-}
-
+//
 bool PollLoop::loop(std::chrono::milliseconds timeout)
 {
   Poller poller(EPOLL_CLOEXEC);

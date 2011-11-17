@@ -32,8 +32,8 @@ public:
   virtual ~NoticeBoard() { };
 
   template <typename Handle>
-  NoticeId add_notice(Handle const& h, Notice::EventHandler const& event_handler,
-      std::initializer_list<Notice::EventType> const& event_types);
+  NoticeId add_notice(Handle const& h, std::initializer_list<Notice::EventType> const& event_types,
+      Notice::EventHandler const& event_handler);
 
   bool remove_notice(NoticeId notice_id);
 
@@ -44,8 +44,8 @@ protected:
   void apply_updates();
 
 private:
-  NoticeId add_notice(int raw_handle, Notice::EventHandler const& event_handler,
-      std::initializer_list<Notice::EventType> const& event_types);
+  NoticeId add_notice(int raw_handle, std::initializer_list<Notice::EventType> const& event_types,
+      Notice::EventHandler const& event_handler);
 
   virtual bool add_notice_internal(Notice&&) = 0;
   virtual bool remove_notice_internal(NoticeId) = 0;
@@ -53,17 +53,17 @@ private:
   virtual Notice* find_notice(NoticeId notice_id) = 0;
 
 private:
-  std::atomic<bool> pending_updates_;
+  std::atomic_bool pending_updates_;
   UpdateList update_list_;
   std::mutex mutex_;
 };
 
 
 template <typename Handle>
-NoticeId NoticeBoard::add_notice(Handle const& h, Notice::EventHandler const& event_handler,
-    std::initializer_list<Notice::EventType> const& event_types)
+NoticeId NoticeBoard::add_notice(Handle const& h, std::initializer_list<Notice::EventType> const& event_types,
+    Notice::EventHandler const& event_handler)
 {
-  return add_notice(h.raw_handle(), event_handler, event_types);
+  return add_notice(h.raw_handle(), event_types, event_handler);
 }
 
 

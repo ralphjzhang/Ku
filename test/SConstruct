@@ -8,8 +8,9 @@ env = Environment(
     )
 
 Export('env')
-#SConscript('net/SConscript')
-SConscript('log/SConscript')
+#SConscript('fusion/SConscript')
+#SConscript('log/SConscript')
+SConscript('util/SConscript')
 
 """
 program = env.Program('test', 'TestMain.cpp')
