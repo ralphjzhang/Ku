@@ -17,5 +17,5 @@ struct func_traits<R(Args...)>
   };
 };
 
-} } } // namespace ku::meta
+} } // namespace ku::meta
 

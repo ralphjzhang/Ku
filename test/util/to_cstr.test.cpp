@@ -3,35 +3,18 @@
 
 TEST(to_cstr, to_cstr)
 { 
-  using namespace ku::to_cstr;
+  using namespace ku::util;
 
   char buf[100];
-  char* str = to_cstr(buf, "hello");
-  *str = '\0';
-  EXPECT_STREQ(buf, "hello");
-
-  *str++ = ',';
-  char const* w = "world";
-  str = to_cstr(str, w);
-  *str = '\0';
-  EXPECT_STREQ(buf, "hello,world");
-
   *to_cstr(buf, 1234) = '\0';
   EXPECT_STREQ(buf, "1234");
   *to_cstr(buf, 12345678901234567890u) = '\0';
   EXPECT_STREQ(buf, "12345678901234567890");
-
-  std::string ss("life");
-  *to_cstr(buf, ss) = '\0';
-  EXPECT_STREQ(buf, ss.c_str());
-
-  *to_cstr(buf, 3.14) = '\0';
-  EXPECT_STREQ(buf, "3.140000");
 }
 
 TEST(to_cstr, digits)
 {
-  using namespace ku::to_cstr;
+  using namespace ku::util;
 
   EXPECT_EQ(20, digits(0xFFFFFFFFFFFFFFFFu));
   EXPECT_EQ(20, digits(12345678901234567890u));

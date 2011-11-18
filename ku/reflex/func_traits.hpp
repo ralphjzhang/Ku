@@ -62,13 +62,13 @@ public:
   }
 };
 
-} // namespace aux
+} // namespace ku::reflex::aux
 
 template <typename R, typename... Args>
 auto inline func_traits(R(&fp)(Args...) = *std::declval<R(*)(Args...)>()) 
-    -> aux::func_traits<R, Args...>
+    -> aux::FuncTraits<R, Args...>
 {
-  return aux::func_traits<R, Args...>(fp);
+  return aux::FuncTraits<R, Args...>(fp);
 }
 
 } } // namespace ku::reflex

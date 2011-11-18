@@ -9,8 +9,8 @@
 #include <signal.h>
 #include <initializer_list>
 #include <system_error>
-#include "util.hpp"
-#include "handle.hpp"
+#include "../util.hpp"
+#include "../handle.hpp"
 
 namespace ku { namespace fusion { namespace ops {
 
