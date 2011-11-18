@@ -9,5 +9,6 @@ env = Environment(
 Export('env')
 SConscript('fusion/SConscript', variant_dir = 'build/fusion', duplicate = 0)
 SConscript('log/SConscript', variant_dir = 'build/log', duplicate = 0)
+SConscript('util/SConscript', variant_dir = 'build/util', duplicate = 0)
 
 

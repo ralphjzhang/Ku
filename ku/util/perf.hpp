@@ -15,22 +15,22 @@ public:
   void operator()(F f, Args&&... args) { return run(f, args...); }
 
   template <typename F, typename... Args>
-  void run()(F f, Args&&... args)
+  void run(F f, Args&&... args)
   {
     Stopwatch sw;
     sw.start();
     for (unsigned i = 0; i < loop_; ++i)
       f(std::forward<Args>(args)...);
     sw.stop();
-    print(ku::reflex::func_traits(f).fullname(), sw.elapsed_nanoseconds());
+    print(ku::reflex::func_traits(*f).fullname(), sw.elapsed_nanoseconds());
   }
 
   void print(std::string const& name, uint64_t ns)
   {
-    static const uint64_t E9 = 1000000000;
-    std::lldiv_t tm = std::div(ns, E9);
+    static const long long E9 = 1000000000;
+    auto tm = std::div(ns, E9);
     uint64_t avg = ns / loop_;
-    std::cout << std::setw(20) << std::setfill(' ') << type_name<T>()
+    std::cout << std::setw(20) << std::setfill(' ') << name
       << " takes: " << std::setw(3) << std::setfill(' ') << tm.quot << "." 
       << std::setw(9) << std::setfill('0') << tm.rem << '\t'  
       << "Average: " << avg << " nanosec" << std::endl;
