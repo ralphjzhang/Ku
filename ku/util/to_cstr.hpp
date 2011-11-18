@@ -3,15 +3,13 @@
 #include <algorithm>
 #include <cstring>
 
-namespace ku { namespace chuan {
-
-using std::enable_if;
+namespace ku { namespace util {
 
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 32-bit or shorter
 template <typename T>
-typename enable_if<(sizeof(T) <= 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
+auto digits(T t)
+  -> typename std::enable_if<(std::is_unsigned<T>::value && sizeof(T) <= 4), int>::type
 {
   return
     (t >= 10000u)
@@ -26,8 +24,8 @@ digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
 /// find number of digits (power of 10) in an UNSIGNED integral number
 //  for 64-bit
 template <typename T>
-typename enable_if<(sizeof(T) > 4), int>::type
-digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
+auto digits(T t)
+  -> typename std::enable_if<(std::is_unsigned<T>::value && sizeof(T) > 4), int>::type
 {
   return (t <= 0xFFFFFFFF) ? digits(uint32_t(t)) :
     (t >= 100000000000000u)
@@ -42,7 +40,8 @@ digits( T t, typename enable_if<std::is_unsigned<T>::value>::type* = nullptr )
 /// convert integral n to string, write to dest
 //  return the Iter pointing after the last position of writing
 template <typename T, typename Iter = char*>
-Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>::value>::type* = nullptr )
+auto to_cstr(Iter dest, T n)
+  -> typename std::enable_if<std::is_integral<T>::value, Iter>::type
 {
   static const char digit_pairs[201] = {
       "00010203040506070809"
@@ -78,37 +77,5 @@ Iter chuan( Iter dest, T n, typename enable_if<std::is_integral<T>::value>::type
   return dest + size;
 }
 
-template <typename T, typename Iter = char*>
-Iter chuan( Iter dest, T n, typename enable_if<std::is_floating_point<T>::value>::type* = nullptr )
-{
-  // TODO temp solution
-  return dest + sprintf(dest, "%f", n);
-}
-
-/// specialized version for string literals, save the call to strlen
-//
-template <typename T, size_t n, typename Iter = char*>
-inline Iter chuan( Iter dest, const T(&str)[n] )
-{
-  return std::copy(str + 0, str + n - 1, dest);
-}
-
-/// specialized version for plain c strings
-//
-template <typename T, typename Iter = char*>
-inline Iter chuan( Iter dest, const T* str )
-{
-  return std::copy(str, str + strlen(str), dest);
-}
-
-/// specialized version for c++ standard strings
-//
-template <typename Iter = char*>
-inline Iter chuan( Iter dest, std::string const& str)
-{
-  return std::copy(str.begin(), str.end(), dest);
-}
-
-
-} } // namespace ku::chuan
+} } // namespace ku::util
 

@@ -18,42 +18,31 @@ UserEvent::UserEvent(unsigned init_value, bool non_block, bool semaphore)
 {
 }
 
-/// PublisherUserEvent ///
+/// WriterUserEvent ///
 //
-PublisherUserEvent::PublisherUserEvent()
-  : initialized_(false), handle_(ops::UserEvent::create(0, true, true)), subscribers_(0)
+WriterUserEvent::WriterUserEvent()
+  : initialized_(false), handle_(ops::UserEvent::create(0, true, true))
 {
 }
 
-bool PublisherUserEvent::try_publish()
+void WriterUserEvent::write()
 {
   if (!initialized_) {
     initialized_ = true;
-    return false;
+    return;
   }
-
-  if (ops::Common::write(handle_, &subscribers_, sizeof(subscribers_)) < 0) {
-    if (errno == EAGAIN || errno == EWOULDBLOCK)
-      return false;
-    else
-      throw std::system_error(util::errc(), "PublisherUserEvent::try_publish");
-  }
-  return true;
+  uint64_t val = 1;
+  if (ops::Common::write(handle_, &val, sizeof(val)) < 0)
+    throw std::system_error(util::errc(), "WriterUserEvent::write");
 }
 
-/// SubscriberUserEvent ///
+/// ReaderUserEvent ///
 //
-bool SubscriberUserEvent::try_read()
+void ReaderUserEvent::read()
 {
   uint64_t val;
-  if (ops::Common::read(publisher_.handle_, &val, sizeof(val)) < 0) {
-    if (errno == EAGAIN || errno == EWOULDBLOCK)
-      return false;
-    else
-      throw std::system_error(util::errc(), "SubscriberUserEvent::try_read");
-  }
-  assert(val == 1);
-  return true;
+  if (ops::Common::read(handle_, &val, sizeof(val)) < 0)
+    throw std::system_error(util::errc(), "ReaderUserEvent::read");
 }
 
 } } // namespace ku::fusion

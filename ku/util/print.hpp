@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 
-namespace ku { namespace su {
+namespace ku { namespace util {
 
 /// type-safe printf
 //
@@ -51,5 +51,5 @@ void printf(const char*s, const T& value, const Arg&... args)
   throw std::runtime_error("extra arguments to printf");
 }
 
-} } // namespace ku::su
+} } // namespace ku::util
 

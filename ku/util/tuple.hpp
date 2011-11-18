@@ -2,7 +2,7 @@
 #include <tuple>
 #include <utility>
 
-namespace ku { namespace su {
+namespace ku { namespace util {
 
 namespace aux {
 
@@ -11,7 +11,7 @@ struct tuple_for_each_unroll
 {
   void operator()(Tuple const& t, F f)
   {
-    detail::tuple_for_each_unroll<Tuple, F, N - 1>()(t, f);
+    tuple_for_each_unroll<Tuple, F, N - 1>()(t, f);
     f(std::get<N>(t));
   }
 };
@@ -19,14 +19,10 @@ struct tuple_for_each_unroll
 template<typename Tuple, typename F>
 struct tuple_for_each_unroll<Tuple, F, 0>
 {
-  void operator()(Tuple const& t, F f)
-  {
-    f(std::get<0>(t));
-  }
+  void operator()(Tuple const& t, F f) { f(std::get<0>(t)); }
 };
 
-}
-
+} // namespace ku::util::aux
 
 template <typename Tuple, typename F>
 inline void tuple_for_each(Tuple const& tup, F f)
@@ -34,6 +30,5 @@ inline void tuple_for_each(Tuple const& tup, F f)
   aux::tuple_for_each_unroll<Tuple, F, std::tuple_size<Tuple>::value - 1>()(tup, f);
 }
 
-
-} } // namespace ku::su
+} } // namespace ku::util
 

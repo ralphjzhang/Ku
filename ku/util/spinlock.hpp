@@ -1,49 +1,20 @@
-#include <atomic>
+#include <pthread.h>
 #pragma once
 
 namespace ku { namespace util {
 
-class spinlock
+class Spinlock
 {
 public:
-  spinlock() = default;
-  ~spinlock() = default;
+  Spinlock() { pthread_spin_init(&lock_, 0); }
+  ~Spinlock() { pthread_spin_destroy(&lock_); }
 
-  bool try_lock( ) {
-    flag_ = true;
-    return flag_;
-  }
-
-  void lock( ) {
-    while (!try_lock())
-      ;
-  }
-
-  void unlock( ) {
-    while (flag_)
-      flag_ = false;
-  }
-
-public:
-  class scoped_lock
-  {
-  private:
-    spinlock & sp_;
-    scoped_lock( scoped_lock const& ) = delete;
-    scoped_lock & operator = ( scoped_lock const& ) = delete;
-
-  public:
-    explicit scoped_lock( spinlock & sp ) : sp_(sp) {
-      sp_.lock();
-    }
-
-    ~scoped_lock( ) {
-      sp_.unlock();
-    }
-  };
+  inline bool try_lock() { pthread_spin_trylock(&lock_); }
+  inline void lock() { pthread_spin_lock(&lock_); }
+  inline void unlock( ) { pthread_spin_unlock(&lock_); }
 
 private:
-  std::atomic_bool flag_;
+  pthread_spinlock_t lock_;
 };
 
 } } // namespace ku::util

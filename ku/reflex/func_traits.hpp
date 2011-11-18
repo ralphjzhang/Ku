@@ -9,7 +9,7 @@ namespace ku { namespace reflex {
 namespace aux {
 
 template <typename R, typename... Args>
-struct func_traits
+struct FuncTraits
 {
 private:
   typedef R(function_type)(Args...);
@@ -26,7 +26,7 @@ private:
   inline bool _is_template(std::string const& name) { return '>' == name[name.find('(') - 1]; }
 
 public:
-  func_traits(function_type f) : fp(f)
+  FuncTraits(function_type f) : fp(f)
   { }
 
   std::string fullname()

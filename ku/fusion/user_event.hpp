@@ -40,48 +40,35 @@ private:
   HandleType handle_;
 };
 
-// TODO handle subscriber join/leave in the middle
-class PublisherUserEvent
+class WriterUserEvent
 {
   typedef Handle<ops::UserEvent> HandleType;
-  friend class SubscriberUserEvent;
+  friend class ReaderUserEvent;
 
 public:
-  PublisherUserEvent();
+  WriterUserEvent();
   HandleType const& handle() const { return handle_; }
 
-  void initialize()
-  {
-    uint64_t val = UINT64_MAX - 1;
-    ops::Common::write(handle_, &val, sizeof(val));
-  }
-
-  bool try_publish();
-
-private:
-  inline void increment() { ++subscribers_; }
-  inline void decrement() { --subscribers_; }
+  void write();
 
 private:
   bool initialized_;
   HandleType handle_;
-  std::atomic_uint_fast64_t subscribers_;
 };
 
-class SubscriberUserEvent
+class ReaderUserEvent
 {
   typedef Handle<ops::UserEvent> HandleType;
 
 public:
-  SubscriberUserEvent(PublisherUserEvent& p) : publisher_(p) { publisher_.increment(); }
-  ~SubscriberUserEvent() { publisher_.decrement(); }
+  ReaderUserEvent(WriterUserEvent& writer) : handle_(writer.handle_) { }
+  ~ReaderUserEvent() = default;
 
-  HandleType const& handle() const { return publisher_.handle(); }
-
-  bool try_read();
+  HandleType const& handle() const { return handle_; }
+  void read();
 
 private:
-  PublisherUserEvent& publisher_;
+  HandleType& handle_;
 };
 
 } } // namespace ku::fusion

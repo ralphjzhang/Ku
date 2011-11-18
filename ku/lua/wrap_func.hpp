@@ -1,15 +1,15 @@
 #pragma once
-#include <ku/yue/extract_arg.hpp>
-#include <ku/yue/push_result.hpp>
+#include "extract_arg.hpp"
+#include "push_result.hpp"
 
-namespace ku { namespace yue {
+namespace ku { namespace lua {
 
 namespace aux {
 struct decrementor
 {
   size_t n;
   decrementor(size_t n) : n(n) {}
-  size_t operator ()( ) { return n--; }
+  size_t operator()(){ return n--; }
 };
 } // namespace aux
 
@@ -24,11 +24,9 @@ struct wrap_func<R(Args...), Func>
 {
   typedef R(function_type)(Args...);
   static function_type& function()
-  {
-    return Func;
-  }
+  { return Func; }
 
-  static int call( lua_State *L )
+  static int call(lua_State *L)
   {
     size_t n = sizeof...(Args);
     aux::decrementor decr(n);
@@ -40,5 +38,5 @@ struct wrap_func<R(Args...), Func>
   }
 };
 
-} } // namespace ku::yue
+} } // namespace ku::lua
 

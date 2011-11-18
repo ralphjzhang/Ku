@@ -2,7 +2,7 @@
 #include <type_traits>
 #include <memory>
 
-namespace ku { namespace su {
+namespace ku { namespace util {
 
 template<typename T, typename... Args>
 inline auto construct(Args&&... args) -> typename std::remove_const<T>::type*
@@ -18,5 +18,5 @@ inline auto make_unique(Args&&... args) -> std::unique_ptr<T>
   return std::unique_ptr<T_nc>(construct<T_nc>(args...));
 }
 
-} } // namespace ku::su
+} } // namespace ku::util
 
