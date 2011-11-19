@@ -5,22 +5,23 @@
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
 #pragma once
+#include "user_event.hpp"
+#include "user_event_endpoint.hpp"
+#include "notice_board.hpp"
 
 namespace ku { namespace fusion {
 
-class Channel
+class UserEventAcceptor
 {
 public:
-  enum Type { Pub, Sub, Req, Rep };
-
-  Channel(Type type) : type_(type) { }
-
-  void bind(char const* endpoint);
-  void send();
-  void recv();
+  UserEventAcceptor(UserEventEndpoint const& local_endpoint, NoticeBoard& notices)
+    : local_endpoint_(local_endpoint), notices_(notices)
+  {
+  }
 
 private:
-  Type type_;
+  UserEventEndpoint local_endpoint_;
+  NoticeBoard& notices_;
 };
 
 } } // namespace ku::fusion

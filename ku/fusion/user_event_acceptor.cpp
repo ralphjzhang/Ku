@@ -4,24 +4,10 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#pragma once
+#include "user_event_acceptor.hpp"
 
 namespace ku { namespace fusion {
 
-class Channel
-{
-public:
-  enum Type { Pub, Sub, Req, Rep };
-
-  Channel(Type type) : type_(type) { }
-
-  void bind(char const* endpoint);
-  void send();
-  void recv();
-
-private:
-  Type type_;
-};
 
 } } // namespace ku::fusion
 

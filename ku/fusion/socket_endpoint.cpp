@@ -71,8 +71,7 @@ namespace ku { namespace fusion {
 SocketEndpoint::SocketEndpoint(Endpoint const& endpoint)
 {
   int ret = -1;
-  switch (endpoint.protocol())
-  {
+  switch (endpoint.protocol()) {
   case Protocol::IPC:
     ret = make_sockaddr(endpoint.address(), sockaddr_.sa_un);
     address_family_ = Unix;
@@ -95,8 +94,7 @@ SocketEndpoint::SocketEndpoint(Endpoint const& endpoint)
   }
   if (ret == -1)
     throw std::system_error(util::errc(), "SocketEndpoint::SocketEndpoint");
-  switch (sockaddr_.sa_storage.ss_family)
-  {
+  switch (sockaddr_.sa_storage.ss_family) {
   case AF_UNIX:
     address_family_ = Unix; break;
   case AF_INET:

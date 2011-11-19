@@ -1,10 +1,6 @@
 #pragma once
 #include <string>
-
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
-
+#include <lua.hpp>
 
 namespace ku { namespace lua {
 
@@ -18,18 +14,20 @@ template <typename T>
 T get(lua_State* L, char const* expr);
 
 template <>
-std::string get(lua_State* L, char const* expr) { return get_string(L, expr); }
+inline std::string get(lua_State* L, char const* expr) { return get_string(L, expr); }
 
 template <>
-double get(lua_State* L, char const* expr) { return get_number(L, expr); }
+inline double get(lua_State* L, char const* expr) { return get_number(L, expr); }
 
 template <>
-bool get(lua_State* L, char const* expr) { return get_bool(L, expr); }
+inline bool get(lua_State* L, char const* expr) { return get_bool(L, expr); }
 
+/*
 template <typename T>
 auto get(lua_State* L, char const* expr)
   -> typename std::enable_if<std::is_integral<T>::value, T>::type
 { return static_cast<T>(get_number(L, expr)); }
+*/
 
 } } // namespace ku::lua
 

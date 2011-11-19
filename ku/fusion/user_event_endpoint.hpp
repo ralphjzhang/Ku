@@ -8,19 +8,20 @@
 
 namespace ku { namespace fusion {
 
-class Channel
+class Endpoint;
+
+class UserEventEndpoint
 {
+  typedef size_t Address;
+
 public:
-  enum Type { Pub, Sub, Req, Rep };
+  UserEventEndpoint(Endpoint const& endpoint);
+  ~UserEventEndpoint() = default;
 
-  Channel(Type type) : type_(type) { }
-
-  void bind(char const* endpoint);
-  void send();
-  void recv();
+  Address address() const { return address_; }
 
 private:
-  Type type_;
+  Address address_;
 };
 
 } } // namespace ku::fusion

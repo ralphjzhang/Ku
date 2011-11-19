@@ -14,7 +14,7 @@ namespace ku { namespace lua {
 std::string get_string(lua_State* L, char const* expr)
 {
   std::stringstream ss;
-  ss << EvalExpr << expr;
+  ss << EvalExpr << "=" << expr;
   if (luaL_dostring(L, ss.str().c_str()) == 0) {
     lua_getglobal(L, EvalExpr);
     if (lua_isstring(L, -1))
@@ -27,7 +27,7 @@ std::string get_string(lua_State* L, char const* expr)
 double get_number(lua_State* L, char const* expr)
 {
   std::stringstream ss;
-  ss << EvalExpr << expr;
+  ss << EvalExpr << "=" << expr;
   if (luaL_dostring(L, ss.str().c_str()) == 0) {
     lua_getglobal(L, EvalExpr);
     if (lua_isnumber(L, -1))
@@ -40,7 +40,7 @@ double get_number(lua_State* L, char const* expr)
 bool get_bool(lua_State* L, char const* expr)
 {
   std::stringstream ss;
-  ss << EvalExpr << expr;
+  ss << EvalExpr << "=" << expr;
   if (luaL_dostring(L, ss.str().c_str()) == 0) {
     lua_getglobal(L, EvalExpr);
     if (lua_isboolean(L, -1))

@@ -11,6 +11,7 @@ Export('env')
 #SConscript('fusion/SConscript')
 #SConscript('log/SConscript')
 SConscript('util/SConscript')
+SConscript('lua/SConscript')
 
 """
 program = env.Program('test', 'TestMain.cpp')

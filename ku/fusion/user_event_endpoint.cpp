@@ -4,27 +4,22 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
+#include <cstdlib>
+#include <string>
 #include <system_error>
 #include "util.hpp"
 #include "endpoint.hpp"
-#include "channel.hpp"
+#include "user_event_endpoint.hpp"
 
 namespace ku { namespace fusion {
 
-void Channel::bind(char const* endpoint)
+UserEventEndpoint::UserEventEndpoint(Endpoint const& endpoint)
 {
-  Endpoint ep(endpoint);
-  if (ep.protocol() == Protocol::Invalid)
-    throw std::system_error(util::errc(EINVAL), "Channel::bind");
-  switch (ep.protocol()) {
-  case Protocol::Inproc:
-    // TODO UserEventEndpoint
-    break;
-  default:
-    // TODO SocketEndpoint
-    break;
-  }
-  // TODO for Pub/Rep, use acceptor, for Sub/Req, use connector
+  std::string const& ep = endpoint.address();
+  if (ep[0] == '#')
+    address_ = std::atoll(ep.substr(1).c_str());
+  if (!address_)
+    throw std::system_error(util::errc(EINVAL), "UserEventEndpoint::UserEventEndpoint");
 }
 
 } } // namespace ku::fusion
