@@ -1,0 +1,7 @@
+import os
+
+Import('env')
+env = env.Clone()
+
+env.Program('fusion', Glob('*.cpp'), variant_dir = '../build', duplicate = 0)
+

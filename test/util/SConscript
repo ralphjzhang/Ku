@@ -3,5 +3,5 @@ import os
 Import('env')
 env = env.Clone()
 
-env.Program('util', Glob('*.cpp'))
+env.Program('util', Glob('*.cpp'), variant_dir = '../build', duplicate = 0)
 

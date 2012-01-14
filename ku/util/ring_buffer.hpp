@@ -27,7 +27,7 @@ public:
 
   bool full() const
   {
-    return head == (tail_ + 1) % capacity();
+    return head_ == (tail_ + 1) % capacity();
   }
 
   void push(T const& t)

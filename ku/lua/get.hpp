@@ -22,6 +22,12 @@ inline double get(lua_State* L, char const* expr) { return get_number(L, expr); 
 template <>
 inline bool get(lua_State* L, char const* expr) { return get_bool(L, expr); }
 
+template <>
+inline long get(lua_State* L, char const* expr) { return static_cast<long>(get_number(L, expr)); }
+
+template <>
+inline int get(lua_State* L, char const* expr) { return static_cast<int>(get_number(L, expr)); }
+
 /*
 template <typename T>
 auto get(lua_State* L, char const* expr)

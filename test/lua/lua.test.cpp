@@ -10,11 +10,13 @@ TEST(lua, get)
     var1 = 3.14
     var2 = true
     var3 = "string"
+    var4 = 10
     )";
   Lua lua;
   EXPECT_TRUE(lua.load(str.c_str()));
   EXPECT_EQ(3.14, lua.get<double>("var1"));
   EXPECT_EQ(true, lua.get<bool>("var2"));
   EXPECT_EQ(std::string("string"), lua.get<std::string>("var3"));
+  EXPECT_EQ(10, lua.get<long>("var4"));
 }
 

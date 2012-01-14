@@ -4,4 +4,5 @@ Import('env')
 env = env.Clone()
 
 env.Library('kulua', Glob('*.cpp'))
+env.SharedLibrary('yue', 'yue.cpp')
 

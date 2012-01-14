@@ -5,22 +5,25 @@ namespace ku { namespace lua {
 
 /// extract_arg extracts argument from a lua stack
 //
-template <typename T>
-T extract_arg(lua_State *L, size_t n)
-{
-  static_assert(sizeof(T), "extract_arg for this type not implemented.");
-}
+template <typename T, size_t N>
+struct extract_arg;
 
-template <>
-double extract_arg<double>(lua_State *L, size_t n)
+template <size_t N>
+struct extract_arg<double, N>
 {
-  return luaL_checknumber(L, n);
+  double operator()(lua_State *L)
+  {
+    return luaL_checknumber(L, N);
+  }
 };
 
-template <>
-char const* extract_arg<char const*>(lua_State *L, size_t n)
+template <size_t N>
+struct extract_arg<char const*, N>
 {
-  return luaL_checkstring(L, n);
+  char const* operator()(lua_State *L)
+  {
+    return luaL_checkstring(L, N);
+  }
 };
 
 } } // namespace ku::lua

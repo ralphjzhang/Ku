@@ -1,21 +1,16 @@
 import os
 
 env = Environment(
-    CPPPATH = ['..', '../..'],
-    LIBPATH = ['../../gtest'],
-    LIBS = ['pthread', 'gtest_main'],
+    CPPPATH = ['#..', '#.'],
+    LIBPATH = ['#../gtest', '#../build/log', '#../build/fusion', '#../build/lua'],
+    LIBS = ['pthread', 'rt', 'gtest_main', 'kulog', 'kufusion', 'kulua'],
     CCFLAGS = '-Wall --std=c++0x -g -fPIC'
     )
-
 Export('env')
-#SConscript('fusion/SConscript')
-#SConscript('log/SConscript')
-SConscript('util/SConscript')
-SConscript('lua/SConscript')
 
-"""
-program = env.Program('test', 'TestMain.cpp')
-test_alias = Alias('test', [program], program[0].path)
-AlwaysBuild(test_alias)
-"""
+SConscript('util/SConscript')
+SConscript('fusion/SConscript')
+#env.Program('log', Glob('log/*.cpp'))
+#env.Program('lua', Glob('lua/*.cpp'))
+
 

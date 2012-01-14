@@ -15,7 +15,7 @@ NoticeBoard::NoticeBoard() : pending_updates_(false)
 bool NoticeBoard::remove_notice(NoticeId notice_id)
 {
   pending_updates_ = true;
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> _(mutex_);
   update_list_.emplace_back(notice_id);
   return true;
 }
@@ -24,7 +24,7 @@ bool NoticeBoard::modify_notice(NoticeId notice_id, Notice::EventHandler const& 
     std::initializer_list<Notice::EventType> const& event_types)
 {
   pending_updates_ = true;
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> _(mutex_);
   // Set notice.raw_handle = -1 to distinguish from remove (where raw_handle = 0)
   update_list_.emplace_back(notice_id, Notice(-1, event_handler));
   for (Notice::EventType event_type : event_types)
@@ -36,7 +36,7 @@ NoticeId NoticeBoard::add_notice(int raw_handle, std::initializer_list<Notice::E
     Notice::EventHandler const& event_handler)
 {
   pending_updates_ = true;
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::lock_guard<std::mutex> _(mutex_);
   update_list_.emplace_back(NoticeId(0), Notice(raw_handle, event_handler));
   for (Notice::EventType event_type : event_types)
     update_list_.back().notice.set_event_type(event_type);
@@ -50,7 +50,7 @@ void NoticeBoard::apply_updates()
   UpdateList list;
   list.reserve(update_list_.size());
   {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> _(mutex_);
     list.swap(update_list_);
   }
   for (Update& update : list) {

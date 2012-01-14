@@ -1,9 +1,0 @@
-import os
-
-Import('env')
-env = env.Clone()
-env.Append(LIBPATH = ['../../build/log'])
-env.Append(LIBS = ['kulog'])
-
-env.Program('log', Glob('*.cpp'))
-
