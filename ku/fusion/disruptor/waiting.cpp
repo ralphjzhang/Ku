@@ -4,23 +4,11 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#pragma once
-#include <cstddef>
-#include "sequence.hpp"
+#include "waiting.hpp"
 
 namespace ku { namespace fusion { namespace disruptor {
 
-class ConditionWaiting
-{
-public:
-  void notify_all();
-};
 
-class YieldWaiting
-{
-public:
-  void wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list);
-};
 
 } } } // namespace ku::fusion::disruptor
 

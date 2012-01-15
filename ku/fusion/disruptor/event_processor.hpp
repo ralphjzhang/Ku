@@ -9,27 +9,11 @@
 
 namespace ku { namespace fusion { namespace disruptor {
 
-class Claimer
+class EventProcessor
 {
 public:
-  Claimer(size_t buf_size);
-  ~Claimer() = default;
-
-  size_t get() const { return claim_seq_.get(); }
-  bool has_available(size_t capacity, SequenceList const& seq_list);
-  size_t claim_next(SequenceList const& seq_list);
-  size_t claim_next(size_t incr, SequenceList const& seq_list);
-
-  void wait_for_capacity(size_t capacity, SequenceList const& seq_list);
-
-private:
-  void wait_for_seq(size_t seq, SequenceList const& seq_list);
-
-private:
-  size_t const buf_size_;
-  Sequence claim_seq_, gating_seq_;
+  virtual Sequence& sequence() = 0;
 };
-
 
 } } } // namespace ku::fusion::disruptor
 

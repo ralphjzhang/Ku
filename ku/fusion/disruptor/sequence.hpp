@@ -6,6 +6,7 @@
  ***************************************************************/ 
 #pragma once
 #include <cstddef>
+#include <initializer_list>
 #include <atomic>
 #include <vector>
 
@@ -19,7 +20,7 @@ public:
 
   // These get/set work in the assumption that there is only one writer
   size_t get() const { return value_.load(std::memory_order_acquire); }
-  void set(size_t value) { value_.store(std::memory_order_release); }
+  void set(size_t value) { value_.store(value, std::memory_order_release); }
   bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }
 
 private:
@@ -34,9 +35,10 @@ class SequenceList
 {
 public:
   size_t min_sequence() const;
+  void initialize(std::initializer_list<Sequence*> const& seqs);
 
 private:
-  std::vector<Sequence> list_;
+  std::vector<Sequence*> list_;
 };
 
 } } } // namespace ku::fusion::disruptor
