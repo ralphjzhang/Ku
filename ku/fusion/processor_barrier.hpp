@@ -6,22 +6,30 @@
  ***************************************************************/ 
 #pragma once
 #include <cstddef>
-#include "sequence.hpp"
+#include <vector>
 
-namespace ku { namespace fusion { namespace disruptor {
+namespace ku { namespace fusion {
 
-class ConditionWaiting
+class Sequence;
+
+class ProcessorBarrier
 {
 public:
-  void notify_all();
+  ProcessorBarrier() = default;
+  ~ProcessorBarrier() = default;
+
+  size_t max_sequence() const;
+  size_t min_sequence() const;
+
+  template <typename Processor>
+  void add_processor(Processor const& pr)
+  {
+    processor_seqs_.push_back(&(pr.sequence()));
+  }
+
+private:
+  std::vector<Sequence const*> processor_seqs_; 
 };
 
-class YieldWaiting
-{
-public:
-  void wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list);
-  void notify_all() {}
-};
-
-} } } // namespace ku::fusion::disruptor
+} } // namespace ku::fusion
 

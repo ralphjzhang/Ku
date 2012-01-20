@@ -4,14 +4,24 @@
  *                                                             *
  * This source code is provided with absolutely no warranty.   *
  ***************************************************************/ 
-#include "waiting.hpp"
+#pragma once
+#include <sys/epoll.h>
+#include <chrono>
+#include "event_buffer.hpp"
 
-namespace ku { namespace fusion { namespace disruptor {
+namespace ku { namespace fusion {
 
-void YieldWaiting::wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list)
+class Poller
 {
-  // TODO
-}
+public:
+  Poller(int flags, size_t buf_size);
+  void poll(std::chrono::milliseconds const& timeout);
 
-} } } // namespace ku::fusion::disruptor
+private:
+  EventBuffer event_buffer_;
+  unsigned active_count_;
+  int raw_handle_;
+};
+
+} } // namespace ku::fusion
 

@@ -26,7 +26,7 @@ private:
 };
 
 
-template <typename Event, typename Waiting>
+template <typename RingBuffer>
 void EventPublisher::publish(EventType const& event)
 {
   size_t seq = buffer_.claim_next();

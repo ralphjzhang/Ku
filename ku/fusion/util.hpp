@@ -4,6 +4,9 @@
 
 namespace ku { namespace fusion { namespace util {
 
+size_t next_pow_of_two(size_t val);
+inline size_t ceiling_pow_of_two(size_t val) { return next_pow_of_two(val - 1); }
+
 inline std::error_code errc(int err)
 {
   return std::make_error_code(static_cast<std::errc>(err));

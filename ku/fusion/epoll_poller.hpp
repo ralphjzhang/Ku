@@ -19,8 +19,8 @@ namespace ku { namespace fusion { namespace epoll {
 
 class Poller;
 
-class Events : public NoticeBoard
-             , private util::noncopyable
+class Notices : public NoticeBoard
+              , private util::noncopyable
 {
   friend class Poller;
   // NoticeMap is only used when add/remove/modify notice, shouldn't be the bottleneck,
@@ -30,12 +30,10 @@ class Events : public NoticeBoard
 public:
   typedef std::function<bool(std::error_code)> OnError;
 
-  Events(size_t capacity = 16);
-  virtual ~Events() { }
+  Notices();
+  virtual ~Notices() { }
 
   void set_poller(Poller* poller) { poller_ = poller; }
-  epoll_event const& raw_event(unsigned n) const { return events_[n]; }
-  unsigned active_count() const { return active_count_; }
 
   Notice* find_notice(epoll_event const& ev);
 
@@ -51,16 +49,10 @@ private:
   virtual bool modify_notice_internal(NoticeId id, Notice const& notice);
   virtual Notice* find_notice(NoticeId id);
 
-  epoll_event* raw_events() { return &*events_.begin(); }
-  void set_active_count(unsigned n) { active_count_ = n; }
-
   void clear();
-  void resize(size_t size) { events_.resize(size); }
 
 private:
   Poller* poller_;
-  std::vector<epoll_event> events_;
-  unsigned active_count_;
   NoticeMap notices_;
   OnError on_error_;
 };
@@ -68,24 +60,27 @@ private:
 // =======================================================================================
 // epoll::Poller manages epoll file descriptor and associated operation, namely, 
 // epoll_create, epoll_wait
-// It is supposed to be used with epoll::Events
+// It is supposed to be used with epoll::Notices
 // =======================================================================================
 class Poller : private util::noncopyable
 {
-  friend class Events;
+  friend class Notices;
 
 public:
-  Poller(Poller&& h) : raw_handle_(h.raw_handle_) { h.clear(); }
+  explicit Poller(int flags, size_t capacity = 16);
   ~Poller() { close(); }
-  explicit Poller(int flags);
 
-  Events& poll(Events& evts, std::chrono::milliseconds const& timeout);
+  void poll(std::chrono::milliseconds const& timeout);
+  epoll_event const& raw_event(unsigned n) const { return events_[n]; }
+  unsigned active_count() const { return active_count_; }
   void close();
 
 private:
   int raw_handle() const { return raw_handle_; }
   void clear() { raw_handle_ = 0; }
 
+  std::vector<epoll_event> events_;
+  unsigned active_count_;
   int raw_handle_;
 };
 
@@ -101,14 +96,14 @@ public:
   PollLoop() { }
   PollLoop(PollLoop const&) = default;
 
-  void set_on_error(Events::OnError const& on_error) { events_.set_on_error(on_error); }
-  virtual NoticeBoard& notices() { return events_; }
+  void set_on_error(Notices::OnError const& on_error) { notices_.set_on_error(on_error); }
+  virtual NoticeBoard& notices() { return notices_; }
 
 private:
   virtual bool loop(std::chrono::milliseconds timeout);
 
 private:
-  Events events_;
+  Notices notices_;
 };
 
 } } } // namespace ku::fusion::epoll

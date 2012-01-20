@@ -35,28 +35,26 @@ void translate_events(epoll_event const& ev, Notice& notice)
     notice.set_event(Notice::Error);
 }
 
-/// Events ///
+/// Notices ///
 
-Events::Events(size_t capacity)
-  : poller_(nullptr), events_(capacity), active_count_(0)
+Notices::Notices()
+  : poller_(nullptr)
 {
 }
 
-void Events::clear()
+void Notices::clear()
 {
-  events_.clear();
-  active_count_ = 0;
   notices_.clear();
 }
 
-Notice* Events::find_notice(epoll_event const& ev)
+Notice* Notices::find_notice(epoll_event const& ev)
 {
   Notice* notice = static_cast<Notice*>(ev.data.ptr);
   assert(notice == &notices_[notice->id()]);
   return notice;
 }
 
-bool Events::add_notice_internal(Notice&& notice)
+bool Notices::add_notice_internal(Notice&& notice)
 {
   assert(notice.any_event_type());
   auto res = notices_.insert(std::make_pair(notice.id(), std::move(notice)));
@@ -73,13 +71,13 @@ bool Events::add_notice_internal(Notice&& notice)
   return false;
 }
 
-Notice* Events::find_notice(NoticeId id)
+Notice* Notices::find_notice(NoticeId id)
 {
   auto find = notices_.find(id);
   return notices_.end() == find ? nullptr : &find->second;
 }
 
-bool Events::remove_notice_internal(NoticeId id)
+bool Notices::remove_notice_internal(NoticeId id)
 {
   if (Notice* notice_ptr = find_notice(id)) {
     int raw_handle = notice_ptr->raw_handle();
@@ -94,7 +92,7 @@ bool Events::remove_notice_internal(NoticeId id)
   return false;
 }
 
-bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
+bool Notices::modify_notice_internal(NoticeId id, Notice const& notice)
 {
   if (Notice* notice_ptr = find_notice(id)) {
     epoll_event ev;
@@ -111,25 +109,25 @@ bool Events::modify_notice_internal(NoticeId id, Notice const& notice)
 
 /// Poller ///
 
-Poller::Poller(int flags)
+Poller::Poller(int flags, size_t capacity)
+  : events_(capacity), active_count_(0)
 {
   if ((raw_handle_ = epoll_create1(flags)) == -1)
     throw std::system_error(util::errc(), "epoll::Poller::Poller");
 }
 
-Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)
+void Poller::poll(std::chrono::milliseconds const& timeout)
 {
-  int event_num = ::epoll_wait(raw_handle(), evts.raw_events(), evts.events_.size(),
+  int event_num = ::epoll_wait(raw_handle(), &*events_.begin(), events_.size(),
                                timeout.count());
   if (event_num == -1) { // TODO EINTR
-    evts.set_active_count(0);
+    active_count_ = 0;
     throw std::system_error(util::errc(), "epoll::Poller::poll");
   } else {
-    evts.set_active_count(event_num);
-    if (evts.active_count() >= evts.events_.size())
-      evts.resize(evts.active_count() + evts.active_count() / 2);
+    active_count_ = event_num;
+    if (active_count_ >= events_.size())
+      events_.resize(active_count_ + active_count_ / 2);
   }
-  return evts;
 }
 
 void Poller::close()
@@ -143,17 +141,17 @@ void Poller::close()
 bool PollLoop::loop(std::chrono::milliseconds timeout)
 {
   Poller poller(EPOLL_CLOEXEC);
-  events_.set_poller(&poller);
+  notices_.set_poller(&poller);
 
   while (!quit_) {
-    events_.apply_updates();
-    poller.poll(events_, timeout);
+    notices_.apply_updates();
+    poller.poll(timeout);
 
-    for (unsigned i = 0; i < events_.active_count(); ++i) {
-      epoll_event const& ev = events_.raw_event(i);
-      Notice* notice = events_.find_notice(ev);
+    for (unsigned i = 0; i < poller.active_count(); ++i) {
+      epoll_event const& ev = poller.raw_event(i);
+      Notice* notice = notices_.find_notice(ev);
       translate_events(ev, *notice);
-      dispatch(*notice, events_);
+      dispatch(*notice, notices_);
     }
   }
   return true;
