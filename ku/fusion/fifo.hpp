@@ -16,7 +16,7 @@ struct Fifo;
 
 class Fifo
 {
-  typedef Handle<ops::Fifo> HandleType;
+  using HandleType = Handle<ops::Fifo>;
 
 public:
   Fifo(char const* path);

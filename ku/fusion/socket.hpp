@@ -18,7 +18,7 @@ struct Socket;
 
 class Socket
 {
-  typedef Handle<ops::Socket> HandleType;
+  using HandleType = Handle<ops::Socket>;
   friend class AcceptorSocket;
 
 public:
@@ -44,7 +44,7 @@ protected:
 
 class AcceptorSocket
 {
-  typedef Handle<ops::Socket> HandleType;
+  using HandleType = Handle<ops::Socket>;
 
 public:
   AcceptorSocket() = default;
@@ -62,7 +62,7 @@ private:
 
 class ConnectorSocket : public Socket
 {
-  typedef Handle<ops::Socket> HandleType;
+  using HandleType = Handle<ops::Socket>;
 
 public:
   ConnectorSocket() = default;

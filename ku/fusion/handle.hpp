@@ -9,12 +9,6 @@ namespace ops {
 struct Common;
 } // namespace ku::fusion::ops
 
-// This is a hack to help template parameter be friend, shouldn't need this after gcc4.7
-template <typename T>
-struct FriendMaker
-{
-  typedef T Type;
-};
 
 // =======================================================================================
 // Handle is a thin wrapper to OS file descriptor (raw_handle) with an error_code.
@@ -32,8 +26,8 @@ struct FriendMaker
 template <typename T>
 class Handle : private util::noncopyable
 {
-  friend class ops::Common;
-  friend class FriendMaker<T>::Type;
+  friend struct ops::Common;
+  friend T;
   friend class NoticeBoard;
   friend class WeakHandle;
 

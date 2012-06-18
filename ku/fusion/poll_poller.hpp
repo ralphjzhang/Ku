@@ -16,9 +16,9 @@ class Events : public NoticeBoard
   friend Events& poll(Events&, std::chrono::milliseconds const&);
   static const size_t InitialCapacity = 16;
 
-  typedef std::vector<pollfd> EventList;
+  using EventList = std::vector<pollfd>;
   // Mapping NoticeId --> (Notice, index in events_)
-  typedef std::unordered_map<NoticeId, std::pair<Notice, size_t> > NoticeMap;
+  using NoticeMap = std::unordered_map<NoticeId, std::pair<Notice, size_t>>;
 
 public:
   Events(size_t capacity = InitialCapacity) : events_(capacity) { clear(); }

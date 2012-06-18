@@ -20,7 +20,7 @@ struct UserEvent;
 
 class UserEvent
 {
-  typedef Handle<ops::UserEvent> HandleType;
+  using HandleType = Handle<ops::UserEvent>;
 
 public:
   UserEvent(unsigned init_value, bool non_block = true, bool semaphore = false);
@@ -42,7 +42,7 @@ private:
 
 class WriterUserEvent
 {
-  typedef Handle<ops::UserEvent> HandleType;
+  using HandleType = Handle<ops::UserEvent>;
   friend class ReaderUserEvent;
 
 public:
@@ -58,7 +58,7 @@ private:
 
 class ReaderUserEvent
 {
-  typedef Handle<ops::UserEvent> HandleType;
+  using HandleType = Handle<ops::UserEvent>;
 
 public:
   ReaderUserEvent(WriterUserEvent& writer) : handle_(writer.handle_) { }

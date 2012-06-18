@@ -12,7 +12,7 @@ template <typename R, typename... Args>
 struct FuncTraits
 {
 private:
-  typedef R(function_type)(Args...);
+  using function_type = R()(Args...);
   function_type* fp;
 
   std::string _fullname()

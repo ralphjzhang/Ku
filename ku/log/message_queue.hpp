@@ -23,7 +23,7 @@ class MessageQueue
     uint32_t raw_buffer_count;
   };
 
-  typedef std::vector<MessageInfo> BufferIndex;
+  using BufferIndex = std::vector<MessageInfo>;
   const static size_t FlushCount = 16;
 
 public:

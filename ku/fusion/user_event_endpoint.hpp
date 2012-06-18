@@ -12,7 +12,7 @@ class Endpoint;
 
 class UserEventEndpoint
 {
-  typedef size_t Address;
+  using Address = size_t;
 
 public:
   UserEventEndpoint(Endpoint const& endpoint);

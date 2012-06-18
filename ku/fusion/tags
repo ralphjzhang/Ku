@@ -11,8 +11,12 @@ Address	user_event_endpoint.hpp	/^  typedef size_t Address;$/;"	t	class:ku::fusi
 AddressFamily	socket_endpoint.hpp	/^  enum AddressFamily { Invalid, Unix, IPv4, IPv6 };$/;"	g	class:ku::fusion::SocketEndpoint	access:public
 Channel	channel.hpp	/^  Channel(Type type) : type_(type) { }$/;"	f	class:ku::fusion::Channel	access:public	signature:(Type type)
 Channel	channel.hpp	/^class Channel$/;"	c	namespace:ku::fusion
+Claimer	disruptor/claimer.cpp	/^Claimer::Claimer(size_t buf_size)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t buf_size)
+Claimer	disruptor/claimer.hpp	/^  Claimer(size_t buf_size);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t buf_size)
+Claimer	disruptor/claimer.hpp	/^class Claimer$/;"	c	namespace:ku::fusion::disruptor
 Clock	timer.hpp	/^  enum Clock { Monotonic = CLOCK_MONOTONIC, Realtime = CLOCK_REALTIME };$/;"	g	class:ku::fusion::Timer	access:public
 Common	ops/common.hpp	/^struct Common$/;"	s	namespace:ku::fusion::ops
+ConditionWaiting	disruptor/waiting.hpp	/^class ConditionWaiting$/;"	c	namespace:ku::fusion::disruptor
 Connection	tcp/server.hpp	/^  typedef ServerConnection<EventHandler> Connection;$/;"	t	class:ku::fusion::tcp::Server	access:private
 Connector	connector.hpp	/^  Connector() = default;$/;"	p	class:ku::fusion::Connector	access:public	signature:()
 Connector	connector.hpp	/^class Connector : private util::noncopyable$/;"	c	namespace:ku::fusion	inherits:util::noncopyable
@@ -26,12 +30,18 @@ Endpoint	endpoint.hpp	/^  Endpoint(Endpoint&& endpoint) : protocol_(endpoint.pro
 Endpoint	endpoint.hpp	/^  Endpoint(Protocol p, std::string const& addr) : protocol_(p), address_(addr) { }$/;"	f	class:ku::fusion::Endpoint	access:public	signature:(Protocol p, std::string const& addr)
 Endpoint	endpoint.hpp	/^  Endpoint(char const* uri) { resolve(uri); }$/;"	f	class:ku::fusion::Endpoint	access:public	signature:(char const* uri)
 Endpoint	endpoint.hpp	/^class Endpoint$/;"	c	namespace:ku::fusion
+EventBuffer	event_buffer.cpp	/^EventBuffer::EventBuffer(size_t size) $/;"	f	class:ku::fusion::EventBuffer	signature:(size_t size)
+EventBuffer	event_buffer.hpp	/^  EventBuffer(size_t size);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t size)
+EventBuffer	event_buffer.hpp	/^class EventBuffer$/;"	c	namespace:ku::fusion
 EventHandler	notice.hpp	/^  typedef std::function<bool(Event, NoticeId)> EventHandler;$/;"	t	class:ku::fusion::Notice	access:public
 EventList	poll_poller.hpp	/^  typedef std::vector<pollfd> EventList;$/;"	t	class:ku::fusion::poll::Events	access:private
+EventProcessor	disruptor/event_processor.hpp	/^class EventProcessor$/;"	c	namespace:ku::fusion::disruptor
+EventPublisher	disruptor/event_publisher.hpp	/^  EventPublisher(RingBuffer& buffer)$/;"	f	class:ku::fusion::disruptor::EventPublisher	access:public	signature:(RingBuffer& buffer)
+EventPublisher	disruptor/event_publisher.hpp	/^class EventPublisher$/;"	c	namespace:ku::fusion::disruptor
+EventType	disruptor/event_publisher.hpp	/^  typedef typename RingBuffer::EventType EventType;$/;"	t	class:ku::fusion::disruptor::EventPublisher	access:public
+EventType	disruptor/ring_buffer.hpp	/^  typedef Event EventType;$/;"	t	class:ku::fusion::disruptor::RingBuffer	access:public
 EventTypes	notice.hpp	/^  struct EventTypes : public std::bitset<3> { };$/;"	s	class:ku::fusion::Notice	inherits:std::bitset	access:private
-Events	epoll_poller.cpp	/^Events::Events(size_t capacity)$/;"	f	class:ku::fusion::epoll::Events	signature:(size_t capacity)
-Events	epoll_poller.hpp	/^  Events(size_t capacity = 16);$/;"	p	class:ku::fusion::epoll::Events	access:public	signature:(size_t capacity = 16)
-Events	epoll_poller.hpp	/^class Events : public NoticeBoard$/;"	c	namespace:ku::fusion::epoll	inherits:NoticeBoard,util::noncopyable
+Events	event_buffer.hpp	/^  typedef std::vector<epoll_event> Events;$/;"	t	class:ku::fusion::EventBuffer	access:private
 Events	notice.hpp	/^  struct Events : public std::bitset<4> { };$/;"	s	class:ku::fusion::Notice	inherits:std::bitset	access:private
 Events	poll_poller.hpp	/^  Events(size_t capacity = InitialCapacity) : events_(capacity) { clear(); }$/;"	f	class:ku::fusion::poll::Events	access:public	signature:(size_t capacity = InitialCapacity)
 Events	poll_poller.hpp	/^class Events : public NoticeBoard$/;"	c	namespace:ku::fusion::poll	inherits:NoticeBoard,util::noncopyable
@@ -72,9 +82,12 @@ NoticeBoard	notice_board.cpp	/^NoticeBoard::NoticeBoard() : pending_updates_(fal
 NoticeBoard	notice_board.hpp	/^  NoticeBoard();$/;"	p	class:ku::fusion::NoticeBoard	access:public	signature:()
 NoticeBoard	notice_board.hpp	/^class NoticeBoard$/;"	c	namespace:ku::fusion
 NoticeId	notice.hpp	/^typedef uint32_t NoticeId;$/;"	t	namespace:ku::fusion
-NoticeMap	epoll_poller.hpp	/^  typedef std::map<NoticeId, Notice> NoticeMap;$/;"	t	class:ku::fusion::epoll::Events	access:private
+NoticeMap	epoll_poller.hpp	/^  typedef std::map<NoticeId, Notice> NoticeMap;$/;"	t	class:ku::fusion::epoll::Notices	access:private
 NoticeMap	poll_poller.hpp	/^  typedef std::unordered_map<NoticeId, std::pair<Notice, size_t> > NoticeMap;$/;"	t	class:ku::fusion::poll::Events	access:private
-OnError	epoll_poller.hpp	/^  typedef std::function<bool(std::error_code)> OnError;$/;"	t	class:ku::fusion::epoll::Events	access:public
+Notices	epoll_poller.cpp	/^Notices::Notices()$/;"	f	class:ku::fusion::epoll::Notices	signature:()
+Notices	epoll_poller.hpp	/^  Notices();$/;"	p	class:ku::fusion::epoll::Notices	access:public	signature:()
+Notices	epoll_poller.hpp	/^class Notices : public NoticeBoard$/;"	c	namespace:ku::fusion::epoll	inherits:NoticeBoard,util::noncopyable
+OnError	epoll_poller.hpp	/^  typedef std::function<bool(std::error_code)> OnError;$/;"	t	class:ku::fusion::epoll::Notices	access:public
 PGM	protocol.hpp	/^  Invalid = 0, Inproc, IPC, TCP, PGM, WS $/;"	m	class:ku::fusion::Protocol	access:private
 Periodic	timer.hpp	/^  enum Mode { None, Periodic, Deadline };$/;"	e	enum:ku::fusion::Timer::Mode
 PollLoop	epoll_poller.hpp	/^  PollLoop() { }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
@@ -85,10 +98,14 @@ PollLoop	poll_loop.hpp	/^class PollLoop$/;"	c	namespace:ku::fusion
 PollLoop	poll_poller.hpp	/^  PollLoop() { }$/;"	f	class:ku::fusion::poll::PollLoop	access:public	signature:()
 PollLoop	poll_poller.hpp	/^  PollLoop(PollLoop const&) = default;$/;"	p	class:ku::fusion::poll::PollLoop	access:public	signature:(PollLoop const&)
 PollLoop	poll_poller.hpp	/^class PollLoop : public fusion::PollLoop$/;"	c	namespace:ku::fusion::poll	inherits:fusion::PollLoop
-Poller	epoll_poller.cpp	/^Poller::Poller(int flags)$/;"	f	class:ku::fusion::epoll::Poller	signature:(int flags)
-Poller	epoll_poller.hpp	/^  Poller(Poller&& h) : raw_handle_(h.raw_handle_) { h.clear(); }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:(Poller&& h)
-Poller	epoll_poller.hpp	/^  explicit Poller(int flags);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(int flags)
+Poller	epoll_poller.cpp	/^Poller::Poller(int flags, size_t capacity)$/;"	f	class:ku::fusion::epoll::Poller	signature:(int flags, size_t capacity)
+Poller	epoll_poller.hpp	/^  explicit Poller(int flags, size_t capacity = 16);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(int flags, size_t capacity = 16)
 Poller	epoll_poller.hpp	/^class Poller : private util::noncopyable$/;"	c	namespace:ku::fusion::epoll	inherits:util::noncopyable
+Poller	poller.cpp	/^Poller::Poller(int flags, size_t buf_size)$/;"	f	class:ku::fusion::Poller	signature:(int flags, size_t buf_size)
+Poller	poller.hpp	/^  Poller(int flags, size_t buf_size);$/;"	p	class:ku::fusion::Poller	access:public	signature:(int flags, size_t buf_size)
+Poller	poller.hpp	/^class Poller$/;"	c	namespace:ku::fusion
+ProcessorBarrier	processor_barrier.hpp	/^  ProcessorBarrier() = default;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:()
+ProcessorBarrier	processor_barrier.hpp	/^class ProcessorBarrier$/;"	c	namespace:ku::fusion
 Protocol	protocol.hpp	/^enum class Protocol$/;"	c	namespace:ku::fusion
 Pub	channel.hpp	/^  enum Type { Pub, Sub, Req, Rep };$/;"	e	enum:ku::fusion::Channel::Type
 ReaderUserEvent	user_event.hpp	/^  ReaderUserEvent(WriterUserEvent& writer) : handle_(writer.handle_) { }$/;"	f	class:ku::fusion::ReaderUserEvent	access:public	signature:(WriterUserEvent& writer)
@@ -96,6 +113,14 @@ ReaderUserEvent	user_event.hpp	/^class ReaderUserEvent$/;"	c	namespace:ku::fusio
 Realtime	timer.hpp	/^  enum Clock { Monotonic = CLOCK_MONOTONIC, Realtime = CLOCK_REALTIME };$/;"	e	enum:ku::fusion::Timer::Clock
 Rep	channel.hpp	/^  enum Type { Pub, Sub, Req, Rep };$/;"	e	enum:ku::fusion::Channel::Type
 Req	channel.hpp	/^  enum Type { Pub, Sub, Req, Rep };$/;"	e	enum:ku::fusion::Channel::Type
+RingBuffer	disruptor/ring_buffer.hpp	/^  RingBuffer(size_t size)$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t size)
+RingBuffer	disruptor/ring_buffer.hpp	/^class RingBuffer$/;"	c	namespace:ku::fusion::disruptor
+Sequence	disruptor/sequence.hpp	/^  Sequence(size_t value) { set(value); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t value)
+Sequence	disruptor/sequence.hpp	/^class Sequence$/;"	c	namespace:ku::fusion::disruptor
+Sequence	sequence.hpp	/^  Sequence(size_t value) { set(value); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t value)
+Sequence	sequence.hpp	/^class Sequence$/;"	c	namespace:ku::fusion
+SequenceList	disruptor/sequence.hpp	/^class SequenceList$/;"	c	namespace:ku::fusion::disruptor
+SequenceList	sequence.hpp	/^class SequenceList$/;"	c	namespace:ku::fusion
 Server	tcp/server.hpp	/^  Server(SocketEndpoint const& local_endpoint)$/;"	f	class:ku::fusion::tcp::Server	access:public	signature:(SocketEndpoint const& local_endpoint)
 Server	tcp/server.hpp	/^class Server$/;"	c	namespace:ku::fusion::tcp
 ServerConnection	server_connection.hpp	/^  ServerConnection(Socket&& socket, SocketEndpoint const& peer_endpoint) $/;"	f	class:ku::fusion::ServerConnection	access:public	signature:(Socket&& socket, SocketEndpoint const& peer_endpoint)
@@ -153,6 +178,7 @@ WeakHandle	handle.hpp	/^class WeakHandle$/;"	c	namespace:ku::fusion
 WriterUserEvent	user_event.cpp	/^WriterUserEvent::WriterUserEvent()$/;"	f	class:ku::fusion::WriterUserEvent	signature:()
 WriterUserEvent	user_event.hpp	/^  WriterUserEvent();$/;"	p	class:ku::fusion::WriterUserEvent	access:public	signature:()
 WriterUserEvent	user_event.hpp	/^class WriterUserEvent$/;"	c	namespace:ku::fusion
+YieldWaiting	disruptor/waiting.hpp	/^class YieldWaiting$/;"	c	namespace:ku::fusion::disruptor
 __anon1::protocols	protocol.cpp	/^static char const* protocols[] = {$/;"	m	namespace:__anon1	file:
 __anon2::acceptor_addrinfo	socket.cpp	/^addrinfo acceptor_addrinfo(SocketEndpoint const& endpoint)$/;"	f	namespace:__anon2	signature:(SocketEndpoint const& endpoint)
 __anon2::connector_addrinfo	socket.cpp	/^addrinfo connector_addrinfo(SocketEndpoint const& endpoint)$/;"	f	namespace:__anon2	signature:(SocketEndpoint const& endpoint)
@@ -171,19 +197,21 @@ accept_connections	socket_acceptor.cpp	/^size_t accept_connections(AcceptorSocke
 accept_connections	socket_acceptor.hpp	/^size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,$/;"	p	namespace:ku::fusion	signature:(AcceptorSocket& socket, NoticeBoard& notices, std::function<Notice::EventHandler(Socket&&, SocketEndpoint const&)> handler_creator)
 acceptor_	tcp/server.hpp	/^  SocketAcceptor<Connection> acceptor_;$/;"	m	class:ku::fusion::tcp::Server	access:private
 acceptor_addrinfo	socket.cpp	/^addrinfo acceptor_addrinfo(SocketEndpoint const& endpoint)$/;"	f	namespace:__anon2	signature:(SocketEndpoint const& endpoint)
-active_count	epoll_poller.hpp	/^  unsigned active_count() const { return active_count_; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:() const
+active_count	epoll_poller.hpp	/^  unsigned active_count() const { return active_count_; }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:() const
 active_count	poll_poller.hpp	/^  unsigned active_count() const { return active_count_; }$/;"	f	class:ku::fusion::poll::Events	access:public	signature:() const
-active_count_	epoll_poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::epoll::Events	access:private
+active_count_	epoll_poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::epoll::Poller	access:private
 active_count_	poll_poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::poll::Events	access:private
+active_count_	poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::Poller	access:private
 add_notice	notice_board.cpp	/^NoticeId NoticeBoard::add_notice(int raw_handle, std::initializer_list<Notice::EventType> const& event_types,$/;"	f	class:ku::fusion::NoticeBoard	signature:(int raw_handle, std::initializer_list<Notice::EventType> const& event_types, Notice::EventHandler const& event_handler)
 add_notice	notice_board.hpp	/^  NoticeId add_notice(Handle const& h, std::initializer_list<Notice::EventType> const& event_types,$/;"	p	class:ku::fusion::NoticeBoard	access:public	signature:(Handle const& h, std::initializer_list<Notice::EventType> const& event_types, Notice::EventHandler const& event_handler)
 add_notice	notice_board.hpp	/^  NoticeId add_notice(int raw_handle, std::initializer_list<Notice::EventType> const& event_types,$/;"	p	class:ku::fusion::NoticeBoard	access:private	signature:(int raw_handle, std::initializer_list<Notice::EventType> const& event_types, Notice::EventHandler const& event_handler)
 add_notice	notice_board.hpp	/^NoticeId NoticeBoard::add_notice(Handle const& h, std::initializer_list<Notice::EventType> const& event_types,$/;"	f	class:ku::fusion::NoticeBoard	signature:(Handle const& h, std::initializer_list<Notice::EventType> const& event_types, Notice::EventHandler const& event_handler)
-add_notice_internal	epoll_poller.cpp	/^bool Events::add_notice_internal(Notice&& notice)$/;"	f	class:ku::fusion::epoll::Events	signature:(Notice&& notice)
-add_notice_internal	epoll_poller.hpp	/^  virtual bool add_notice_internal(Notice&& notice);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(Notice&& notice)
+add_notice_internal	epoll_poller.cpp	/^bool Notices::add_notice_internal(Notice&& notice)$/;"	f	class:ku::fusion::epoll::Notices	signature:(Notice&& notice)
+add_notice_internal	epoll_poller.hpp	/^  virtual bool add_notice_internal(Notice&& notice);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(Notice&& notice)
 add_notice_internal	notice_board.hpp	/^  virtual bool add_notice_internal(Notice&&) = 0;$/;"	p	class:ku::fusion::NoticeBoard	access:private	signature:(Notice&&)
 add_notice_internal	poll_poller.cpp	/^bool Events::add_notice_internal(Notice&& notice)$/;"	f	class:ku::fusion::poll::Events	signature:(Notice&& notice)
 add_notice_internal	poll_poller.hpp	/^  virtual bool add_notice_internal(Notice&& notice);$/;"	p	class:ku::fusion::poll::Events	access:private	signature:(Notice&& notice)
+add_processor	processor_barrier.hpp	/^  void add_processor(Processor const& pr)$/;"	f	class:ku::fusion::ProcessorBarrier	access:public	signature:(Processor const& pr)
 address	endpoint.hpp	/^  std::string const& address() const { return address_; }$/;"	f	class:ku::fusion::Endpoint::std	access:public	signature:() const
 address	socket_endpoint.cpp	/^std::string SocketEndpoint::address() const$/;"	f	class:ku::fusion::SocketEndpoint	signature:() const
 address	socket_endpoint.hpp	/^  std::string address() const;$/;"	p	class:ku::fusion::SocketEndpoint	access:public	signature:() const
@@ -196,14 +224,35 @@ any_event	notice.hpp	/^  bool any_event() const { return events_.any(); }$/;"	f	
 any_event_type	notice.hpp	/^  bool any_event_type() const { return event_types_.any(); }$/;"	f	class:ku::fusion::Notice	access:public	signature:() const
 apply_updates	notice_board.cpp	/^void NoticeBoard::apply_updates()$/;"	f	class:ku::fusion::NoticeBoard	signature:()
 apply_updates	notice_board.hpp	/^  void apply_updates();$/;"	p	class:ku::fusion::NoticeBoard	access:protected	signature:()
+barrier	event_buffer.hpp	/^  ProcessorBarrier& barrier() { return barrier_; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:()
+barrier_	event_buffer.hpp	/^  ProcessorBarrier barrier_;$/;"	m	class:ku::fusion::EventBuffer	access:private
 bind	channel.cpp	/^void Channel::bind(char const* endpoint)$/;"	f	class:ku::fusion::Channel	signature:(char const* endpoint)
 bind	channel.hpp	/^  void bind(char const* endpoint);$/;"	p	class:ku::fusion::Channel	access:public	signature:(char const* endpoint)
 bind	ops/socket.hpp	/^  static inline void bind(Handle<Socket>& h, SocketEndpoint const& endpoint)$/;"	f	struct:ku::fusion::ops::Socket	access:public	signature:(Handle<Socket>& h, SocketEndpoint const& endpoint)
 bind_listen	socket.cpp	/^void AcceptorSocket::bind_listen(SocketEndpoint const& endpoint)$/;"	f	class:ku::fusion::AcceptorSocket	signature:(SocketEndpoint const& endpoint)
 bind_listen	socket.hpp	/^  void bind_listen(SocketEndpoint const& endpoint);$/;"	p	class:ku::fusion::AcceptorSocket	access:public	signature:(SocketEndpoint const& endpoint)
-clear	epoll_poller.cpp	/^void Events::clear()$/;"	f	class:ku::fusion::epoll::Events	signature:()
+buf_size_	disruptor/claimer.hpp	/^  size_t const buf_size_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+buffer_	disruptor/event_publisher.hpp	/^  RingBuffer& buffer_;$/;"	m	class:ku::fusion::disruptor::EventPublisher	access:private
+capacity	disruptor/ring_buffer.hpp	/^  size_t capacity() const { return entries_.size(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:() const
+capacity	event_buffer.hpp	/^  size_t capacity() const { return events_.size(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+cas	disruptor/sequence.hpp	/^  bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t old_value, size_t new_value)
+cas	sequence.hpp	/^  bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t old_value, size_t new_value)
+ceiling_pow_of_two	util.hpp	/^inline size_t ceiling_pow_of_two(size_t val) { return next_pow_of_two(val - 1); }$/;"	f	namespace:ku::fusion::util	signature:(size_t val)
+claim	event_buffer.cpp	/^void EventBuffer::claim(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+claim	event_buffer.hpp	/^  void claim(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
+claim_next	disruptor/claimer.cpp	/^size_t Claimer::claim_next(SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(SequenceList const& seq_list)
+claim_next	disruptor/claimer.cpp	/^size_t Claimer::claim_next(size_t incr, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t incr, SequenceList const& seq_list)
+claim_next	disruptor/claimer.hpp	/^  size_t claim_next(SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(SequenceList const& seq_list)
+claim_next	disruptor/claimer.hpp	/^  size_t claim_next(size_t incr, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t incr, SequenceList const& seq_list)
+claim_next	disruptor/ring_buffer.hpp	/^  size_t claim_next() { return claimer_.claim_next(gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:()
+claim_next	disruptor/ring_buffer.hpp	/^  size_t claim_next(size_t incr) { return claimer_.claim_next(incr, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t incr)
+claim_seq_	disruptor/claimer.hpp	/^  Sequence claim_seq_, gating_seq_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+claimed_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+claimed_sequence	event_buffer.hpp	/^  size_t claimed_sequence() const { return claimed_seq_.get(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+claimer_	disruptor/ring_buffer.hpp	/^  Claimer claimer_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+clear	epoll_poller.cpp	/^void Notices::clear()$/;"	f	class:ku::fusion::epoll::Notices	signature:()
 clear	epoll_poller.hpp	/^  void clear() { raw_handle_ = 0; }$/;"	f	class:ku::fusion::epoll::Poller	access:private	signature:()
-clear	epoll_poller.hpp	/^  void clear();$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:()
+clear	epoll_poller.hpp	/^  void clear();$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:()
 clear	handle.hpp	/^  void clear() { raw_handle_ = 0; }$/;"	f	class:ku::fusion::Handle	access:private	signature:()
 clear	notice.cpp	/^void Notice::clear()$/;"	f	class:ku::fusion::Notice	signature:()
 clear	notice.hpp	/^  void clear();$/;"	p	class:ku::fusion::Notice	access:private	signature:()
@@ -230,30 +279,45 @@ create	ops/signal.hpp	/^  static inline Handle<Signal> create(std::initializer_l
 create	ops/socket.hpp	/^  static inline Handle<Socket> create(addrinfo const& ai, bool non_block = true)$/;"	f	struct:ku::fusion::ops::Socket	access:public	signature:(addrinfo const& ai, bool non_block = true)
 create	ops/timer.hpp	/^  static inline Handle<Timer> create(int clock, bool non_block = true)$/;"	f	struct:ku::fusion::ops::Timer	access:public	signature:(int clock, bool non_block = true)
 create	ops/user_event.hpp	/^  static inline Handle<UserEvent> create(int init_value, bool non_block, bool semaphore)$/;"	f	struct:ku::fusion::ops::UserEvent	access:public	signature:(int init_value, bool non_block, bool semaphore)
+cursor	disruptor/ring_buffer.hpp	/^  size_t cursor() const { return cursor_.get(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:() const
+cursor_	disruptor/ring_buffer.hpp	/^  Sequence cursor_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
 decltype	create_object.hpp	/^  -> decltype(new T(args...))$/;"	f	namespace:ku::fusion::util	signature:(new T(args...))
 dispatch	poll_loop.cpp	/^void PollLoop::dispatch(Notice& notice, NoticeBoard& notice_board)$/;"	f	class:ku::fusion::PollLoop	signature:(Notice& notice, NoticeBoard& notice_board)
 dispatch	poll_loop.hpp	/^  void dispatch(Notice& notice, NoticeBoard& notice_board);$/;"	p	class:ku::fusion::PollLoop	access:protected	signature:(Notice& notice, NoticeBoard& notice_board)
+disruptor	disruptor/claimer.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+disruptor	disruptor/claimer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/event_processor.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/event_publisher.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/ring_buffer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/sequence.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+disruptor	disruptor/sequence.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/util.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+disruptor	disruptor/util.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+disruptor	disruptor/waiting.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+disruptor	disruptor/waiting.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
 endpoint_	connector.hpp	/^  SocketEndpoint endpoint_;$/;"	m	class:ku::fusion::Connector	access:private
+entries_	disruptor/ring_buffer.hpp	/^  std::vector<Event> entries_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
 epoll	epoll_poller.cpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku::fusion	file:
 epoll	epoll_poller.hpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku::fusion
 errc	util.hpp	/^inline std::error_code errc() { return errc(errno); }$/;"	f	namespace:ku::fusion::util	signature:()
 errc	util.hpp	/^inline std::error_code errc(int err)$/;"	f	namespace:ku::fusion::util	signature:(int err)
+event_buffer_	poller.hpp	/^  EventBuffer event_buffer_;$/;"	m	class:ku::fusion::Poller	access:private
 event_handler	notice.hpp	/^  EventHandler const& event_handler() const { return event_handler_; }$/;"	f	class:ku::fusion::Notice	access:public	signature:() const
 event_handler	notice.hpp	/^  EventHandler& event_handler() { return event_handler_; }$/;"	f	class:ku::fusion::Notice	access:public	signature:()
 event_handler_	notice.hpp	/^  EventHandler event_handler_;$/;"	m	class:ku::fusion::Notice	access:private
 event_types	notice.hpp	/^  EventTypes const& event_types() const { return event_types_; }$/;"	f	class:ku::fusion::Notice	access:public	signature:() const
 event_types_	notice.hpp	/^  EventTypes event_types_;$/;"	m	class:ku::fusion::Notice	access:private
 events	notice.hpp	/^  Events const& events() const { return events_; }$/;"	f	class:ku::fusion::Notice	access:public	signature:() const
-events_	epoll_poller.hpp	/^  Events events_;$/;"	m	class:ku::fusion::epoll::PollLoop	access:private
-events_	epoll_poller.hpp	/^  std::vector<epoll_event> events_;$/;"	m	class:ku::fusion::epoll::Events	access:private
+events_	epoll_poller.hpp	/^  std::vector<epoll_event> events_;$/;"	m	class:ku::fusion::epoll::Poller	access:private
+events_	event_buffer.hpp	/^  Events events_;$/;"	m	class:ku::fusion::EventBuffer	access:private
 events_	notice.hpp	/^  Events events_;$/;"	m	class:ku::fusion::Notice	access:private
 events_	poll_poller.hpp	/^  EventList events_;$/;"	m	class:ku::fusion::poll::Events	access:private
 events_	poll_poller.hpp	/^  Events events_;$/;"	m	class:ku::fusion::poll::PollLoop	access:private
 events_count	poll_poller.hpp	/^  unsigned events_count() const { return notices_.size(); }$/;"	f	class:ku::fusion::poll::Events	access:public	signature:() const
-find_notice	epoll_poller.cpp	/^Notice* Events::find_notice(NoticeId id)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id)
-find_notice	epoll_poller.cpp	/^Notice* Events::find_notice(epoll_event const& ev)$/;"	f	class:ku::fusion::epoll::Events	signature:(epoll_event const& ev)
-find_notice	epoll_poller.hpp	/^  Notice* find_notice(epoll_event const& ev);$/;"	p	class:ku::fusion::epoll::Events	access:public	signature:(epoll_event const& ev)
-find_notice	epoll_poller.hpp	/^  virtual Notice* find_notice(NoticeId id);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id)
+find_notice	epoll_poller.cpp	/^Notice* Notices::find_notice(NoticeId id)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id)
+find_notice	epoll_poller.cpp	/^Notice* Notices::find_notice(epoll_event const& ev)$/;"	f	class:ku::fusion::epoll::Notices	signature:(epoll_event const& ev)
+find_notice	epoll_poller.hpp	/^  Notice* find_notice(epoll_event const& ev);$/;"	p	class:ku::fusion::epoll::Notices	access:public	signature:(epoll_event const& ev)
+find_notice	epoll_poller.hpp	/^  virtual Notice* find_notice(NoticeId id);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id)
 find_notice	notice_board.hpp	/^  virtual Notice* find_notice(NoticeId notice_id) = 0;$/;"	p	class:ku::fusion::NoticeBoard	access:private	signature:(NoticeId notice_id)
 find_notice	poll_poller.cpp	/^Notice* Events::find_notice(NoticeId id)$/;"	f	class:ku::fusion::poll::Events	signature:(NoticeId id)
 find_notice	poll_poller.cpp	/^Notice* Events::find_notice(pollfd const& ev)$/;"	f	class:ku::fusion::poll::Events	signature:(pollfd const& ev)
@@ -266,10 +330,23 @@ fusion	channel.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	connector.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 fusion	connector.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	create_object.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku
+fusion	disruptor/claimer.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+fusion	disruptor/claimer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/event_processor.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/event_publisher.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/ring_buffer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/sequence.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+fusion	disruptor/sequence.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/util.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+fusion	disruptor/util.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+fusion	disruptor/waiting.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+fusion	disruptor/waiting.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
 fusion	endpoint.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 fusion	endpoint.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	epoll_poller.cpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku	file:
 fusion	epoll_poller.hpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku
+fusion	event_buffer.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+fusion	event_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	fifo.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 fusion	fifo.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	handle.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
@@ -287,9 +364,15 @@ fusion	poll_loop.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file
 fusion	poll_loop.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	poll_poller.cpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku	file:
 fusion	poll_poller.hpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku
+fusion	poller.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+fusion	poller.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
+fusion	processor_barrier.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+fusion	processor_barrier.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	protocol.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 fusion	protocol.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	raw_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
+fusion	sequence.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+fusion	sequence.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	server_connection.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	signal.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 fusion	signal.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
@@ -311,6 +394,14 @@ fusion	user_event_endpoint.cpp	/^namespace ku { namespace fusion {$/;"	n	namespa
 fusion	user_event_endpoint.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 fusion	util.cpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku	file:
 fusion	util.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku
+gating_seq_	disruptor/claimer.hpp	/^  Sequence claim_seq_, gating_seq_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+gating_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+gating_seqs_	disruptor/ring_buffer.hpp	/^  SequenceList gating_seqs_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+get	disruptor/claimer.hpp	/^  size_t get() const { return claim_seq_.get(); }$/;"	f	class:ku::fusion::disruptor::Claimer	access:public	signature:() const
+get	disruptor/ring_buffer.hpp	/^  Event const& get(size_t seq) const { return entries_[seq & mask_]; }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq) const
+get	disruptor/ring_buffer.hpp	/^  Event& get(size_t seq) { return entries_[seq & mask_]; }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
+get	disruptor/sequence.hpp	/^  size_t get() const { return value_.load(std::memory_order_acquire); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:() const
+get	sequence.hpp	/^  size_t get() const { return value_.load(std::memory_order_acquire); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:() const
 get_interval_internal	timer.cpp	/^std::chrono::nanoseconds Timer::get_interval_internal()$/;"	f	class:ku::fusion::Timer	signature:()
 get_interval_internal	timer.hpp	/^  std::chrono::nanoseconds get_interval_internal();$/;"	p	class:ku::fusion::Timer	access:private	signature:()
 get_time	ops/timer.hpp	/^  static inline void get_time(Handle<Timer>& h, itimerspec &spec)$/;"	f	struct:ku::fusion::ops::Timer	access:public	signature:(Handle<Timer>& h, itimerspec &spec)
@@ -335,6 +426,9 @@ handle_error	call_selector.hpp	/^  -> decltype(std::declval<T>().handle_error(ar
 handle_inbound	call_selector.hpp	/^  -> decltype(std::declval<T>().handle_inbound(args...))$/;"	f	namespace:ku::fusion::util	signature:(args....)
 handle_outbound	call_selector.hpp	/^  -> decltype(std::declval<T>().handle_outbound(args...))$/;"	f	namespace:ku::fusion::util	signature:(args....)
 handler_	server_connection.hpp	/^  EventHandler handler_;$/;"	m	class:ku::fusion::ServerConnection	access:private
+has_available	disruptor/claimer.cpp	/^bool Claimer::has_available(size_t capacity, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t capacity, SequenceList const& seq_list)
+has_available	disruptor/claimer.hpp	/^  bool has_available(size_t capacity, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t capacity, SequenceList const& seq_list)
+has_available	disruptor/ring_buffer.hpp	/^  bool has_available(size_t capacity) { return claimer_.has_available(capacity, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t capacity)
 has_event	notice.hpp	/^  bool has_event(Event ev) const { return events_.test(ev); }$/;"	f	class:ku::fusion::Notice	access:public	signature:(Event ev) const
 has_event_type	notice.hpp	/^  bool has_event_type(EventType et) const { return event_types_.test(et); }$/;"	f	class:ku::fusion::Notice	access:public	signature:(EventType et) const
 id	notice.hpp	/^  NoticeId id() const { return id_; }$/;"	f	class:ku::fusion::Notice	access:public	signature:() const
@@ -345,6 +439,11 @@ if_handle_error	call_selector.hpp	/^template <typename... T> bool if_handle_erro
 if_handle_inbound	call_selector.hpp	/^template <typename... T> void if_handle_inbound(T&...)$/;"	f	namespace:ku::fusion::util	signature:(T&....)
 if_handle_outbound	call_selector.hpp	/^template <typename... T> void if_handle_outbound(T&...)$/;"	f	namespace:ku::fusion::util	signature:(T&....)
 implicit_cast	util.hpp	/^inline To implicit_cast(From const &f) { return f; }$/;"	f	namespace:ku::fusion::util	signature:(From const &f)
+initial_sequence	event_buffer.hpp	/^  size_t const initial_sequence() const { return mask_; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+initialize	disruptor/sequence.cpp	/^void SequenceList::initialize(std::initializer_list<Sequence*> const& seqs)$/;"	f	class:ku::fusion::disruptor::SequenceList	signature:(std::initializer_list<Sequence*> const& seqs)
+initialize	disruptor/sequence.hpp	/^  void initialize(std::initializer_list<Sequence*> const& seqs);$/;"	p	class:ku::fusion::disruptor::SequenceList	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
+initialize	sequence.cpp	/^void SequenceList::initialize(std::initializer_list<Sequence*> const& seqs)$/;"	f	class:ku::fusion::SequenceList	signature:(std::initializer_list<Sequence*> const& seqs)
+initialize	sequence.hpp	/^  void initialize(std::initializer_list<Sequence*> const& seqs);$/;"	p	class:ku::fusion::SequenceList	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
 initialized_	user_event.hpp	/^  bool initialized_;$/;"	m	class:ku::fusion::WriterUserEvent	access:private
 interval	timer.hpp	/^  Duration interval() { return std::chrono::duration_cast<Duration>(get_interval_internal()); }$/;"	f	class:ku::fusion::Timer	access:public	signature:()
 ku	call_selector.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n
@@ -353,10 +452,23 @@ ku	channel.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	connector.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	connector.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	create_object.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n
+ku	disruptor/claimer.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	file:
+ku	disruptor/claimer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/event_processor.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/event_publisher.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/ring_buffer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/sequence.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	file:
+ku	disruptor/sequence.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/util.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	file:
+ku	disruptor/util.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
+ku	disruptor/waiting.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	file:
+ku	disruptor/waiting.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n
 ku	endpoint.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	endpoint.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	epoll_poller.cpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	file:
 ku	epoll_poller.hpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n
+ku	event_buffer.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
+ku	event_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	fifo.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	fifo.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	handle.hpp	/^namespace ku { namespace fusion {$/;"	n
@@ -374,9 +486,15 @@ ku	poll_loop.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	poll_loop.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	poll_poller.cpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	file:
 ku	poll_poller.hpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n
+ku	poller.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
+ku	poller.hpp	/^namespace ku { namespace fusion {$/;"	n
+ku	processor_barrier.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
+ku	processor_barrier.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	protocol.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	protocol.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	raw_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n
+ku	sequence.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
+ku	sequence.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	server_connection.hpp	/^namespace ku { namespace fusion {$/;"	n
 ku	signal.cpp	/^namespace ku { namespace fusion {$/;"	n	file:
 ku	signal.hpp	/^namespace ku { namespace fusion {$/;"	n
@@ -404,10 +522,23 @@ ku::fusion	channel.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	connector.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 ku::fusion	connector.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	create_object.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku
+ku::fusion	disruptor/claimer.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+ku::fusion	disruptor/claimer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/event_processor.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/event_publisher.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/ring_buffer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/sequence.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+ku::fusion	disruptor/sequence.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/util.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+ku::fusion	disruptor/util.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
+ku::fusion	disruptor/waiting.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku	file:
+ku::fusion	disruptor/waiting.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku
 ku::fusion	endpoint.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 ku::fusion	endpoint.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	epoll_poller.cpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku	file:
 ku::fusion	epoll_poller.hpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku
+ku::fusion	event_buffer.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+ku::fusion	event_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	fifo.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 ku::fusion	fifo.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	handle.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
@@ -425,9 +556,15 @@ ku::fusion	poll_loop.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	
 ku::fusion	poll_loop.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	poll_poller.cpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku	file:
 ku::fusion	poll_poller.hpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku
+ku::fusion	poller.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+ku::fusion	poller.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
+ku::fusion	processor_barrier.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+ku::fusion	processor_barrier.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	protocol.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 ku::fusion	protocol.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	raw_buffer.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
+ku::fusion	sequence.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
+ku::fusion	sequence.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	server_connection.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
 ku::fusion	signal.cpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku	file:
 ku::fusion	signal.hpp	/^namespace ku { namespace fusion {$/;"	n	namespace:ku
@@ -500,6 +637,36 @@ ku::fusion::Endpoint::resolve	endpoint.cpp	/^bool Endpoint::resolve(char const* 
 ku::fusion::Endpoint::resolve	endpoint.hpp	/^  bool resolve(char const* uri);$/;"	p	class:ku::fusion::Endpoint	access:public	signature:(char const* uri)
 ku::fusion::Endpoint::std::address	endpoint.hpp	/^  std::string const& address() const { return address_; }$/;"	f	class:ku::fusion::Endpoint::std	access:public	signature:() const
 ku::fusion::Endpoint::~Endpoint	endpoint.hpp	/^  virtual ~Endpoint() { }$/;"	f	class:ku::fusion::Endpoint	access:public	signature:()
+ku::fusion::EventBuffer	event_buffer.hpp	/^class EventBuffer$/;"	c	namespace:ku::fusion
+ku::fusion::EventBuffer::EventBuffer	event_buffer.cpp	/^EventBuffer::EventBuffer(size_t size) $/;"	f	class:ku::fusion::EventBuffer	signature:(size_t size)
+ku::fusion::EventBuffer::EventBuffer	event_buffer.hpp	/^  EventBuffer(size_t size);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t size)
+ku::fusion::EventBuffer::Events	event_buffer.hpp	/^  typedef std::vector<epoll_event> Events;$/;"	t	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::barrier	event_buffer.hpp	/^  ProcessorBarrier& barrier() { return barrier_; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:()
+ku::fusion::EventBuffer::barrier_	event_buffer.hpp	/^  ProcessorBarrier barrier_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::capacity	event_buffer.hpp	/^  size_t capacity() const { return events_.size(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::claim	event_buffer.cpp	/^void EventBuffer::claim(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+ku::fusion::EventBuffer::claim	event_buffer.hpp	/^  void claim(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
+ku::fusion::EventBuffer::claimed_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::claimed_sequence	event_buffer.hpp	/^  size_t claimed_sequence() const { return claimed_seq_.get(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::events_	event_buffer.hpp	/^  Events events_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::gating_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::initial_sequence	event_buffer.hpp	/^  size_t const initial_sequence() const { return mask_; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::mask_	event_buffer.hpp	/^  size_t const mask_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::max_usable_block_sequence	event_buffer.cpp	/^size_t EventBuffer::max_usable_block_sequence() const$/;"	f	class:ku::fusion::EventBuffer	signature:() const
+ku::fusion::EventBuffer::max_usable_block_sequence	event_buffer.hpp	/^  size_t max_usable_block_sequence() const;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::max_usable_sequence	event_buffer.cpp	/^size_t EventBuffer::max_usable_sequence() const$/;"	f	class:ku::fusion::EventBuffer	signature:() const
+ku::fusion::EventBuffer::max_usable_sequence	event_buffer.hpp	/^  size_t max_usable_sequence() const;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::publish	event_buffer.cpp	/^void EventBuffer::publish(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+ku::fusion::EventBuffer::publish	event_buffer.hpp	/^  void publish(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
+ku::fusion::EventBuffer::published_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::published_sequence	event_buffer.hpp	/^  size_t published_sequence() const { return published_seq_.get(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
+ku::fusion::EventBuffer::raw_event	event_buffer.hpp	/^  epoll_event const& raw_event(size_t seq) const { return events_[seq & mask_]; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq) const
+ku::fusion::EventBuffer::raw_event	event_buffer.hpp	/^  epoll_event& raw_event(size_t seq) { return events_[seq & mask_]; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
+ku::fusion::EventBuffer::set_wait_strategy	event_buffer.hpp	/^  void set_wait_strategy(F const& wait_function)$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(F const& wait_function)
+ku::fusion::EventBuffer::wait_for_seq	event_buffer.cpp	/^void EventBuffer::wait_for_seq(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+ku::fusion::EventBuffer::wait_for_seq	event_buffer.hpp	/^  void wait_for_seq(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:private	signature:(size_t seq)
+ku::fusion::EventBuffer::wait_strategy_	event_buffer.hpp	/^  std::function<void(size_t)> wait_strategy_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+ku::fusion::EventBuffer::~EventBuffer	event_buffer.hpp	/^  ~EventBuffer() = default;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:()
 ku::fusion::Fifo	fifo.hpp	/^class Fifo$/;"	c	namespace:ku::fusion
 ku::fusion::Fifo::Fifo	fifo.cpp	/^Fifo::Fifo(char const* path) : handle_(ops::Fifo::create(path))$/;"	f	class:ku::fusion::Fifo	signature:(char const* path)
 ku::fusion::Fifo::Fifo	fifo.hpp	/^  Fifo(Fifo&& f) : handle_(std::move(f.handle_)) { }$/;"	f	class:ku::fusion::Fifo	access:public	signature:(Fifo&& f)
@@ -594,6 +761,23 @@ ku::fusion::PollLoop::notices	poll_loop.hpp	/^  virtual NoticeBoard& notices() =
 ku::fusion::PollLoop::operator ()	poll_loop.hpp	/^  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))$/;"	f	class:ku::fusion::PollLoop	access:public	signature:(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))
 ku::fusion::PollLoop::quit	poll_loop.hpp	/^  void quit() { quit_ = true; } \/\/ TODO quit should take care of timeout=-1$/;"	f	class:ku::fusion::PollLoop	access:public	signature:()
 ku::fusion::PollLoop::quit_	poll_loop.hpp	/^  bool quit_;$/;"	m	class:ku::fusion::PollLoop	access:protected
+ku::fusion::Poller	poller.hpp	/^class Poller$/;"	c	namespace:ku::fusion
+ku::fusion::Poller::Poller	poller.cpp	/^Poller::Poller(int flags, size_t buf_size)$/;"	f	class:ku::fusion::Poller	signature:(int flags, size_t buf_size)
+ku::fusion::Poller::Poller	poller.hpp	/^  Poller(int flags, size_t buf_size);$/;"	p	class:ku::fusion::Poller	access:public	signature:(int flags, size_t buf_size)
+ku::fusion::Poller::active_count_	poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::Poller	access:private
+ku::fusion::Poller::event_buffer_	poller.hpp	/^  EventBuffer event_buffer_;$/;"	m	class:ku::fusion::Poller	access:private
+ku::fusion::Poller::poll	poller.cpp	/^void Poller::poll(std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::Poller	signature:(std::chrono::milliseconds const& timeout)
+ku::fusion::Poller::poll	poller.hpp	/^  void poll(std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::Poller	access:public	signature:(std::chrono::milliseconds const& timeout)
+ku::fusion::Poller::raw_handle_	poller.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::Poller	access:private
+ku::fusion::ProcessorBarrier	processor_barrier.hpp	/^class ProcessorBarrier$/;"	c	namespace:ku::fusion
+ku::fusion::ProcessorBarrier::ProcessorBarrier	processor_barrier.hpp	/^  ProcessorBarrier() = default;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:()
+ku::fusion::ProcessorBarrier::add_processor	processor_barrier.hpp	/^  void add_processor(Processor const& pr)$/;"	f	class:ku::fusion::ProcessorBarrier	access:public	signature:(Processor const& pr)
+ku::fusion::ProcessorBarrier::max_sequence	processor_barrier.cpp	/^size_t ProcessorBarrier::max_sequence() const$/;"	f	class:ku::fusion::ProcessorBarrier	signature:() const
+ku::fusion::ProcessorBarrier::max_sequence	processor_barrier.hpp	/^  size_t max_sequence() const;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:() const
+ku::fusion::ProcessorBarrier::min_sequence	processor_barrier.cpp	/^size_t ProcessorBarrier::min_sequence() const$/;"	f	class:ku::fusion::ProcessorBarrier	signature:() const
+ku::fusion::ProcessorBarrier::min_sequence	processor_barrier.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:() const
+ku::fusion::ProcessorBarrier::processor_seqs_	processor_barrier.hpp	/^  std::vector<Sequence const*> processor_seqs_; $/;"	m	class:ku::fusion::ProcessorBarrier	access:private
+ku::fusion::ProcessorBarrier::~ProcessorBarrier	processor_barrier.hpp	/^  ~ProcessorBarrier() = default;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:()
 ku::fusion::Protocol	protocol.hpp	/^enum class Protocol$/;"	c	namespace:ku::fusion
 ku::fusion::Protocol::IPC	protocol.hpp	/^  Invalid = 0, Inproc, IPC, TCP, PGM, WS $/;"	m	class:ku::fusion::Protocol	access:private
 ku::fusion::Protocol::Inproc	protocol.hpp	/^  Invalid = 0, Inproc, IPC, TCP, PGM, WS $/;"	m	class:ku::fusion::Protocol	access:private
@@ -608,6 +792,20 @@ ku::fusion::ReaderUserEvent::handle_	user_event.hpp	/^  HandleType& handle_;$/;"
 ku::fusion::ReaderUserEvent::read	user_event.cpp	/^void ReaderUserEvent::read()$/;"	f	class:ku::fusion::ReaderUserEvent	signature:()
 ku::fusion::ReaderUserEvent::read	user_event.hpp	/^  void read();$/;"	p	class:ku::fusion::ReaderUserEvent	access:public	signature:()
 ku::fusion::ReaderUserEvent::~ReaderUserEvent	user_event.hpp	/^  ~ReaderUserEvent() = default;$/;"	p	class:ku::fusion::ReaderUserEvent	access:public	signature:()
+ku::fusion::Sequence	sequence.hpp	/^class Sequence$/;"	c	namespace:ku::fusion
+ku::fusion::Sequence::Sequence	sequence.hpp	/^  Sequence(size_t value) { set(value); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t value)
+ku::fusion::Sequence::cas	sequence.hpp	/^  bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t old_value, size_t new_value)
+ku::fusion::Sequence::get	sequence.hpp	/^  size_t get() const { return value_.load(std::memory_order_acquire); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:() const
+ku::fusion::Sequence::padding_	sequence.hpp	/^  size_t padding_[7];$/;"	m	class:ku::fusion::Sequence	access:private
+ku::fusion::Sequence::set	sequence.hpp	/^  void set(size_t value) { value_.store(value, std::memory_order_release); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t value)
+ku::fusion::Sequence::value_	sequence.hpp	/^  std::atomic_size_t value_ __attribute__((aligned(64))); \/\/ align to 64 bytes boundry for cache line$/;"	m	class:ku::fusion::Sequence	access:private
+ku::fusion::Sequence::~Sequence	sequence.hpp	/^  ~Sequence() = default;$/;"	p	class:ku::fusion::Sequence	access:public	signature:()
+ku::fusion::SequenceList	sequence.hpp	/^class SequenceList$/;"	c	namespace:ku::fusion
+ku::fusion::SequenceList::initialize	sequence.cpp	/^void SequenceList::initialize(std::initializer_list<Sequence*> const& seqs)$/;"	f	class:ku::fusion::SequenceList	signature:(std::initializer_list<Sequence*> const& seqs)
+ku::fusion::SequenceList::initialize	sequence.hpp	/^  void initialize(std::initializer_list<Sequence*> const& seqs);$/;"	p	class:ku::fusion::SequenceList	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
+ku::fusion::SequenceList::list_	sequence.hpp	/^  std::vector<Sequence*> list_;$/;"	m	class:ku::fusion::SequenceList	access:private
+ku::fusion::SequenceList::min_sequence	sequence.cpp	/^size_t SequenceList::min_sequence() const$/;"	f	class:ku::fusion::SequenceList	signature:() const
+ku::fusion::SequenceList::min_sequence	sequence.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::SequenceList	access:public	signature:() const
 ku::fusion::ServerConnection	server_connection.hpp	/^class ServerConnection : public SocketConnection$/;"	c	namespace:ku::fusion	inherits:SocketConnection
 ku::fusion::ServerConnection::ServerConnection	server_connection.hpp	/^  ServerConnection(Socket&& socket, SocketEndpoint const& peer_endpoint) $/;"	f	class:ku::fusion::ServerConnection	access:public	signature:(Socket&& socket, SocketEndpoint const& peer_endpoint)
 ku::fusion::ServerConnection::close	server_connection.hpp	/^  void close() { delete this; }$/;"	f	class:ku::fusion::ServerConnection	access:private	signature:()
@@ -743,56 +941,134 @@ ku::fusion::WriterUserEvent::write	user_event.cpp	/^void WriterUserEvent::write(
 ku::fusion::WriterUserEvent::write	user_event.hpp	/^  void write();$/;"	p	class:ku::fusion::WriterUserEvent	access:public	signature:()
 ku::fusion::accept_connections	socket_acceptor.cpp	/^size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,$/;"	f	namespace:ku::fusion	signature:(AcceptorSocket& socket, NoticeBoard& notices, std::function<Notice::EventHandler(Socket&&, SocketEndpoint const&)> handler_creator)
 ku::fusion::accept_connections	socket_acceptor.hpp	/^size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,$/;"	p	namespace:ku::fusion	signature:(AcceptorSocket& socket, NoticeBoard& notices, std::function<Notice::EventHandler(Socket&&, SocketEndpoint const&)> handler_creator)
+ku::fusion::disruptor	disruptor/claimer.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+ku::fusion::disruptor	disruptor/claimer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/event_processor.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/event_publisher.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/ring_buffer.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/sequence.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+ku::fusion::disruptor	disruptor/sequence.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/util.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+ku::fusion::disruptor	disruptor/util.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor	disruptor/waiting.cpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion	file:
+ku::fusion::disruptor	disruptor/waiting.hpp	/^namespace ku { namespace fusion { namespace disruptor {$/;"	n	namespace:ku::fusion
+ku::fusion::disruptor::Claimer	disruptor/claimer.hpp	/^class Claimer$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::Claimer::Claimer	disruptor/claimer.cpp	/^Claimer::Claimer(size_t buf_size)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t buf_size)
+ku::fusion::disruptor::Claimer::Claimer	disruptor/claimer.hpp	/^  Claimer(size_t buf_size);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t buf_size)
+ku::fusion::disruptor::Claimer::buf_size_	disruptor/claimer.hpp	/^  size_t const buf_size_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+ku::fusion::disruptor::Claimer::claim_next	disruptor/claimer.cpp	/^size_t Claimer::claim_next(SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::claim_next	disruptor/claimer.cpp	/^size_t Claimer::claim_next(size_t incr, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t incr, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::claim_next	disruptor/claimer.hpp	/^  size_t claim_next(SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::claim_next	disruptor/claimer.hpp	/^  size_t claim_next(size_t incr, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t incr, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::claim_seq_	disruptor/claimer.hpp	/^  Sequence claim_seq_, gating_seq_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+ku::fusion::disruptor::Claimer::gating_seq_	disruptor/claimer.hpp	/^  Sequence claim_seq_, gating_seq_;$/;"	m	class:ku::fusion::disruptor::Claimer	access:private
+ku::fusion::disruptor::Claimer::get	disruptor/claimer.hpp	/^  size_t get() const { return claim_seq_.get(); }$/;"	f	class:ku::fusion::disruptor::Claimer	access:public	signature:() const
+ku::fusion::disruptor::Claimer::has_available	disruptor/claimer.cpp	/^bool Claimer::has_available(size_t capacity, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t capacity, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::has_available	disruptor/claimer.hpp	/^  bool has_available(size_t capacity, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t capacity, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::wait_for_capacity	disruptor/claimer.cpp	/^void Claimer::wait_for_capacity(size_t capacity, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t capacity, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::wait_for_capacity	disruptor/claimer.hpp	/^  void wait_for_capacity(size_t capacity, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t capacity, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::wait_for_seq	disruptor/claimer.cpp	/^void Claimer::wait_for_seq(size_t seq, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t seq, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::wait_for_seq	disruptor/claimer.hpp	/^  void wait_for_seq(size_t seq, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:private	signature:(size_t seq, SequenceList const& seq_list)
+ku::fusion::disruptor::Claimer::~Claimer	disruptor/claimer.hpp	/^  ~Claimer() = default;$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:()
+ku::fusion::disruptor::ConditionWaiting	disruptor/waiting.hpp	/^class ConditionWaiting$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::ConditionWaiting::notify_all	disruptor/waiting.hpp	/^  void notify_all();$/;"	p	class:ku::fusion::disruptor::ConditionWaiting	access:public	signature:()
+ku::fusion::disruptor::EventProcessor	disruptor/event_processor.hpp	/^class EventProcessor$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::EventProcessor::sequence	disruptor/event_processor.hpp	/^  virtual Sequence& sequence() = 0;$/;"	p	class:ku::fusion::disruptor::EventProcessor	access:public	signature:()
+ku::fusion::disruptor::EventPublisher	disruptor/event_publisher.hpp	/^class EventPublisher$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::EventPublisher::EventPublisher	disruptor/event_publisher.hpp	/^  EventPublisher(RingBuffer& buffer)$/;"	f	class:ku::fusion::disruptor::EventPublisher	access:public	signature:(RingBuffer& buffer)
+ku::fusion::disruptor::EventPublisher::EventType	disruptor/event_publisher.hpp	/^  typedef typename RingBuffer::EventType EventType;$/;"	t	class:ku::fusion::disruptor::EventPublisher	access:public
+ku::fusion::disruptor::EventPublisher::buffer_	disruptor/event_publisher.hpp	/^  RingBuffer& buffer_;$/;"	m	class:ku::fusion::disruptor::EventPublisher	access:private
+ku::fusion::disruptor::EventPublisher::publish	disruptor/event_publisher.hpp	/^  void publish(EventType const& event);$/;"	p	class:ku::fusion::disruptor::EventPublisher	access:public	signature:(EventType const& event)
+ku::fusion::disruptor::EventPublisher::publish	disruptor/event_publisher.hpp	/^void EventPublisher::publish(EventType const& event)$/;"	f	class:ku::fusion::disruptor::EventPublisher	signature:(EventType const& event)
+ku::fusion::disruptor::EventPublisher::~EventPublisher	disruptor/event_publisher.hpp	/^  ~EventPublisher() = default;$/;"	p	class:ku::fusion::disruptor::EventPublisher	access:public	signature:()
+ku::fusion::disruptor::RingBuffer	disruptor/ring_buffer.hpp	/^class RingBuffer$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::RingBuffer::EventType	disruptor/ring_buffer.hpp	/^  typedef Event EventType;$/;"	t	class:ku::fusion::disruptor::RingBuffer	access:public
+ku::fusion::disruptor::RingBuffer::RingBuffer	disruptor/ring_buffer.hpp	/^  RingBuffer(size_t size)$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t size)
+ku::fusion::disruptor::RingBuffer::capacity	disruptor/ring_buffer.hpp	/^  size_t capacity() const { return entries_.size(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:() const
+ku::fusion::disruptor::RingBuffer::claim_next	disruptor/ring_buffer.hpp	/^  size_t claim_next() { return claimer_.claim_next(gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:()
+ku::fusion::disruptor::RingBuffer::claim_next	disruptor/ring_buffer.hpp	/^  size_t claim_next(size_t incr) { return claimer_.claim_next(incr, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t incr)
+ku::fusion::disruptor::RingBuffer::claimer_	disruptor/ring_buffer.hpp	/^  Claimer claimer_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::RingBuffer::cursor	disruptor/ring_buffer.hpp	/^  size_t cursor() const { return cursor_.get(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:() const
+ku::fusion::disruptor::RingBuffer::cursor_	disruptor/ring_buffer.hpp	/^  Sequence cursor_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::RingBuffer::entries_	disruptor/ring_buffer.hpp	/^  std::vector<Event> entries_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::RingBuffer::gating_seqs_	disruptor/ring_buffer.hpp	/^  SequenceList gating_seqs_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::RingBuffer::get	disruptor/ring_buffer.hpp	/^  Event const& get(size_t seq) const { return entries_[seq & mask_]; }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq) const
+ku::fusion::disruptor::RingBuffer::get	disruptor/ring_buffer.hpp	/^  Event& get(size_t seq) { return entries_[seq & mask_]; }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
+ku::fusion::disruptor::RingBuffer::has_available	disruptor/ring_buffer.hpp	/^  bool has_available(size_t capacity) { return claimer_.has_available(capacity, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t capacity)
+ku::fusion::disruptor::RingBuffer::mask_	disruptor/ring_buffer.hpp	/^  size_t const mask_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::RingBuffer::operator []	disruptor/ring_buffer.hpp	/^  Event const& operator[] (size_t seq) const { return get(seq); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq) const
+ku::fusion::disruptor::RingBuffer::operator []	disruptor/ring_buffer.hpp	/^  Event& operator[] (size_t seq) { return get(seq); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
+ku::fusion::disruptor::RingBuffer::publish	disruptor/ring_buffer.hpp	/^  void publish(size_t seq) { cursor_.set(seq); waiting_.notify_all(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
+ku::fusion::disruptor::RingBuffer::set_gatings	disruptor/ring_buffer.hpp	/^  void set_gatings(std::initializer_list<Sequence*> const& seqs) { gating_seqs_.initialize(seqs); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
+ku::fusion::disruptor::RingBuffer::wait_for	disruptor/ring_buffer.hpp	/^  void wait_for(size_t capacity) { claimer_.wait_for_capacity(capacity, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:private	signature:(size_t capacity)
+ku::fusion::disruptor::RingBuffer::waiting_	disruptor/ring_buffer.hpp	/^  Waiting waiting_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+ku::fusion::disruptor::Sequence	disruptor/sequence.hpp	/^class Sequence$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::Sequence::Sequence	disruptor/sequence.hpp	/^  Sequence(size_t value) { set(value); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t value)
+ku::fusion::disruptor::Sequence::cas	disruptor/sequence.hpp	/^  bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t old_value, size_t new_value)
+ku::fusion::disruptor::Sequence::get	disruptor/sequence.hpp	/^  size_t get() const { return value_.load(std::memory_order_acquire); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:() const
+ku::fusion::disruptor::Sequence::padding_	disruptor/sequence.hpp	/^  size_t padding_[7];$/;"	m	class:ku::fusion::disruptor::Sequence	access:private
+ku::fusion::disruptor::Sequence::set	disruptor/sequence.hpp	/^  void set(size_t value) { value_.store(value, std::memory_order_release); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t value)
+ku::fusion::disruptor::Sequence::value_	disruptor/sequence.hpp	/^  std::atomic_size_t value_ __attribute__((aligned(0x40))); \/\/ align to 64 bytes boundry for cache line$/;"	m	class:ku::fusion::disruptor::Sequence	access:private
+ku::fusion::disruptor::Sequence::~Sequence	disruptor/sequence.hpp	/^  ~Sequence() = default;$/;"	p	class:ku::fusion::disruptor::Sequence	access:public	signature:()
+ku::fusion::disruptor::SequenceList	disruptor/sequence.hpp	/^class SequenceList$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::SequenceList::initialize	disruptor/sequence.cpp	/^void SequenceList::initialize(std::initializer_list<Sequence*> const& seqs)$/;"	f	class:ku::fusion::disruptor::SequenceList	signature:(std::initializer_list<Sequence*> const& seqs)
+ku::fusion::disruptor::SequenceList::initialize	disruptor/sequence.hpp	/^  void initialize(std::initializer_list<Sequence*> const& seqs);$/;"	p	class:ku::fusion::disruptor::SequenceList	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
+ku::fusion::disruptor::SequenceList::list_	disruptor/sequence.hpp	/^  std::vector<Sequence*> list_;$/;"	m	class:ku::fusion::disruptor::SequenceList	access:private
+ku::fusion::disruptor::SequenceList::min_sequence	disruptor/sequence.cpp	/^size_t SequenceList::min_sequence() const$/;"	f	class:ku::fusion::disruptor::SequenceList	signature:() const
+ku::fusion::disruptor::SequenceList::min_sequence	disruptor/sequence.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::disruptor::SequenceList	access:public	signature:() const
+ku::fusion::disruptor::YieldWaiting	disruptor/waiting.hpp	/^class YieldWaiting$/;"	c	namespace:ku::fusion::disruptor
+ku::fusion::disruptor::YieldWaiting::notify_all	disruptor/waiting.hpp	/^  void notify_all() {}$/;"	f	class:ku::fusion::disruptor::YieldWaiting	access:public	signature:()
+ku::fusion::disruptor::YieldWaiting::wait_for	disruptor/waiting.cpp	/^void YieldWaiting::wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::YieldWaiting	signature:(size_t seq, Sequence const& cursor, SequenceList const& seq_list)
+ku::fusion::disruptor::YieldWaiting::wait_for	disruptor/waiting.hpp	/^  void wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::YieldWaiting	access:public	signature:(size_t seq, Sequence const& cursor, SequenceList const& seq_list)
+ku::fusion::disruptor::next_pow_of_two	disruptor/util.cpp	/^size_t next_pow_of_two(size_t val)$/;"	f	namespace:ku::fusion::disruptor	signature:(size_t val)
+ku::fusion::disruptor::next_pow_of_two	disruptor/util.hpp	/^size_t next_pow_of_two(size_t val);$/;"	p	namespace:ku::fusion::disruptor	signature:(size_t val)
+ku::fusion::disruptor::sizeof	disruptor/sequence.hpp	/^static_assert(sizeof(Sequence) == 64, "Sequence not padded to cache line, may cause false sharing.");$/;"	p	namespace:ku::fusion::disruptor	signature:(Sequence)
 ku::fusion::epoll	epoll_poller.cpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku::fusion	file:
 ku::fusion::epoll	epoll_poller.hpp	/^namespace ku { namespace fusion { namespace epoll {$/;"	n	namespace:ku::fusion
-ku::fusion::epoll::Events	epoll_poller.hpp	/^class Events : public NoticeBoard$/;"	c	namespace:ku::fusion::epoll	inherits:NoticeBoard,util::noncopyable
-ku::fusion::epoll::Events::Events	epoll_poller.cpp	/^Events::Events(size_t capacity)$/;"	f	class:ku::fusion::epoll::Events	signature:(size_t capacity)
-ku::fusion::epoll::Events::Events	epoll_poller.hpp	/^  Events(size_t capacity = 16);$/;"	p	class:ku::fusion::epoll::Events	access:public	signature:(size_t capacity = 16)
-ku::fusion::epoll::Events::NoticeMap	epoll_poller.hpp	/^  typedef std::map<NoticeId, Notice> NoticeMap;$/;"	t	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::OnError	epoll_poller.hpp	/^  typedef std::function<bool(std::error_code)> OnError;$/;"	t	class:ku::fusion::epoll::Events	access:public
-ku::fusion::epoll::Events::active_count	epoll_poller.hpp	/^  unsigned active_count() const { return active_count_; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:() const
-ku::fusion::epoll::Events::active_count_	epoll_poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::add_notice_internal	epoll_poller.cpp	/^bool Events::add_notice_internal(Notice&& notice)$/;"	f	class:ku::fusion::epoll::Events	signature:(Notice&& notice)
-ku::fusion::epoll::Events::add_notice_internal	epoll_poller.hpp	/^  virtual bool add_notice_internal(Notice&& notice);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(Notice&& notice)
-ku::fusion::epoll::Events::clear	epoll_poller.cpp	/^void Events::clear()$/;"	f	class:ku::fusion::epoll::Events	signature:()
-ku::fusion::epoll::Events::clear	epoll_poller.hpp	/^  void clear();$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:()
-ku::fusion::epoll::Events::events_	epoll_poller.hpp	/^  std::vector<epoll_event> events_;$/;"	m	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::find_notice	epoll_poller.cpp	/^Notice* Events::find_notice(NoticeId id)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id)
-ku::fusion::epoll::Events::find_notice	epoll_poller.cpp	/^Notice* Events::find_notice(epoll_event const& ev)$/;"	f	class:ku::fusion::epoll::Events	signature:(epoll_event const& ev)
-ku::fusion::epoll::Events::find_notice	epoll_poller.hpp	/^  Notice* find_notice(epoll_event const& ev);$/;"	p	class:ku::fusion::epoll::Events	access:public	signature:(epoll_event const& ev)
-ku::fusion::epoll::Events::find_notice	epoll_poller.hpp	/^  virtual Notice* find_notice(NoticeId id);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id)
-ku::fusion::epoll::Events::modify_notice_internal	epoll_poller.cpp	/^bool Events::modify_notice_internal(NoticeId id, Notice const& notice)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id, Notice const& notice)
-ku::fusion::epoll::Events::modify_notice_internal	epoll_poller.hpp	/^  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id, Notice const& notice)
-ku::fusion::epoll::Events::notices_	epoll_poller.hpp	/^  NoticeMap notices_;$/;"	m	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::on_error_	epoll_poller.hpp	/^  OnError on_error_;$/;"	m	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::poller	epoll_poller.hpp	/^  Poller& poller() { return *poller_; }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:()
-ku::fusion::epoll::Events::poller_	epoll_poller.hpp	/^  Poller* poller_;$/;"	m	class:ku::fusion::epoll::Events	access:private
-ku::fusion::epoll::Events::raw_event	epoll_poller.hpp	/^  epoll_event const& raw_event(unsigned n) const { return events_[n]; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(unsigned n) const
-ku::fusion::epoll::Events::raw_events	epoll_poller.hpp	/^  epoll_event* raw_events() { return &*events_.begin(); }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:()
-ku::fusion::epoll::Events::remove_notice_internal	epoll_poller.cpp	/^bool Events::remove_notice_internal(NoticeId id)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id)
-ku::fusion::epoll::Events::remove_notice_internal	epoll_poller.hpp	/^  virtual bool remove_notice_internal(NoticeId id);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id)
-ku::fusion::epoll::Events::resize	epoll_poller.hpp	/^  void resize(size_t size) { events_.resize(size); }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:(size_t size)
-ku::fusion::epoll::Events::set_active_count	epoll_poller.hpp	/^  void set_active_count(unsigned n) { active_count_ = n; }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:(unsigned n)
-ku::fusion::epoll::Events::set_on_error	epoll_poller.hpp	/^  void set_on_error(OnError const& on_error) { on_error_ = on_error; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(OnError const& on_error)
-ku::fusion::epoll::Events::set_poller	epoll_poller.hpp	/^  void set_poller(Poller* poller) { poller_ = poller; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(Poller* poller)
-ku::fusion::epoll::Events::~Events	epoll_poller.hpp	/^  virtual ~Events() { }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:()
+ku::fusion::epoll::Notices	epoll_poller.hpp	/^class Notices : public NoticeBoard$/;"	c	namespace:ku::fusion::epoll	inherits:NoticeBoard,util::noncopyable
+ku::fusion::epoll::Notices::NoticeMap	epoll_poller.hpp	/^  typedef std::map<NoticeId, Notice> NoticeMap;$/;"	t	class:ku::fusion::epoll::Notices	access:private
+ku::fusion::epoll::Notices::Notices	epoll_poller.cpp	/^Notices::Notices()$/;"	f	class:ku::fusion::epoll::Notices	signature:()
+ku::fusion::epoll::Notices::Notices	epoll_poller.hpp	/^  Notices();$/;"	p	class:ku::fusion::epoll::Notices	access:public	signature:()
+ku::fusion::epoll::Notices::OnError	epoll_poller.hpp	/^  typedef std::function<bool(std::error_code)> OnError;$/;"	t	class:ku::fusion::epoll::Notices	access:public
+ku::fusion::epoll::Notices::add_notice_internal	epoll_poller.cpp	/^bool Notices::add_notice_internal(Notice&& notice)$/;"	f	class:ku::fusion::epoll::Notices	signature:(Notice&& notice)
+ku::fusion::epoll::Notices::add_notice_internal	epoll_poller.hpp	/^  virtual bool add_notice_internal(Notice&& notice);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(Notice&& notice)
+ku::fusion::epoll::Notices::clear	epoll_poller.cpp	/^void Notices::clear()$/;"	f	class:ku::fusion::epoll::Notices	signature:()
+ku::fusion::epoll::Notices::clear	epoll_poller.hpp	/^  void clear();$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:()
+ku::fusion::epoll::Notices::find_notice	epoll_poller.cpp	/^Notice* Notices::find_notice(NoticeId id)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id)
+ku::fusion::epoll::Notices::find_notice	epoll_poller.cpp	/^Notice* Notices::find_notice(epoll_event const& ev)$/;"	f	class:ku::fusion::epoll::Notices	signature:(epoll_event const& ev)
+ku::fusion::epoll::Notices::find_notice	epoll_poller.hpp	/^  Notice* find_notice(epoll_event const& ev);$/;"	p	class:ku::fusion::epoll::Notices	access:public	signature:(epoll_event const& ev)
+ku::fusion::epoll::Notices::find_notice	epoll_poller.hpp	/^  virtual Notice* find_notice(NoticeId id);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id)
+ku::fusion::epoll::Notices::modify_notice_internal	epoll_poller.cpp	/^bool Notices::modify_notice_internal(NoticeId id, Notice const& notice)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id, Notice const& notice)
+ku::fusion::epoll::Notices::modify_notice_internal	epoll_poller.hpp	/^  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id, Notice const& notice)
+ku::fusion::epoll::Notices::notices_	epoll_poller.hpp	/^  NoticeMap notices_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
+ku::fusion::epoll::Notices::on_error_	epoll_poller.hpp	/^  OnError on_error_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
+ku::fusion::epoll::Notices::poller	epoll_poller.hpp	/^  Poller& poller() { return *poller_; }$/;"	f	class:ku::fusion::epoll::Notices	access:private	signature:()
+ku::fusion::epoll::Notices::poller_	epoll_poller.hpp	/^  Poller* poller_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
+ku::fusion::epoll::Notices::remove_notice_internal	epoll_poller.cpp	/^bool Notices::remove_notice_internal(NoticeId id)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id)
+ku::fusion::epoll::Notices::remove_notice_internal	epoll_poller.hpp	/^  virtual bool remove_notice_internal(NoticeId id);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id)
+ku::fusion::epoll::Notices::set_on_error	epoll_poller.hpp	/^  void set_on_error(OnError const& on_error) { on_error_ = on_error; }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:(OnError const& on_error)
+ku::fusion::epoll::Notices::set_poller	epoll_poller.hpp	/^  void set_poller(Poller* poller) { poller_ = poller; }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:(Poller* poller)
+ku::fusion::epoll::Notices::~Notices	epoll_poller.hpp	/^  virtual ~Notices() { }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:()
 ku::fusion::epoll::PollLoop	epoll_poller.hpp	/^class PollLoop : public fusion::PollLoop$/;"	c	namespace:ku::fusion::epoll	inherits:fusion::PollLoop
 ku::fusion::epoll::PollLoop::PollLoop	epoll_poller.hpp	/^  PollLoop() { }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
 ku::fusion::epoll::PollLoop::PollLoop	epoll_poller.hpp	/^  PollLoop(PollLoop const&) = default;$/;"	p	class:ku::fusion::epoll::PollLoop	access:public	signature:(PollLoop const&)
-ku::fusion::epoll::PollLoop::events_	epoll_poller.hpp	/^  Events events_;$/;"	m	class:ku::fusion::epoll::PollLoop	access:private
 ku::fusion::epoll::PollLoop::loop	epoll_poller.cpp	/^bool PollLoop::loop(std::chrono::milliseconds timeout)$/;"	f	class:ku::fusion::epoll::PollLoop	signature:(std::chrono::milliseconds timeout)
 ku::fusion::epoll::PollLoop::loop	epoll_poller.hpp	/^  virtual bool loop(std::chrono::milliseconds timeout);$/;"	p	class:ku::fusion::epoll::PollLoop	access:private	signature:(std::chrono::milliseconds timeout)
-ku::fusion::epoll::PollLoop::notices	epoll_poller.hpp	/^  virtual NoticeBoard& notices() { return events_; }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
-ku::fusion::epoll::PollLoop::set_on_error	epoll_poller.hpp	/^  void set_on_error(Events::OnError const& on_error) { events_.set_on_error(on_error); }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:(Events::OnError const& on_error)
+ku::fusion::epoll::PollLoop::notices	epoll_poller.hpp	/^  virtual NoticeBoard& notices() { return notices_; }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
+ku::fusion::epoll::PollLoop::notices_	epoll_poller.hpp	/^  Notices notices_;$/;"	m	class:ku::fusion::epoll::PollLoop	access:private
+ku::fusion::epoll::PollLoop::set_on_error	epoll_poller.hpp	/^  void set_on_error(Notices::OnError const& on_error) { notices_.set_on_error(on_error); }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:(Notices::OnError const& on_error)
 ku::fusion::epoll::Poller	epoll_poller.hpp	/^class Poller : private util::noncopyable$/;"	c	namespace:ku::fusion::epoll	inherits:util::noncopyable
-ku::fusion::epoll::Poller::Poller	epoll_poller.cpp	/^Poller::Poller(int flags)$/;"	f	class:ku::fusion::epoll::Poller	signature:(int flags)
-ku::fusion::epoll::Poller::Poller	epoll_poller.hpp	/^  Poller(Poller&& h) : raw_handle_(h.raw_handle_) { h.clear(); }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:(Poller&& h)
-ku::fusion::epoll::Poller::Poller	epoll_poller.hpp	/^  explicit Poller(int flags);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(int flags)
+ku::fusion::epoll::Poller::Poller	epoll_poller.cpp	/^Poller::Poller(int flags, size_t capacity)$/;"	f	class:ku::fusion::epoll::Poller	signature:(int flags, size_t capacity)
+ku::fusion::epoll::Poller::Poller	epoll_poller.hpp	/^  explicit Poller(int flags, size_t capacity = 16);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(int flags, size_t capacity = 16)
+ku::fusion::epoll::Poller::active_count	epoll_poller.hpp	/^  unsigned active_count() const { return active_count_; }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:() const
+ku::fusion::epoll::Poller::active_count_	epoll_poller.hpp	/^  unsigned active_count_;$/;"	m	class:ku::fusion::epoll::Poller	access:private
 ku::fusion::epoll::Poller::clear	epoll_poller.hpp	/^  void clear() { raw_handle_ = 0; }$/;"	f	class:ku::fusion::epoll::Poller	access:private	signature:()
 ku::fusion::epoll::Poller::close	epoll_poller.cpp	/^void Poller::close()$/;"	f	class:ku::fusion::epoll::Poller	signature:()
 ku::fusion::epoll::Poller::close	epoll_poller.hpp	/^  void close();$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:()
-ku::fusion::epoll::Poller::poll	epoll_poller.cpp	/^Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::epoll::Poller	signature:(Events& evts, std::chrono::milliseconds const& timeout)
-ku::fusion::epoll::Poller::poll	epoll_poller.hpp	/^  Events& poll(Events& evts, std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(Events& evts, std::chrono::milliseconds const& timeout)
+ku::fusion::epoll::Poller::events_	epoll_poller.hpp	/^  std::vector<epoll_event> events_;$/;"	m	class:ku::fusion::epoll::Poller	access:private
+ku::fusion::epoll::Poller::poll	epoll_poller.cpp	/^void Poller::poll(std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::epoll::Poller	signature:(std::chrono::milliseconds const& timeout)
+ku::fusion::epoll::Poller::poll	epoll_poller.hpp	/^  void poll(std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(std::chrono::milliseconds const& timeout)
+ku::fusion::epoll::Poller::raw_event	epoll_poller.hpp	/^  epoll_event const& raw_event(unsigned n) const { return events_[n]; }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:(unsigned n) const
 ku::fusion::epoll::Poller::raw_handle	epoll_poller.hpp	/^  int raw_handle() const { return raw_handle_; }$/;"	f	class:ku::fusion::epoll::Poller	access:private	signature:() const
 ku::fusion::epoll::Poller::raw_handle_	epoll_poller.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::epoll::Poller	access:private
 ku::fusion::epoll::Poller::~Poller	epoll_poller.hpp	/^  ~Poller() { close(); }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:()
@@ -882,6 +1158,7 @@ ku::fusion::raw_buffer	raw_buffer.hpp	/^inline void const* raw_buffer(std::strin
 ku::fusion::raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(std::array<T, N>& buf) { return &*buf.begin(); }$/;"	f	namespace:ku::fusion	signature:(std::array<T, N>& buf)
 ku::fusion::raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(std::vector<T>& buf) { return &*buf.begin(); }$/;"	f	namespace:ku::fusion	signature:(std::vector<T>& buf)
 ku::fusion::raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(void *buf) { return buf; }$/;"	f	namespace:ku::fusion	signature:(void *buf)
+ku::fusion::sizeof	sequence.hpp	/^static_assert(sizeof(Sequence) == 64, "Sequence not padded to cache line, may cause false sharing.");$/;"	p	namespace:ku::fusion	signature:(Sequence)
 ku::fusion::str_to_protocol	protocol.cpp	/^Protocol str_to_protocol(std::string const& s)$/;"	f	namespace:ku::fusion	signature:(std::string const& s)
 ku::fusion::str_to_protocol	protocol.hpp	/^Protocol str_to_protocol(std::string const& s);$/;"	p	namespace:ku::fusion	signature:(std::string const& s)
 ku::fusion::tcp	tcp/server.hpp	/^namespace ku { namespace fusion { namespace tcp {$/;"	n	namespace:ku::fusion
@@ -904,6 +1181,7 @@ ku::fusion::util	call_selector.hpp	/^namespace ku { namespace fusion { namespace
 ku::fusion::util	create_object.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku::fusion
 ku::fusion::util	util.cpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku::fusion	file:
 ku::fusion::util	util.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku::fusion
+ku::fusion::util::ceiling_pow_of_two	util.hpp	/^inline size_t ceiling_pow_of_two(size_t val) { return next_pow_of_two(val - 1); }$/;"	f	namespace:ku::fusion::util	signature:(size_t val)
 ku::fusion::util::create	create_object.hpp	/^  -> decltype(T::create(args...))$/;"	f	namespace:ku::fusion::util	signature:(args....)
 ku::fusion::util::decltype	create_object.hpp	/^  -> decltype(new T(args...))$/;"	f	namespace:ku::fusion::util	signature:(new T(args...))
 ku::fusion::util::errc	util.hpp	/^inline std::error_code errc() { return errc(errno); }$/;"	f	namespace:ku::fusion::util	signature:()
@@ -917,11 +1195,15 @@ ku::fusion::util::if_handle_error	call_selector.hpp	/^template <typename... T> b
 ku::fusion::util::if_handle_inbound	call_selector.hpp	/^template <typename... T> void if_handle_inbound(T&...)$/;"	f	namespace:ku::fusion::util	signature:(T&....)
 ku::fusion::util::if_handle_outbound	call_selector.hpp	/^template <typename... T> void if_handle_outbound(T&...)$/;"	f	namespace:ku::fusion::util	signature:(T&....)
 ku::fusion::util::implicit_cast	util.hpp	/^inline To implicit_cast(From const &f) { return f; }$/;"	f	namespace:ku::fusion::util	signature:(From const &f)
+ku::fusion::util::next_pow_of_two	util.cpp	/^size_t next_pow_of_two(size_t val)$/;"	f	namespace:ku::fusion::util	signature:(size_t val)
+ku::fusion::util::next_pow_of_two	util.hpp	/^size_t next_pow_of_two(size_t val);$/;"	p	namespace:ku::fusion::util	signature:(size_t val)
 ku::fusion::util::noncopyable	util.hpp	/^struct noncopyable$/;"	s	namespace:ku::fusion::util
 ku::fusion::util::noncopyable::noncopyable	util.hpp	/^  noncopyable() = default;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:()
 ku::fusion::util::noncopyable::noncopyable	util.hpp	/^  noncopyable(noncopyable const&) = delete;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:(noncopyable const&)
 ku::fusion::util::noncopyable::operator =	util.hpp	/^  noncopyable& operator=(noncopyable const&) = delete;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:(noncopyable const&)
 ku::fusion::util::noncopyable::~noncopyable	util.hpp	/^  ~noncopyable() = default;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:()
+list_	disruptor/sequence.hpp	/^  std::vector<Sequence*> list_;$/;"	m	class:ku::fusion::disruptor::SequenceList	access:private
+list_	sequence.hpp	/^  std::vector<Sequence*> list_;$/;"	m	class:ku::fusion::SequenceList	access:private
 listen	ops/socket.hpp	/^  static inline void listen(Handle<Socket>& h)$/;"	f	struct:ku::fusion::ops::Socket	access:public	signature:(Handle<Socket>& h)
 local_endpoint	socket_acceptor.hpp	/^  SocketEndpoint const& local_endpoint() { return local_endpoint; }$/;"	f	class:ku::fusion::SocketAcceptor	access:public	signature:()
 local_endpoint_	socket_acceptor.hpp	/^  SocketEndpoint local_endpoint_;$/;"	m	class:ku::fusion::SocketAcceptor	access:private
@@ -936,29 +1218,50 @@ make_sockaddr	socket_endpoint.cpp	/^int make_sockaddr(std::string const& ip, std
 make_sockaddr	socket_endpoint.cpp	/^int make_sockaddr(std::string const& ip, std::string const& port, sockaddr_in6& sa_in6)$/;"	f	namespace:__anon3	signature:(std::string const& ip, std::string const& port, sockaddr_in6& sa_in6)
 make_sockaddr	socket_endpoint.cpp	/^int make_sockaddr(std::string const& ip, std::string const& port, sockaddr_storage& sa_storage)$/;"	f	namespace:__anon3	signature:(std::string const& ip, std::string const& port, sockaddr_storage& sa_storage)
 make_sockaddr	socket_endpoint.cpp	/^int make_sockaddr(std::string const& path, sockaddr_un& sa_un)$/;"	f	namespace:__anon3	signature:(std::string const& path, sockaddr_un& sa_un)
+mask_	disruptor/ring_buffer.hpp	/^  size_t const mask_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
+mask_	event_buffer.hpp	/^  size_t const mask_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+max_sequence	processor_barrier.cpp	/^size_t ProcessorBarrier::max_sequence() const$/;"	f	class:ku::fusion::ProcessorBarrier	signature:() const
+max_sequence	processor_barrier.hpp	/^  size_t max_sequence() const;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:() const
+max_usable_block_sequence	event_buffer.cpp	/^size_t EventBuffer::max_usable_block_sequence() const$/;"	f	class:ku::fusion::EventBuffer	signature:() const
+max_usable_block_sequence	event_buffer.hpp	/^  size_t max_usable_block_sequence() const;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:() const
+max_usable_sequence	event_buffer.cpp	/^size_t EventBuffer::max_usable_sequence() const$/;"	f	class:ku::fusion::EventBuffer	signature:() const
+max_usable_sequence	event_buffer.hpp	/^  size_t max_usable_sequence() const;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:() const
+min_sequence	disruptor/sequence.cpp	/^size_t SequenceList::min_sequence() const$/;"	f	class:ku::fusion::disruptor::SequenceList	signature:() const
+min_sequence	disruptor/sequence.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::disruptor::SequenceList	access:public	signature:() const
+min_sequence	processor_barrier.cpp	/^size_t ProcessorBarrier::min_sequence() const$/;"	f	class:ku::fusion::ProcessorBarrier	signature:() const
+min_sequence	processor_barrier.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:() const
+min_sequence	sequence.cpp	/^size_t SequenceList::min_sequence() const$/;"	f	class:ku::fusion::SequenceList	signature:() const
+min_sequence	sequence.hpp	/^  size_t min_sequence() const;$/;"	p	class:ku::fusion::SequenceList	access:public	signature:() const
 mode	timer.hpp	/^  Mode mode() const { return mode_; }$/;"	f	class:ku::fusion::Timer	access:public	signature:() const
 mode_	timer.hpp	/^  Mode mode_;$/;"	m	class:ku::fusion::Timer	access:private
 modify_notice	notice_board.cpp	/^bool NoticeBoard::modify_notice(NoticeId notice_id, Notice::EventHandler const& event_handler,$/;"	f	class:ku::fusion::NoticeBoard	signature:(NoticeId notice_id, Notice::EventHandler const& event_handler, std::initializer_list<Notice::EventType> const& event_types)
 modify_notice	notice_board.hpp	/^  bool modify_notice(NoticeId notice_id, Notice::EventHandler const& event_handler,$/;"	p	class:ku::fusion::NoticeBoard	access:public	signature:(NoticeId notice_id, Notice::EventHandler const& event_handler, std::initializer_list<Notice::EventType> const& event_types)
-modify_notice_internal	epoll_poller.cpp	/^bool Events::modify_notice_internal(NoticeId id, Notice const& notice)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id, Notice const& notice)
-modify_notice_internal	epoll_poller.hpp	/^  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id, Notice const& notice)
+modify_notice_internal	epoll_poller.cpp	/^bool Notices::modify_notice_internal(NoticeId id, Notice const& notice)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id, Notice const& notice)
+modify_notice_internal	epoll_poller.hpp	/^  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id, Notice const& notice)
 modify_notice_internal	notice_board.hpp	/^  virtual bool modify_notice_internal(NoticeId, Notice const&) = 0;$/;"	p	class:ku::fusion::NoticeBoard	access:private	signature:(NoticeId, Notice const&)
 modify_notice_internal	poll_poller.cpp	/^bool Events::modify_notice_internal(NoticeId id, Notice const& notice)$/;"	f	class:ku::fusion::poll::Events	signature:(NoticeId id, Notice const& notice)
 modify_notice_internal	poll_poller.hpp	/^  virtual bool modify_notice_internal(NoticeId id, Notice const& notice);$/;"	p	class:ku::fusion::poll::Events	access:private	signature:(NoticeId id, Notice const& notice)
 mutex_	notice_board.hpp	/^  std::mutex mutex_;$/;"	m	class:ku::fusion::NoticeBoard	access:private
 next_notice_id	notice.hpp	/^  static std::atomic<NoticeId> next_notice_id;$/;"	m	class:ku::fusion::Notice	access:private
+next_pow_of_two	disruptor/util.cpp	/^size_t next_pow_of_two(size_t val)$/;"	f	namespace:ku::fusion::disruptor	signature:(size_t val)
+next_pow_of_two	disruptor/util.hpp	/^size_t next_pow_of_two(size_t val);$/;"	p	namespace:ku::fusion::disruptor	signature:(size_t val)
+next_pow_of_two	util.cpp	/^size_t next_pow_of_two(size_t val)$/;"	f	namespace:ku::fusion::util	signature:(size_t val)
+next_pow_of_two	util.hpp	/^size_t next_pow_of_two(size_t val);$/;"	p	namespace:ku::fusion::util	signature:(size_t val)
 noncopyable	util.hpp	/^  noncopyable() = default;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:()
 noncopyable	util.hpp	/^  noncopyable(noncopyable const&) = delete;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:(noncopyable const&)
 noncopyable	util.hpp	/^struct noncopyable$/;"	s	namespace:ku::fusion::util
 notice	notice_board.hpp	/^    Notice notice;$/;"	m	struct:ku::fusion::NoticeBoard::Update	access:public
-notices	epoll_poller.hpp	/^  virtual NoticeBoard& notices() { return events_; }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
+notices	epoll_poller.hpp	/^  virtual NoticeBoard& notices() { return notices_; }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:()
 notices	poll_loop.hpp	/^  virtual NoticeBoard& notices() = 0;$/;"	p	class:ku::fusion::PollLoop	access:public	signature:()
 notices	poll_poller.hpp	/^  virtual NoticeBoard& notices() { return events_; }$/;"	f	class:ku::fusion::poll::PollLoop	access:public	signature:()
-notices_	epoll_poller.hpp	/^  NoticeMap notices_;$/;"	m	class:ku::fusion::epoll::Events	access:private
+notices_	epoll_poller.hpp	/^  NoticeMap notices_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
+notices_	epoll_poller.hpp	/^  Notices notices_;$/;"	m	class:ku::fusion::epoll::PollLoop	access:private
 notices_	poll_poller.hpp	/^  NoticeMap notices_;$/;"	m	class:ku::fusion::poll::Events	access:private
 notices_	socket_acceptor.hpp	/^  NoticeBoard& notices_;$/;"	m	class:ku::fusion::SocketAcceptor	access:private
 notices_	user_event_acceptor.hpp	/^  NoticeBoard& notices_;$/;"	m	class:ku::fusion::UserEventAcceptor	access:private
-on_error_	epoll_poller.hpp	/^  OnError on_error_;$/;"	m	class:ku::fusion::epoll::Events	access:private
+notify_all	disruptor/waiting.hpp	/^  void notify_all() {}$/;"	f	class:ku::fusion::disruptor::YieldWaiting	access:public	signature:()
+notify_all	disruptor/waiting.hpp	/^  void notify_all();$/;"	p	class:ku::fusion::disruptor::ConditionWaiting	access:public	signature:()
+on_error_	epoll_poller.hpp	/^  OnError on_error_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
 operator !	protocol.hpp	/^inline bool operator!(Protocol p) { return static_cast<int>(p) > 0; }$/;"	f	namespace:ku::fusion	signature:(Protocol p)
 operator ()	poll_loop.hpp	/^  bool operator () (std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))$/;"	f	class:ku::fusion::PollLoop	access:public	signature:(std::chrono::milliseconds timeout = std::chrono::milliseconds(-1))
 operator ()	server_connection.hpp	/^  bool operator()(Notice::Event event, NoticeId id)$/;"	f	class:ku::fusion::ServerConnection	access:public	signature:(Notice::Event event, NoticeId id)
@@ -968,6 +1271,8 @@ operator =	handle.hpp	/^  Handle& operator=(Handle&& h)$/;"	f	class:ku::fusion::
 operator =	notice.cpp	/^Notice& Notice::operator = (Notice&& notice)$/;"	f	class:ku::fusion::Notice	signature:(Notice&& notice)
 operator =	notice.hpp	/^  Notice& operator = (Notice&& notice);$/;"	p	class:ku::fusion::Notice	access:public	signature:(Notice&& notice)
 operator =	util.hpp	/^  noncopyable& operator=(noncopyable const&) = delete;$/;"	p	struct:ku::fusion::util::noncopyable	access:public	signature:(noncopyable const&)
+operator []	disruptor/ring_buffer.hpp	/^  Event const& operator[] (size_t seq) const { return get(seq); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq) const
+operator []	disruptor/ring_buffer.hpp	/^  Event& operator[] (size_t seq) { return get(seq); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
 operator bool	handle.hpp	/^  explicit operator bool () { return valid(); }$/;"	f	class:ku::fusion::Handle	access:public	signature:()
 operator bool	socket.hpp	/^  explicit operator bool () const { return handle_.valid(); }$/;"	f	class:ku::fusion::Socket	access:public	signature:() const
 ops	fifo.hpp	/^namespace ops {$/;"	n	namespace:ku::fusion
@@ -982,32 +1287,45 @@ ops	signal.hpp	/^namespace ops {$/;"	n	namespace:ku::fusion
 ops	socket.hpp	/^namespace ops {$/;"	n	namespace:ku::fusion
 ops	timer.hpp	/^namespace ops {$/;"	n	namespace:ku::fusion
 ops	user_event.hpp	/^namespace ops {$/;"	n	namespace:ku::fusion
+padding_	disruptor/sequence.hpp	/^  size_t padding_[7];$/;"	m	class:ku::fusion::disruptor::Sequence	access:private
+padding_	sequence.hpp	/^  size_t padding_[7];$/;"	m	class:ku::fusion::Sequence	access:private
 parse_uri	endpoint.cpp	/^Protocol parse_uri(char const* str, std::string& address)$/;"	f	namespace:__anon5	signature:(char const* str, std::string& address)
 peer_endpoint	socket_connection.hpp	/^  SocketEndpoint const& peer_endpoint() const { return peer_endpoint_; }$/;"	f	class:ku::fusion::SocketConnection	access:public	signature:() const
 peer_endpoint_	socket_connection.hpp	/^  SocketEndpoint peer_endpoint_;$/;"	m	class:ku::fusion::SocketConnection	access:private
 pending_updates_	notice_board.hpp	/^  std::atomic_bool pending_updates_;$/;"	m	class:ku::fusion::NoticeBoard	access:private
-poll	epoll_poller.cpp	/^Events& Poller::poll(Events& evts, std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::epoll::Poller	signature:(Events& evts, std::chrono::milliseconds const& timeout)
-poll	epoll_poller.hpp	/^  Events& poll(Events& evts, std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(Events& evts, std::chrono::milliseconds const& timeout)
+poll	epoll_poller.cpp	/^void Poller::poll(std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::epoll::Poller	signature:(std::chrono::milliseconds const& timeout)
+poll	epoll_poller.hpp	/^  void poll(std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::epoll::Poller	access:public	signature:(std::chrono::milliseconds const& timeout)
 poll	poll_poller.cpp	/^Events& poll(Events& evts, std::chrono::milliseconds const& timeout)$/;"	f	namespace:ku::fusion::poll	signature:(Events& evts, std::chrono::milliseconds const& timeout)
 poll	poll_poller.cpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku::fusion	file:
 poll	poll_poller.hpp	/^  friend Events& poll(Events&, std::chrono::milliseconds const&);$/;"	p	class:ku::fusion::poll::Events	access:friend	signature:(Events&, std::chrono::milliseconds const&)
 poll	poll_poller.hpp	/^namespace ku { namespace fusion { namespace poll {$/;"	n	namespace:ku::fusion
-poller	epoll_poller.hpp	/^  Poller& poller() { return *poller_; }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:()
-poller_	epoll_poller.hpp	/^  Poller* poller_;$/;"	m	class:ku::fusion::epoll::Events	access:private
+poll	poller.cpp	/^void Poller::poll(std::chrono::milliseconds const& timeout)$/;"	f	class:ku::fusion::Poller	signature:(std::chrono::milliseconds const& timeout)
+poll	poller.hpp	/^  void poll(std::chrono::milliseconds const& timeout);$/;"	p	class:ku::fusion::Poller	access:public	signature:(std::chrono::milliseconds const& timeout)
+poller	epoll_poller.hpp	/^  Poller& poller() { return *poller_; }$/;"	f	class:ku::fusion::epoll::Notices	access:private	signature:()
+poller_	epoll_poller.hpp	/^  Poller* poller_;$/;"	m	class:ku::fusion::epoll::Notices	access:private
 port	socket_endpoint.cpp	/^uint16_t SocketEndpoint::port() const$/;"	f	class:ku::fusion::SocketEndpoint	signature:() const
 port	socket_endpoint.hpp	/^  uint16_t port() const; \/\/ For Unix domain sockets, port is 0$/;"	p	class:ku::fusion::SocketEndpoint	access:public	signature:() const
+processor_seqs_	processor_barrier.hpp	/^  std::vector<Sequence const*> processor_seqs_; $/;"	m	class:ku::fusion::ProcessorBarrier	access:private
 protocol	endpoint.hpp	/^  Protocol protocol() const { return protocol_; }$/;"	f	class:ku::fusion::Endpoint	access:public	signature:() const
 protocol_	endpoint.hpp	/^  Protocol protocol_;$/;"	m	class:ku::fusion::Endpoint	access:private
 protocols	protocol.cpp	/^static char const* protocols[] = {$/;"	m	namespace:__anon1	file:
+publish	disruptor/event_publisher.hpp	/^  void publish(EventType const& event);$/;"	p	class:ku::fusion::disruptor::EventPublisher	access:public	signature:(EventType const& event)
+publish	disruptor/event_publisher.hpp	/^void EventPublisher::publish(EventType const& event)$/;"	f	class:ku::fusion::disruptor::EventPublisher	signature:(EventType const& event)
+publish	disruptor/ring_buffer.hpp	/^  void publish(size_t seq) { cursor_.set(seq); waiting_.notify_all(); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(size_t seq)
+publish	event_buffer.cpp	/^void EventBuffer::publish(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+publish	event_buffer.hpp	/^  void publish(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
+published_seq_	event_buffer.hpp	/^  Sequence claimed_seq_, published_seq_, gating_seq_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+published_sequence	event_buffer.hpp	/^  size_t published_sequence() const { return published_seq_.get(); }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:() const
 quit	poll_loop.hpp	/^  void quit() { quit_ = true; } \/\/ TODO quit should take care of timeout=-1$/;"	f	class:ku::fusion::PollLoop	access:public	signature:()
 quit_	poll_loop.hpp	/^  bool quit_;$/;"	m	class:ku::fusion::PollLoop	access:protected
 raw_buffer	raw_buffer.hpp	/^inline void const* raw_buffer(std::string const& buf) { return buf.c_str(); }$/;"	f	namespace:ku::fusion	signature:(std::string const& buf)
 raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(std::array<T, N>& buf) { return &*buf.begin(); }$/;"	f	namespace:ku::fusion	signature:(std::array<T, N>& buf)
 raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(std::vector<T>& buf) { return &*buf.begin(); }$/;"	f	namespace:ku::fusion	signature:(std::vector<T>& buf)
 raw_buffer	raw_buffer.hpp	/^inline void* raw_buffer(void *buf) { return buf; }$/;"	f	namespace:ku::fusion	signature:(void *buf)
-raw_event	epoll_poller.hpp	/^  epoll_event const& raw_event(unsigned n) const { return events_[n]; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(unsigned n) const
+raw_event	epoll_poller.hpp	/^  epoll_event const& raw_event(unsigned n) const { return events_[n]; }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:(unsigned n) const
+raw_event	event_buffer.hpp	/^  epoll_event const& raw_event(size_t seq) const { return events_[seq & mask_]; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq) const
+raw_event	event_buffer.hpp	/^  epoll_event& raw_event(size_t seq) { return events_[seq & mask_]; }$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(size_t seq)
 raw_event	poll_poller.hpp	/^  pollfd const& raw_event(unsigned n) const { return events_[n]; }$/;"	f	class:ku::fusion::poll::Events	access:public	signature:(unsigned n) const
-raw_events	epoll_poller.hpp	/^  epoll_event* raw_events() { return &*events_.begin(); }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:()
 raw_events	poll_poller.hpp	/^  pollfd* raw_events() { return &*events_.begin(); }$/;"	f	class:ku::fusion::poll::Events	access:private	signature:()
 raw_handle	epoll_poller.hpp	/^  int raw_handle() const { return raw_handle_; }$/;"	f	class:ku::fusion::epoll::Poller	access:private	signature:() const
 raw_handle	handle.hpp	/^  int raw_handle() const { return raw_handle_; }$/;"	f	class:ku::fusion::Handle	access:private	signature:() const
@@ -1017,6 +1335,7 @@ raw_handle_	epoll_poller.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::epoll:
 raw_handle_	handle.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::Handle	access:private
 raw_handle_	handle.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::WeakHandle	access:private
 raw_handle_	notice.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::Notice	access:private
+raw_handle_	poller.hpp	/^  int raw_handle_;$/;"	m	class:ku::fusion::Poller	access:private
 read	fifo.hpp	/^  ssize_t read(uint64_t& val, size_t)$/;"	f	class:ku::fusion::Fifo	access:public	signature:(uint64_t& val, size_t)
 read	ops/common.hpp	/^  static inline ssize_t read(Handle<T>& h, Buffer&& buf, size_t count)$/;"	f	struct:ku::fusion::ops::Common	access:public	signature:(Handle<T>& h, Buffer&& buf, size_t count)
 read	signal.hpp	/^  ssize_t read(signalfd_siginfo& val, size_t = 0)$/;"	f	class:ku::fusion::Signal	access:public	signature:(signalfd_siginfo& val, size_t = 0)
@@ -1029,13 +1348,12 @@ readv	ops/common.hpp	/^  inline ssize_t readv(Handle<T>& h, Buffer& buf, size_t 
 recv	channel.hpp	/^  void recv();$/;"	p	class:ku::fusion::Channel	access:public	signature:()
 remove_notice	notice_board.cpp	/^bool NoticeBoard::remove_notice(NoticeId notice_id)$/;"	f	class:ku::fusion::NoticeBoard	signature:(NoticeId notice_id)
 remove_notice	notice_board.hpp	/^  bool remove_notice(NoticeId notice_id);$/;"	p	class:ku::fusion::NoticeBoard	access:public	signature:(NoticeId notice_id)
-remove_notice_internal	epoll_poller.cpp	/^bool Events::remove_notice_internal(NoticeId id)$/;"	f	class:ku::fusion::epoll::Events	signature:(NoticeId id)
-remove_notice_internal	epoll_poller.hpp	/^  virtual bool remove_notice_internal(NoticeId id);$/;"	p	class:ku::fusion::epoll::Events	access:private	signature:(NoticeId id)
+remove_notice_internal	epoll_poller.cpp	/^bool Notices::remove_notice_internal(NoticeId id)$/;"	f	class:ku::fusion::epoll::Notices	signature:(NoticeId id)
+remove_notice_internal	epoll_poller.hpp	/^  virtual bool remove_notice_internal(NoticeId id);$/;"	p	class:ku::fusion::epoll::Notices	access:private	signature:(NoticeId id)
 remove_notice_internal	notice_board.hpp	/^  virtual bool remove_notice_internal(NoticeId) = 0;$/;"	p	class:ku::fusion::NoticeBoard	access:private	signature:(NoticeId)
 remove_notice_internal	poll_poller.cpp	/^bool Events::remove_notice_internal(NoticeId id)$/;"	f	class:ku::fusion::poll::Events	signature:(NoticeId id)
 remove_notice_internal	poll_poller.hpp	/^  bool remove_notice_internal(int fd);$/;"	p	class:ku::fusion::poll::Events	access:private	signature:(int fd)
 remove_notice_internal	poll_poller.hpp	/^  virtual bool remove_notice_internal(NoticeId id);$/;"	p	class:ku::fusion::poll::Events	access:private	signature:(NoticeId id)
-resize	epoll_poller.hpp	/^  void resize(size_t size) { events_.resize(size); }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:(size_t size)
 resize	poll_poller.hpp	/^  void resize(size_t size) { events_.resize(size); }$/;"	f	class:ku::fusion::poll::Events	access:private	signature:(size_t size)
 resolve	endpoint.cpp	/^bool Endpoint::resolve(char const* uri)$/;"	f	class:ku::fusion::Endpoint	signature:(char const* uri)
 resolve	endpoint.hpp	/^  bool resolve(char const* uri);$/;"	p	class:ku::fusion::Endpoint	access:public	signature:(char const* uri)
@@ -1046,7 +1364,9 @@ sa_in6	socket_endpoint.hpp	/^    sockaddr_in6 sa_in6;$/;"	m	union:ku::fusion::So
 sa_storage	socket_endpoint.hpp	/^    sockaddr_storage sa_storage;$/;"	m	union:ku::fusion::SocketEndpoint::SockAddr	access:public
 sa_un	socket_endpoint.hpp	/^    sockaddr_un sa_un;$/;"	m	union:ku::fusion::SocketEndpoint::SockAddr	access:public
 send	channel.hpp	/^  void send();$/;"	p	class:ku::fusion::Channel	access:public	signature:()
-set_active_count	epoll_poller.hpp	/^  void set_active_count(unsigned n) { active_count_ = n; }$/;"	f	class:ku::fusion::epoll::Events	access:private	signature:(unsigned n)
+sequence	disruptor/event_processor.hpp	/^  virtual Sequence& sequence() = 0;$/;"	p	class:ku::fusion::disruptor::EventProcessor	access:public	signature:()
+set	disruptor/sequence.hpp	/^  void set(size_t value) { value_.store(value, std::memory_order_release); }$/;"	f	class:ku::fusion::disruptor::Sequence	access:public	signature:(size_t value)
+set	sequence.hpp	/^  void set(size_t value) { value_.store(value, std::memory_order_release); }$/;"	f	class:ku::fusion::Sequence	access:public	signature:(size_t value)
 set_active_count	poll_poller.hpp	/^  void set_active_count(unsigned n) { active_count_ = n; }$/;"	f	class:ku::fusion::poll::Events	access:private	signature:(unsigned n)
 set_event	notice.hpp	/^  void set_event(Event ev) { events_.set(ev); }$/;"	f	class:ku::fusion::Notice	access:public	signature:(Event ev)
 set_event_handler	notice.hpp	/^  void set_event_handler(EventHandler const& event_handler)$/;"	f	class:ku::fusion::Notice	access:public	signature:(EventHandler const& event_handler)
@@ -1054,13 +1374,17 @@ set_event_type	notice.hpp	/^  void set_event_type(EventType et) { event_types_.s
 set_event_types	notice.hpp	/^  void set_event_types(EventTypes const& evts) { event_types_ = evts; }$/;"	f	class:ku::fusion::Notice	access:public	signature:(EventTypes const& evts)
 set_expires_at	timer.hpp	/^  void set_expires_at(std::chrono::time_point<Clock> expiry)$/;"	f	class:ku::fusion::Timer	access:public	signature:(std::chrono::time_point<Clock> expiry)
 set_expires_in	timer.hpp	/^  void set_expires_in(std::chrono::nanoseconds duration) { set_timespec(Deadline, duration); }$/;"	f	class:ku::fusion::Timer	access:public	signature:(std::chrono::nanoseconds duration)
+set_gatings	disruptor/ring_buffer.hpp	/^  void set_gatings(std::initializer_list<Sequence*> const& seqs) { gating_seqs_.initialize(seqs); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:public	signature:(std::initializer_list<Sequence*> const& seqs)
 set_interval	timer.hpp	/^  void set_interval(std::chrono::nanoseconds interval) { set_timespec(Periodic, interval); }$/;"	f	class:ku::fusion::Timer	access:public	signature:(std::chrono::nanoseconds interval)
-set_on_error	epoll_poller.hpp	/^  void set_on_error(Events::OnError const& on_error) { events_.set_on_error(on_error); }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:(Events::OnError const& on_error)
-set_on_error	epoll_poller.hpp	/^  void set_on_error(OnError const& on_error) { on_error_ = on_error; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(OnError const& on_error)
-set_poller	epoll_poller.hpp	/^  void set_poller(Poller* poller) { poller_ = poller; }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:(Poller* poller)
+set_on_error	epoll_poller.hpp	/^  void set_on_error(Notices::OnError const& on_error) { notices_.set_on_error(on_error); }$/;"	f	class:ku::fusion::epoll::PollLoop	access:public	signature:(Notices::OnError const& on_error)
+set_on_error	epoll_poller.hpp	/^  void set_on_error(OnError const& on_error) { on_error_ = on_error; }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:(OnError const& on_error)
+set_poller	epoll_poller.hpp	/^  void set_poller(Poller* poller) { poller_ = poller; }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:(Poller* poller)
 set_time	ops/timer.hpp	/^  static inline void set_time(Handle<Timer>& h, itimerspec const& spec)$/;"	f	struct:ku::fusion::ops::Timer	access:public	signature:(Handle<Timer>& h, itimerspec const& spec)
 set_timespec	timer.cpp	/^void Timer::set_timespec(Mode mode, std::chrono::nanoseconds duration)$/;"	f	class:ku::fusion::Timer	signature:(Mode mode, std::chrono::nanoseconds duration)
 set_timespec	timer.hpp	/^  void set_timespec(Mode mode, std::chrono::nanoseconds duration);$/;"	p	class:ku::fusion::Timer	access:private	signature:(Mode mode, std::chrono::nanoseconds duration)
+set_wait_strategy	event_buffer.hpp	/^  void set_wait_strategy(F const& wait_function)$/;"	f	class:ku::fusion::EventBuffer	access:public	signature:(F const& wait_function)
+sizeof	disruptor/sequence.hpp	/^static_assert(sizeof(Sequence) == 64, "Sequence not padded to cache line, may cause false sharing.");$/;"	p	namespace:ku::fusion::disruptor	signature:(Sequence)
+sizeof	sequence.hpp	/^static_assert(sizeof(Sequence) == 64, "Sequence not padded to cache line, may cause false sharing.");$/;"	p	namespace:ku::fusion	signature:(Sequence)
 sockaddr_	socket_endpoint.hpp	/^  SockAddr sockaddr_;$/;"	m	class:ku::fusion::SocketEndpoint	access:private
 sockaddr_size	socket_endpoint.hpp	/^  size_t sockaddr_size() const$/;"	f	class:ku::fusion::SocketEndpoint	access:public	signature:() const
 sockaddress	socket_endpoint.hpp	/^  sockaddr const& sockaddress() const { return sockaddr_.sa; }$/;"	f	class:ku::fusion::SocketEndpoint	access:public	signature:() const
@@ -1099,6 +1423,19 @@ util	create_object.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	
 util	util.cpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku::fusion	file:
 util	util.hpp	/^namespace ku { namespace fusion { namespace util {$/;"	n	namespace:ku::fusion
 valid	handle.hpp	/^  bool valid() const { return raw_handle_ > 0; }$/;"	f	class:ku::fusion::Handle	access:public	signature:() const
+value_	disruptor/sequence.hpp	/^  std::atomic_size_t value_ __attribute__((aligned(0x40))); \/\/ align to 64 bytes boundry for cache line$/;"	m	class:ku::fusion::disruptor::Sequence	access:private
+value_	sequence.hpp	/^  std::atomic_size_t value_ __attribute__((aligned(64))); \/\/ align to 64 bytes boundry for cache line$/;"	m	class:ku::fusion::Sequence	access:private
+wait_for	disruptor/ring_buffer.hpp	/^  void wait_for(size_t capacity) { claimer_.wait_for_capacity(capacity, gating_seqs_); }$/;"	f	class:ku::fusion::disruptor::RingBuffer	access:private	signature:(size_t capacity)
+wait_for	disruptor/waiting.cpp	/^void YieldWaiting::wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::YieldWaiting	signature:(size_t seq, Sequence const& cursor, SequenceList const& seq_list)
+wait_for	disruptor/waiting.hpp	/^  void wait_for(size_t seq, Sequence const& cursor, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::YieldWaiting	access:public	signature:(size_t seq, Sequence const& cursor, SequenceList const& seq_list)
+wait_for_capacity	disruptor/claimer.cpp	/^void Claimer::wait_for_capacity(size_t capacity, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t capacity, SequenceList const& seq_list)
+wait_for_capacity	disruptor/claimer.hpp	/^  void wait_for_capacity(size_t capacity, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:(size_t capacity, SequenceList const& seq_list)
+wait_for_seq	disruptor/claimer.cpp	/^void Claimer::wait_for_seq(size_t seq, SequenceList const& seq_list)$/;"	f	class:ku::fusion::disruptor::Claimer	signature:(size_t seq, SequenceList const& seq_list)
+wait_for_seq	disruptor/claimer.hpp	/^  void wait_for_seq(size_t seq, SequenceList const& seq_list);$/;"	p	class:ku::fusion::disruptor::Claimer	access:private	signature:(size_t seq, SequenceList const& seq_list)
+wait_for_seq	event_buffer.cpp	/^void EventBuffer::wait_for_seq(size_t seq)$/;"	f	class:ku::fusion::EventBuffer	signature:(size_t seq)
+wait_for_seq	event_buffer.hpp	/^  void wait_for_seq(size_t seq);$/;"	p	class:ku::fusion::EventBuffer	access:private	signature:(size_t seq)
+wait_strategy_	event_buffer.hpp	/^  std::function<void(size_t)> wait_strategy_;$/;"	m	class:ku::fusion::EventBuffer	access:private
+waiting_	disruptor/ring_buffer.hpp	/^  Waiting waiting_;$/;"	m	class:ku::fusion::disruptor::RingBuffer	access:private
 write	fifo.hpp	/^  ssize_t write(uint64_t val, size_t)$/;"	f	class:ku::fusion::Fifo	access:public	signature:(uint64_t val, size_t)
 write	ops/common.hpp	/^  static inline ssize_t write(Handle<T>& h, Buffer const& buf, size_t count)$/;"	f	struct:ku::fusion::ops::Common	access:public	signature:(Handle<T>& h, Buffer const& buf, size_t count)
 write	socket.hpp	/^  inline ssize_t write(Buffer const& buf, size_t count)$/;"	f	class:ku::fusion::Socket	access:public	signature:(Buffer const& buf, size_t count)
@@ -1108,15 +1445,21 @@ write	user_event.hpp	/^  ssize_t write(uint64_t val, size_t = 0)$/;"	f	class:ku:
 write	user_event.hpp	/^  void write();$/;"	p	class:ku::fusion::WriterUserEvent	access:public	signature:()
 writev	ops/common.hpp	/^  inline ssize_t writev(Handle<T>& h, Buffer const& buf, size_t count)$/;"	f	struct:ku::fusion::ops::Common	access:public	signature:(Handle<T>& h, Buffer const& buf, size_t count)
 ~AcceptorSocket	socket.hpp	/^  ~AcceptorSocket() = default;$/;"	p	class:ku::fusion::AcceptorSocket	access:public	signature:()
+~Claimer	disruptor/claimer.hpp	/^  ~Claimer() = default;$/;"	p	class:ku::fusion::disruptor::Claimer	access:public	signature:()
 ~ConnectorSocket	socket.hpp	/^  ~ConnectorSocket() = default;$/;"	p	class:ku::fusion::ConnectorSocket	access:public	signature:()
 ~Endpoint	endpoint.hpp	/^  virtual ~Endpoint() { }$/;"	f	class:ku::fusion::Endpoint	access:public	signature:()
-~Events	epoll_poller.hpp	/^  virtual ~Events() { }$/;"	f	class:ku::fusion::epoll::Events	access:public	signature:()
+~EventBuffer	event_buffer.hpp	/^  ~EventBuffer() = default;$/;"	p	class:ku::fusion::EventBuffer	access:public	signature:()
+~EventPublisher	disruptor/event_publisher.hpp	/^  ~EventPublisher() = default;$/;"	p	class:ku::fusion::disruptor::EventPublisher	access:public	signature:()
 ~Events	poll_poller.hpp	/^  virtual ~Events() { }$/;"	f	class:ku::fusion::poll::Events	access:public	signature:()
 ~Fifo	fifo.hpp	/^  ~Fifo() = default;$/;"	p	class:ku::fusion::Fifo	access:public	signature:()
 ~Handle	handle.hpp	/^  ~Handle() { close(); }$/;"	f	class:ku::fusion::Handle	access:public	signature:()
 ~NoticeBoard	notice_board.hpp	/^  virtual ~NoticeBoard() { };$/;"	f	class:ku::fusion::NoticeBoard	access:public	signature:()
+~Notices	epoll_poller.hpp	/^  virtual ~Notices() { }$/;"	f	class:ku::fusion::epoll::Notices	access:public	signature:()
 ~Poller	epoll_poller.hpp	/^  ~Poller() { close(); }$/;"	f	class:ku::fusion::epoll::Poller	access:public	signature:()
+~ProcessorBarrier	processor_barrier.hpp	/^  ~ProcessorBarrier() = default;$/;"	p	class:ku::fusion::ProcessorBarrier	access:public	signature:()
 ~ReaderUserEvent	user_event.hpp	/^  ~ReaderUserEvent() = default;$/;"	p	class:ku::fusion::ReaderUserEvent	access:public	signature:()
+~Sequence	disruptor/sequence.hpp	/^  ~Sequence() = default;$/;"	p	class:ku::fusion::disruptor::Sequence	access:public	signature:()
+~Sequence	sequence.hpp	/^  ~Sequence() = default;$/;"	p	class:ku::fusion::Sequence	access:public	signature:()
 ~ServerConnection	server_connection.hpp	/^  ~ServerConnection() = default;$/;"	p	class:ku::fusion::ServerConnection	access:public	signature:()
 ~Socket	socket.hpp	/^  ~Socket() = default;$/;"	p	class:ku::fusion::Socket	access:public	signature:()
 ~SocketEndpoint	socket_endpoint.hpp	/^  ~SocketEndpoint() = default;$/;"	p	class:ku::fusion::SocketEndpoint	access:public	signature:()

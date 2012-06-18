@@ -14,7 +14,7 @@ namespace ku { namespace log {
 
 class BufferList : private util::noncopyable
 {
-  typedef Buffer::Node Node;
+  using Node = Buffer::Node;
   friend Buffer::Buffer(BufferList&);
 
 public:

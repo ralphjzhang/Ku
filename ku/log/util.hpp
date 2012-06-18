@@ -28,7 +28,7 @@ size_t now(char* buf);
 
 std::string now();
 
-struct LineNo { typedef uint32_t type; };
+struct LineNo { using type = uint32_t; };
 
 template <typename T>
 typename T::type next_seq()

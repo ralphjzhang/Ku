@@ -12,7 +12,7 @@ template <typename RingBuffer>
 class EventPublisher
 {
 public:
-  typedef typename RingBuffer::EventType EventType;
+  using EventType = typename RingBuffer::EventType;
 
   EventPublisher(RingBuffer& buffer)
     : buffer_(buffer)

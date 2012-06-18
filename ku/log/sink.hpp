@@ -14,7 +14,7 @@ namespace ku { namespace log {
 class BufferList;
 
 class Sink;
-typedef std::unique_ptr<Sink> Sink_ptr;
+using Sink_ptr = std::unique_ptr<Sink>;
 
 class Sink : private util::noncopyable
 {

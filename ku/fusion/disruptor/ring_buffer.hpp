@@ -17,7 +17,7 @@ template <typename Event, typename Waiting>
 class RingBuffer
 {
 public:
-  typedef Event EventType;
+  using EventType Event;
 
   RingBuffer(size_t size)
     : mask_(next_pow_of_two(size) - 1), entries_(mask_ + 1)

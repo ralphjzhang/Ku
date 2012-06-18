@@ -1,0 +1,30 @@
+2. Zero MQ style addressing?
+3. MsgPack
+4. Read/Write RingDeque?
+
+PollLoops can have virtual base
+
+Resolver receives:
+inproc://#1
+ipc:///tmp/fusion/s
+tcp://192.168.1.1:3333
+pgm://
+ws://
+and creates Endpoint
+
+Thoughts:
+1. Unix domain socket is the way to go for normal case IPC
+2. Shared memory is said to be faster for small amount of data, think of using it for things like market data, maybe making it explicit with separate addressing like shm://.....
+3. Not seen advantage of fifo over unix domain socket yet
+
+4. We might consider 2 categories of communication: shared type and socket type
+shared type: inproc, shm
+socket type: all others
+
+5. Think of a separation between "communication merchanism vs communication entities", e.g., Although inproc defaults to shared, you can always use sockets, even for inproc
+
+UserEventConnection ?
+swap resource between read/write buffer to move resource into thread
+
+inproc publisher knows the number of subscribers n, initiate eventfd counter to UINT64_MAX - 1 - n, and always try to write n
+

@@ -14,7 +14,7 @@ namespace ku { namespace log {
 // Writing to memory, mainly for testing purpose
 class MemorySink : public Sink
 {
-  typedef std::vector<std::string> StringList;
+  using StringList = std::vector<std::string>;
 
 public:
   MemorySink(LogLevel log_level) : Sink(log_level) { }

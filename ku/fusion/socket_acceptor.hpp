@@ -18,8 +18,9 @@ namespace ku { namespace fusion {
 // The 3rd argument, handler_creator, is supposed to be a function returning function, its
 // return value will be the event handler of the accepted connection.
 // =======================================================================================
+using HandlerCreator = std::function<Notice::EventHandler(Socket&&, SocketEndpoint const&)> ;
 size_t accept_connections(AcceptorSocket& socket, NoticeBoard& notices,
-    std::function<Notice::EventHandler(Socket&&, SocketEndpoint const&)> handler_creator);
+    HandlerCreator handler_creator);
 
 
 template <typename Connection>
@@ -37,7 +38,7 @@ public:
   bool operator ()()
   {
     accept_connections(socket_, notices_, 
-        [](Socket&& socket, SocketEndpoint const& peer_endpoint) {
+        [](Socket&& socket, SocketEndpoint const& peer_endpoint) -> HandlerCreator {
           // TODO exception safe
           Connection* conn_ptr = new Connection(std::move(socket), peer_endpoint);
           return Notice::EventHandler([conn_ptr](Notice::Event event, NoticeId id) {

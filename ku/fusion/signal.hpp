@@ -19,7 +19,7 @@ struct Signal;
 // Wrapper for signalfd
 class Signal
 {
-  typedef Handle<ops::Signal> HandleType;
+  using HandleType = Handle<ops::Signal>;
 
 public:
   Signal(); // TODO parameters

@@ -3,8 +3,9 @@ import os
 env = Environment(
     CPPPATH = ['#.'],
     LIBS = ['pthread'],
-    CCFLAGS = '-Wall --std=c++0x -g -fPIC'
+    CCFLAGS = '-Wall --std=c++11 -g -fPIC'
     )
+env.Replace(CXX = 'clang++')
 
 Export('env')
 

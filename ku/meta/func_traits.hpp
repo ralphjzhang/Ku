@@ -10,10 +10,10 @@ template <typename R, typename... Args>
 struct func_traits<R(Args...)>
 {
   static const size_t arity = sizeof...(Args);
-  typedef R result_type;
+  using result_type = R;
   template <size_t N> struct arg
   {
-    typedef typename ku::meta::at<N - 1, Args...>::type type;
+    using type = typename ku::meta::at<N - 1, Args...>::type;
   };
 };
 

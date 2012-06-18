@@ -7,14 +7,14 @@ namespace ku { namespace util {
 template<typename T, typename... Args>
 inline auto construct(Args&&... args) -> typename std::remove_const<T>::type*
 {
-  typedef typename std::remove_const<T>::type T_nc;
+  using T_nc = typename std::remove_const<T>::type;
   return new T_nc(std::forward<Args>(args)...);
 }
 
 template<typename T, typename... Args>
 inline auto make_unique(Args&&... args) -> std::unique_ptr<T>
 {
-  typedef typename std::remove_const<T>::type T_nc;
+  using T_nc = typename std::remove_const<T>::type;
   return std::unique_ptr<T_nc>(construct<T_nc>(args...));
 }
 

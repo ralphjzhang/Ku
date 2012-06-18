@@ -17,7 +17,7 @@ namespace ku { namespace fusion {
 //  Only one writer is allowed (which is the epoll poller)
 class EventBuffer
 {
-  typedef std::vector<epoll_event> Events;
+  using Events = std::vector<epoll_event>;
 
 public:
   EventBuffer(size_t size);

@@ -21,7 +21,7 @@ class Message;
 
 class Logger
 {
-  typedef std::forward_list<Sink_ptr> SinkList;
+  using SinkList = std::forward_list<Sink_ptr>;
   friend Logger& g_logger();
 
 public:

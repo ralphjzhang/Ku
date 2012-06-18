@@ -25,10 +25,10 @@ class Notices : public NoticeBoard
   friend class Poller;
   // NoticeMap is only used when add/remove/modify notice, shouldn't be the bottleneck,
   // consider stable_vector if really necessary
-  typedef std::map<NoticeId, Notice> NoticeMap;
+  using NoticeMap = std::map<NoticeId, Notice>;
 
 public:
-  typedef std::function<bool(std::error_code)> OnError;
+  using OnError = std::function<bool(std::error_code)>;
 
   Notices();
   virtual ~Notices() { }

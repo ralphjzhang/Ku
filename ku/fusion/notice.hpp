@@ -17,7 +17,7 @@
 
 namespace ku { namespace fusion {
 
-typedef uint32_t NoticeId;
+using NoticeId = uint32_t;
 
 // =======================================================================================
 // Notice is the link among handle, events and event handlers.
@@ -35,7 +35,8 @@ class Notice : private util::noncopyable
 public:
   enum EventType : uint8_t { Inbound, Outbound, Edge };
   enum Event : uint8_t { Close, Read, Write, Error };
-  typedef std::function<bool(Event, NoticeId)> EventHandler;
+  using EventHandler = std::function<bool(Event, NoticeId)>;
+
 
   Notice() : raw_handle_(0), id_(0) { } // TODO protected?
   Notice(int raw_handle, EventHandler event_handler)

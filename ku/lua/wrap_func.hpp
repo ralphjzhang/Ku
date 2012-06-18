@@ -28,7 +28,7 @@ struct wrap_func;
 template <typename R, typename... Args, R(&Func)(Args...)>
 struct wrap_func<R(Args...), Func>
 {
-  typedef R(function_type)(Args...);
+  using function_type = R()(Args...);
   static function_type& function()
   { return Func; }
 

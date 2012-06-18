@@ -6,6 +6,7 @@
  ***************************************************************/ 
 #pragma once
 #include <cstddef>
+#include <type_traits>
 #include <initializer_list>
 #include <atomic>
 #include <vector>
@@ -24,10 +25,13 @@ public:
   bool cas(size_t old_value, size_t new_value) { return value_.compare_exchange_strong(old_value, new_value); }
 
 private:
-  std::atomic_size_t value_ __attribute__((aligned(64))); // align to 64 bytes boundry for cache line
-  size_t padding_[7];
+  union {
+    std::aligned_storage<64, 64>::type _; // align to/ocuppy 64 bytes for cache line
+    std::atomic_size_t value_;
+  };
 };
 
+static_assert(std::alignment_of<Sequence>::value == 64, "Sequence not aligned with cache line, may cause false sharing.");
 static_assert(sizeof(Sequence) == 64, "Sequence not padded to cache line, may cause false sharing.");
 
 

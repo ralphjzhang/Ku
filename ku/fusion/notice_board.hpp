@@ -25,7 +25,7 @@ class NoticeBoard
     Update(NoticeId id) : id(id) { } // Remove
     Update(NoticeId id, Notice&& notice) : id(id), notice(std::move(notice)) { } // Add/Modify
   };
-  typedef std::vector<Update> UpdateList;
+  using UpdateList = std::vector<Update>;
 
 public:
   NoticeBoard();

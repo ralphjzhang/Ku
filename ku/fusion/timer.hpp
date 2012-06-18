@@ -19,7 +19,7 @@ struct Timer;
 
 class Timer
 {
-  typedef Handle<ops::Timer> HandleType;
+  using HandleType = Handle<ops::Timer>;
 
 public:
   enum Clock { Monotonic = CLOCK_MONOTONIC, Realtime = CLOCK_REALTIME };

@@ -14,7 +14,7 @@ namespace ku { namespace fusion { namespace tcp {
 template <typename EventHandler>
 class Server
 {
-  typedef ServerConnection<EventHandler> Connection;
+  using Connection = ServerConnection<EventHandler>;
 
 public:
   Server(SocketEndpoint const& local_endpoint)

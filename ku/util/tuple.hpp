@@ -41,13 +41,13 @@ struct make_indices_impl;
 template <size_t N, size_t... Indices, typename Type, typename Types...>
 struct make_indices_impl<N, indices<Indices...>, Type, Types...>
 {
-  typedef typename make_indices_impl<N + 1, indices<Indices..., N>, Types...>::type type;
+  using type = typename make_indices_impl<N + 1, indices<Indices..., N>, Types...>::type;
 };
 
 template <size_t N, size_t...Indices>
 struct make_indices_impl<N, indices<Indices...>>
 {
-  typedef indices<Indices...> type;
+  using type = indices<Indices...>;
 };
 
 } // namespace ku::util::aux
@@ -55,7 +55,7 @@ struct make_indices_impl<N, indices<Indices...>>
 template <size_t N, typename... Types>
 struct make_indices
 {
-  typedef typename aux::make_indices_impl<0, aux::indices<>, Types...>::type type;
+  using type = typename aux::make_indices_impl<0, aux::indices<>, Types...>::type;
 };
 
 } } // namespace ku::util
